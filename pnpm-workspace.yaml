@@ -1,0 +1,9 @@
+packages:
+  - 'main-app'
+  - 'dashboard-app'
+  - 'agent-app'
+  - 'cluster-app'
+  - 'monitor-app'
+  - 'system-app'
+  - 'image-build-app'
+  - 'shared'

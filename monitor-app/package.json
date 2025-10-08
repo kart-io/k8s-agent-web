@@ -1,0 +1,29 @@
+{
+  "name": "monitor-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite --port 3004 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
+    "@k8s-agent/shared": "workspace:*",
+    "ant-design-vue": "^4.0.0",
+    "axios": "^1.5.0",
+    "dayjs": "^1.11.9",
+    "echarts": "^5.4.3",
+    "pinia": "^2.1.6",
+    "vue": "^3.3.4",
+    "vue-echarts": "^6.6.1",
+    "vue-router": "^4.2.4",
+    "vxe-table": "^4.6.0",
+    "vxe-table-plugin-antd": "^4.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.3.4",
+    "sass": "^1.66.1",
+    "vite": "^4.4.9"
+  }
+}
