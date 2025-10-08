@@ -1,0 +1,41 @@
+{
+  "name": "k8s-agent-web",
+  "version": "1.0.0",
+  "description": "K8s Agent 微前端应用",
+  "private": true,
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "install:all": "pnpm install && cd main-app && pnpm install && cd ../dashboard-app && pnpm install && cd ../agent-app && pnpm install && cd ../cluster-app && pnpm install && cd ../monitor-app && pnpm install && cd ../system-app && pnpm install",
+    "dev": "concurrently \"npm:dev:*\" --prefix-colors \"cyan.bold,green.bold,yellow.bold,blue.bold,magenta.bold,red.bold\"",
+    "dev:main": "cd main-app && pnpm dev",
+    "dev:dashboard": "cd dashboard-app && pnpm dev",
+    "dev:agent": "cd agent-app && pnpm dev",
+    "dev:cluster": "cd cluster-app && pnpm dev",
+    "dev:monitor": "cd monitor-app && pnpm dev",
+    "dev:system": "cd system-app && pnpm dev",
+    "dev:image-build": "cd image-build-app && pnpm dev",
+    "build": "npm run build:main && npm run build:dashboard && npm run build:agent && npm run build:cluster && npm run build:monitor && npm run build:system && npm run build:image-build",
+    "build:main": "cd main-app && pnpm build",
+    "build:dashboard": "cd dashboard-app && pnpm build",
+    "build:agent": "cd agent-app && pnpm build",
+    "build:cluster": "cd cluster-app && pnpm build",
+    "build:monitor": "cd monitor-app && pnpm build",
+    "build:system": "cd system-app && pnpm build",
+    "build:image-build": "cd image-build-app && pnpm build",
+    "clean": "rm -rf */node_modules */dist */.vite",
+    "lint": "npm run lint:main && npm run lint:dashboard && npm run lint:agent && npm run lint:cluster && npm run lint:monitor && npm run lint:system",
+    "lint:main": "cd main-app && pnpm lint",
+    "lint:dashboard": "cd dashboard-app && pnpm lint",
+    "lint:agent": "cd agent-app && pnpm lint",
+    "lint:cluster": "cd cluster-app && pnpm lint",
+    "lint:monitor": "cd monitor-app && pnpm lint",
+    "lint:system": "cd system-app && pnpm lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
