@@ -79,7 +79,7 @@ const gridOptions = {
   columns: [
     { field: 'id', title: 'ID', width: 80 },
     { field: 'repository', title: '镜像仓库:标签', width: 300, slots: { default: 'repository' } },
-    { field: 'digest', title: 'Digest', showOverflow: 'tooltip' },
+    { field: 'digest', title: 'Digest', showOverflow: 'title' },
     { field: 'size', title: '大小', width: 120, slots: { default: 'size' } },
     { field: 'createdAt', title: '创建时间', width: 180, slots: { default: 'createdAt' } },
     { field: 'action', title: '操作', width: 220, fixed: 'right', slots: { default: 'action' } }

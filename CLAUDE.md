@@ -160,9 +160,47 @@ k8s-agent-web/
   ```
 
 **Shared Library** (`@k8s-agent/shared`):
-- pnpm workspace package
+- pnpm workspace package at `shared/`
 - Imported via `@k8s-agent/shared` in other apps
 - Contains reusable components, composables, utils, and configs
+- Key components:
+  - `VbenLayout` - Main layout with sidebar, header, tabs
+  - `VxeBasicTable` - Enhanced table component based on VXE Table
+  - Other shared UI components
+
+### Dynamic Route System (CRITICAL)
+
+The application uses a **dual routing system**:
+
+1. **Static Routes** (`main-app/src/router/index.js`):
+   - Base routes: Login, MainLayout
+   - Catch-all micro-app routes with `:pathMatch(.*)* ` wildcards
+   - These are always registered
+
+2. **Dynamic Routes** (`main-app/src/router/dynamic.js`):
+   - Generated from backend menu API after login
+   - Registered as children of MainLayout using `router.addRoute()`
+   - Must use `MicroAppContainer` component (imported from `@/views/MicroAppContainer.vue`)
+
+**CRITICAL BUG FIXED (2025-10-08)**: `dynamic.js` was using an empty div placeholder instead of the real `MicroAppContainer` component, causing blank pages when directly navigating to child routes like `/system/users`. The fix:
+
+```javascript
+// ❌ WRONG - causes blank pages
+const MicroAppPlaceholder = { render: () => h('div') }
+
+// ✅ CORRECT - uses real component
+import MicroAppContainer from '@/views/MicroAppContainer.vue'
+const MicroAppPlaceholder = MicroAppContainer
+```
+
+**How it works**:
+- User logs in → `userStore.fetchMenus()` → `registerRoutes()`
+- Routes are registered dynamically with `MicroAppPlaceholder` component
+- Component must be the real `MicroAppContainer` to load Wujie micro-apps
+- Menu structure includes `component: 'MicroAppPlaceholder'` for micro-app pages
+- Parent routes with children use `component: 'SubMenu'` (no component needed)
+
+See `main-app/DYNAMIC_ROUTES.md` for detailed documentation.
 
 ### Key Architecture Patterns
 
@@ -221,40 +259,54 @@ The `MicroAppContainer.vue` component:
 
 #### 4. Mock Data System
 
-**Development Mode**: All apps use mock data via MSW (Mock Service Worker)
+**Main App Mock System** (`main-app/src/mock/index.js`):
+- Simple mock implementation without MSW
+- Controlled by `.env` variable: `VITE_USE_MOCK=true`
+- Mock API functions: `login()`, `getUserMenus()`, `getUserInfo()`
+- Test accounts:
+  - **admin/admin123** - Full access (all menus)
+  - **user/user123** - Limited access (dashboard + agents)
+  - **guest/guest123** - No menu access
+- Simulates API delays (configurable via `VITE_MOCK_DELAY`)
 
-Each app has:
-- `src/mocks/handlers.js` - MSW request handlers
-- `src/mocks/data/` - Mock data organized by feature
-- `src/mocks/browser.js` - MSW browser setup
-
-Mock data is automatically enabled in development mode.
+**Micro-Apps**: Can implement their own mock systems as needed (MSW or similar)
 
 #### 5. Shared Component Library
 
 **Package**: `@k8s-agent/shared`
 
-**Components**:
-- `PageHeader.vue` - Standard page header with breadcrumbs
-- `SearchForm.vue` - Reusable search form component
-- `DataTable.vue` - Enhanced table with pagination
-- `ActionButtons.vue` - Standard action button group
+**Key Components**:
 
-**Composables**:
-- `usePagination.js` - Pagination logic
-- `useTable.js` - Table state management
-- `useSearch.js` - Search form logic
+1. **VbenLayout** - Complete layout system with sidebar, header, multi-tab navigation
+2. **VxeBasicTable** - Enhanced table wrapper around VXE Table:
+   - Built-in pagination, loading states, error handling
+   - Automatic data loading via `api` prop
+   - `immediate` prop controls initial load (default: true)
+   - Expose methods: `reload()`, `query()`, `refresh()`
+   - Use `@register` event to get table API reference
+   - Supports custom column slots for rendering
 
-**Utils**:
-- `request.js` - Axios wrapper with interceptors
-- `auth.js` - Authentication helpers
-- Date, format, and validation utilities
+**Usage Example**:
+```vue
+<VxeBasicTable
+  :api="loadDataApi"
+  :grid-options="{ columns: [...] }"
+  @register="api => tableApi = api"
+>
+  <template #action="{ row }">
+    <a-button @click="edit(row)">Edit</a-button>
+  </template>
+</VxeBasicTable>
+```
+
+**Other Shared Resources**:
+- Composables: `usePagination`, `useTable`, `useSearch`
+- Utils: `request` (Axios wrapper), `auth`, date/format utilities
 
 **Import pattern**:
 ```javascript
-import { PageHeader, SearchForm } from '@k8s-agent/shared/components'
+import { VbenLayout, VxeBasicTable } from '@k8s-agent/shared/components'
 import { usePagination } from '@k8s-agent/shared/composables'
-import { formatDate } from '@k8s-agent/shared/utils'
 ```
 
 ## Common Development Tasks
@@ -319,7 +371,51 @@ Micro-apps are standard Vue 3 apps - just add routes normally:
 2. Update handlers in `{app}/src/mocks/handlers.js`
 3. MSW automatically intercepts API calls in development mode
 
+## Wujie Communication Between Main App and Micro-Apps
+
+**Route Synchronization**:
+- Main app uses Wujie event bus (`WujieVue.bus`) to notify micro-apps of route changes
+- Event pattern: `${appName}-route-change`, e.g., `system-app-route-change`
+- Micro-apps listen for these events in their `main.js`:
+  ```javascript
+  if (window.$wujie?.bus) {
+    window.$wujie.bus.$on('system-app-route-change', (subPath) => {
+      router.push(subPath)
+    })
+  }
+  ```
+
+**State Passing**:
+- Main app passes props to micro-apps via `MicroAppContainer`:
+  ```javascript
+  const appProps = computed(() => ({
+    userInfo: userStore.userInfo,
+    token: userStore.token,
+    permissions: userStore.permissions
+  }))
+  ```
+- Micro-apps receive these via `window.$wujie.props`
+
+**Lifecycle**:
+- `@activated` - Fired when micro-app becomes visible (keep-alive mode)
+- `@deactivated` - Fired when micro-app is hidden
+- Main app syncs route to micro-app on activation
+
 ## Common Issues & Solutions
+
+### Blank Pages When Navigating to Micro-App Routes
+
+**Symptom**: Navigating to `/system/users`, `/system/roles`, etc. shows blank page, data appears only after refresh
+
+**Cause**: Dynamic routes in `router/dynamic.js` using wrong component (empty div instead of `MicroAppContainer`)
+
+**Solution**: Ensure `router/dynamic.js` imports and uses real `MicroAppContainer`:
+```javascript
+import MicroAppContainer from '@/views/MicroAppContainer.vue'
+const MicroAppPlaceholder = MicroAppContainer
+```
+
+**Fixed**: 2025-10-08
 
 ### HTTP Proxy Blocking Localhost
 
@@ -350,10 +446,17 @@ lsof -ti:3000 | xargs kill -9
 
 **Checklist**:
 1. Check all services are running: `make status`
-2. Verify CORS is enabled in micro-app's `vite.config.js`
+2. Verify CORS is enabled in micro-app's `vite.config.js`:
+   ```javascript
+   server: {
+     cors: true,
+     headers: { 'Access-Control-Allow-Origin': '*' }
+   }
+   ```
 3. Check browser console for errors
 4. Verify route configuration in `main-app/src/router/index.js`
 5. Verify app is registered in `main-app/src/micro/wujie-config.js`
+6. **If using dynamic routes**: Verify `router/dynamic.js` uses real `MicroAppContainer` component
 
 ### TypeScript or Linting Errors
 

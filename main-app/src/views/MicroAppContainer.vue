@@ -57,7 +57,7 @@ const syncRouteToSubApp = (path) => {
   }
 
   // 提取子应用路由路径
-  const basePath = path.split('/')[1] // 例如 'system'
+  const basePath = path.split('/')[1] // 例如 'clusters'
   const subPath = path.replace(`/${basePath}`, '') || '/'
 
   console.log('[MicroAppContainer] Syncing route to sub-app:', appName, 'subPath:', subPath)
@@ -78,19 +78,32 @@ const syncRouteToSubApp = (path) => {
   }
 }
 
+// 用于防止路由循环的标志
+let lastSyncedPath = ''
+
 // 手动同步路由：主应用路由变化时通知子应用
 watch(() => route.path, (newPath) => {
   console.log('[MicroAppContainer] Route changed to:', newPath)
+
+  // 避免重复同步相同的路径
+  if (newPath === lastSyncedPath) {
+    console.log('[MicroAppContainer] Path already synced, skipping')
+    return
+  }
+
+  lastSyncedPath = newPath
   syncRouteToSubApp(newPath)
 }, { immediate: false }) // 改为 false，不立即执行
 
 // 子应用激活时的处理
 const handleActivated = () => {
   console.log('[MicroAppContainer] App activated:', microAppName.value)
-  // 激活时同步路由
+  // 激活时同步路由 - 这是最可靠的时机，因为此时子应用已经完全加载
   setTimeout(() => {
+    lastSyncedPath = '' // 重置同步标志
+    console.log('[MicroAppContainer] Syncing route on activation:', route.path)
     syncRouteToSubApp(route.path)
-  }, 100)
+  }, 150)
 }
 
 // 子应用停用时的处理

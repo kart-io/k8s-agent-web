@@ -86,48 +86,80 @@ const mockData = {
       clusterId: 1,
       clusterName: 'prod-cluster-1',
       name: 'node-master-01',
-      role: 'master',
+      roles: 'control-plane,master',
       status: 'Ready',
+      ready: true,
+      version: 'v1.28.3',
       ip: '10.0.1.10',
-      cpu: { used: 45.2, total: 8 },
-      memory: { used: 12.3, total: 16 },
-      pods: { used: 18, total: 110 }
+      cpuUsage: '3.6',
+      cpuCapacity: '8',
+      cpuUsagePercent: 45,
+      memoryUsage: '12.3Gi',
+      memoryCapacity: '16Gi',
+      memoryUsagePercent: 77,
+      podCount: 18,
+      age: '90d',
+      createdAt: Date.now() - 90 * 24 * 3600 * 1000
     },
     {
       id: 2,
       clusterId: 1,
       clusterName: 'prod-cluster-1',
       name: 'node-worker-01',
-      role: 'worker',
+      roles: 'worker',
       status: 'Ready',
+      ready: true,
+      version: 'v1.28.3',
       ip: '10.0.1.20',
-      cpu: { used: 65.8, total: 8 },
-      memory: { used: 14.2, total: 16 },
-      pods: { used: 24, total: 110 }
+      cpuUsage: '5.3',
+      cpuCapacity: '8',
+      cpuUsagePercent: 66,
+      memoryUsage: '14.2Gi',
+      memoryCapacity: '16Gi',
+      memoryUsagePercent: 89,
+      podCount: 24,
+      age: '90d',
+      createdAt: Date.now() - 90 * 24 * 3600 * 1000
     },
     {
       id: 3,
       clusterId: 1,
       clusterName: 'prod-cluster-1',
       name: 'node-worker-02',
-      role: 'worker',
+      roles: 'worker',
       status: 'Ready',
+      ready: true,
+      version: 'v1.28.3',
       ip: '10.0.1.21',
-      cpu: { used: 52.3, total: 8 },
-      memory: { used: 13.5, total: 16 },
-      pods: { used: 21, total: 110 }
+      cpuUsage: '4.2',
+      cpuCapacity: '8',
+      cpuUsagePercent: 53,
+      memoryUsage: '13.5Gi',
+      memoryCapacity: '16Gi',
+      memoryUsagePercent: 84,
+      podCount: 21,
+      age: '90d',
+      createdAt: Date.now() - 90 * 24 * 3600 * 1000
     },
     {
       id: 4,
       clusterId: 2,
       clusterName: 'prod-cluster-2',
       name: 'node-master-01',
-      role: 'master',
+      roles: 'control-plane,master',
       status: 'Ready',
+      ready: true,
+      version: 'v1.28.3',
       ip: '10.0.2.10',
-      cpu: { used: 38.5, total: 8 },
-      memory: { used: 10.8, total: 16 },
-      pods: { used: 15, total: 110 }
+      cpuUsage: '3.1',
+      cpuCapacity: '8',
+      cpuUsagePercent: 39,
+      memoryUsage: '10.8Gi',
+      memoryCapacity: '16Gi',
+      memoryUsagePercent: 68,
+      podCount: 15,
+      age: '75d',
+      createdAt: Date.now() - 75 * 24 * 3600 * 1000
     }
   ],
 
@@ -165,6 +197,265 @@ const mockData = {
       serviceCount: 18,
       deploymentCount: 12,
       createdAt: Date.now() - 60 * 24 * 3600 * 1000
+    }
+  ],
+
+  // Pods 数据
+  pods: [
+    {
+      id: 1,
+      clusterId: 1,
+      name: 'nginx-deployment-7d8f6c9b5d-x7h9m',
+      namespace: 'default',
+      status: 'Running',
+      readyContainers: 1,
+      totalContainers: 1,
+      restarts: 0,
+      nodeName: 'node-worker-01',
+      podIP: '10.244.1.23',
+      age: '5d',
+      createdAt: Date.now() - 5 * 24 * 3600 * 1000
+    },
+    {
+      id: 2,
+      clusterId: 1,
+      name: 'redis-master-0',
+      namespace: 'default',
+      status: 'Running',
+      readyContainers: 1,
+      totalContainers: 1,
+      restarts: 2,
+      nodeName: 'node-worker-02',
+      podIP: '10.244.2.15',
+      age: '12d',
+      createdAt: Date.now() - 12 * 24 * 3600 * 1000
+    },
+    {
+      id: 3,
+      clusterId: 1,
+      name: 'api-server-6f8c9d5b7c-k4n2p',
+      namespace: 'app',
+      status: 'Running',
+      readyContainers: 2,
+      totalContainers: 2,
+      restarts: 0,
+      nodeName: 'node-worker-01',
+      podIP: '10.244.1.45',
+      age: '3d',
+      createdAt: Date.now() - 3 * 24 * 3600 * 1000
+    },
+    {
+      id: 4,
+      clusterId: 1,
+      name: 'mysql-statefulset-0',
+      namespace: 'app',
+      status: 'Running',
+      readyContainers: 1,
+      totalContainers: 1,
+      restarts: 1,
+      nodeName: 'node-worker-02',
+      podIP: '10.244.2.32',
+      age: '8d',
+      createdAt: Date.now() - 8 * 24 * 3600 * 1000
+    },
+    {
+      id: 5,
+      clusterId: 1,
+      name: 'coredns-5d78c9684d-8xp7m',
+      namespace: 'kube-system',
+      status: 'Running',
+      readyContainers: 1,
+      totalContainers: 1,
+      restarts: 0,
+      nodeName: 'node-master-01',
+      podIP: '10.244.0.12',
+      age: '90d',
+      createdAt: Date.now() - 90 * 24 * 3600 * 1000
+    },
+    {
+      id: 6,
+      clusterId: 1,
+      name: 'metrics-server-7cd5fcb6b7-qn5kt',
+      namespace: 'kube-system',
+      status: 'Running',
+      readyContainers: 1,
+      totalContainers: 1,
+      restarts: 3,
+      nodeName: 'node-master-01',
+      podIP: '10.244.0.18',
+      age: '45d',
+      createdAt: Date.now() - 45 * 24 * 3600 * 1000
+    }
+  ],
+
+  // Deployments 数据
+  deployments: [
+    {
+      id: 1,
+      clusterId: 1,
+      name: 'nginx-deployment',
+      namespace: 'default',
+      replicas: 3,
+      readyReplicas: 3,
+      availableReplicas: 3,
+      updatedReplicas: 3,
+      age: '15d',
+      createdAt: Date.now() - 15 * 24 * 3600 * 1000
+    },
+    {
+      id: 2,
+      clusterId: 1,
+      name: 'redis-deployment',
+      namespace: 'default',
+      replicas: 2,
+      readyReplicas: 2,
+      availableReplicas: 2,
+      updatedReplicas: 2,
+      age: '20d',
+      createdAt: Date.now() - 20 * 24 * 3600 * 1000
+    },
+    {
+      id: 3,
+      clusterId: 1,
+      name: 'api-server',
+      namespace: 'app',
+      replicas: 5,
+      readyReplicas: 5,
+      availableReplicas: 5,
+      updatedReplicas: 5,
+      age: '7d',
+      createdAt: Date.now() - 7 * 24 * 3600 * 1000
+    },
+    {
+      id: 4,
+      clusterId: 1,
+      name: 'frontend',
+      namespace: 'app',
+      replicas: 3,
+      readyReplicas: 2,
+      availableReplicas: 2,
+      updatedReplicas: 3,
+      age: '10d',
+      createdAt: Date.now() - 10 * 24 * 3600 * 1000
+    },
+    {
+      id: 5,
+      clusterId: 1,
+      name: 'coredns',
+      namespace: 'kube-system',
+      replicas: 2,
+      readyReplicas: 2,
+      availableReplicas: 2,
+      updatedReplicas: 2,
+      age: '90d',
+      createdAt: Date.now() - 90 * 24 * 3600 * 1000
+    },
+    {
+      id: 6,
+      clusterId: 1,
+      name: 'metrics-server',
+      namespace: 'kube-system',
+      replicas: 1,
+      readyReplicas: 1,
+      availableReplicas: 1,
+      updatedReplicas: 1,
+      age: '45d',
+      createdAt: Date.now() - 45 * 24 * 3600 * 1000
+    }
+  ],
+
+  // Services 数据
+  services: [
+    {
+      id: 1,
+      clusterId: 1,
+      name: 'kubernetes',
+      namespace: 'default',
+      type: 'ClusterIP',
+      clusterIP: '10.96.0.1',
+      externalIP: null,
+      ports: ['443/TCP'],
+      selector: '<none>',
+      age: '90d',
+      createdAt: Date.now() - 90 * 24 * 3600 * 1000
+    },
+    {
+      id: 2,
+      clusterId: 1,
+      name: 'nginx-service',
+      namespace: 'default',
+      type: 'LoadBalancer',
+      clusterIP: '10.96.45.123',
+      externalIP: '34.123.45.67',
+      ports: ['80/TCP', '443/TCP'],
+      selector: 'app=nginx',
+      age: '15d',
+      createdAt: Date.now() - 15 * 24 * 3600 * 1000
+    },
+    {
+      id: 3,
+      clusterId: 1,
+      name: 'redis-service',
+      namespace: 'default',
+      type: 'ClusterIP',
+      clusterIP: '10.96.67.89',
+      externalIP: null,
+      ports: ['6379/TCP'],
+      selector: 'app=redis',
+      age: '20d',
+      createdAt: Date.now() - 20 * 24 * 3600 * 1000
+    },
+    {
+      id: 4,
+      clusterId: 1,
+      name: 'api-service',
+      namespace: 'app',
+      type: 'NodePort',
+      clusterIP: '10.96.123.45',
+      externalIP: null,
+      ports: ['8080:30080/TCP'],
+      selector: 'app=api-server',
+      age: '7d',
+      createdAt: Date.now() - 7 * 24 * 3600 * 1000
+    },
+    {
+      id: 5,
+      clusterId: 1,
+      name: 'mysql-service',
+      namespace: 'app',
+      type: 'ClusterIP',
+      clusterIP: '10.96.234.56',
+      externalIP: null,
+      ports: ['3306/TCP'],
+      selector: 'app=mysql',
+      age: '10d',
+      createdAt: Date.now() - 10 * 24 * 3600 * 1000
+    },
+    {
+      id: 6,
+      clusterId: 1,
+      name: 'kube-dns',
+      namespace: 'kube-system',
+      type: 'ClusterIP',
+      clusterIP: '10.96.0.10',
+      externalIP: null,
+      ports: ['53/UDP', '53/TCP', '9153/TCP'],
+      selector: 'k8s-app=kube-dns',
+      age: '90d',
+      createdAt: Date.now() - 90 * 24 * 3600 * 1000
+    },
+    {
+      id: 7,
+      clusterId: 1,
+      name: 'metrics-server',
+      namespace: 'kube-system',
+      type: 'ClusterIP',
+      clusterIP: '10.96.12.34',
+      externalIP: null,
+      ports: ['443/TCP'],
+      selector: 'k8s-app=metrics-server',
+      age: '45d',
+      createdAt: Date.now() - 45 * 24 * 3600 * 1000
     }
   ]
 }
@@ -209,6 +500,12 @@ export const clusterMockApi = {
 
     return {
       ...cluster,
+      stats: {
+        nodeCount: cluster.nodeCount,
+        podCount: cluster.podCount,
+        serviceCount: mockData.services.filter(s => s.clusterId == id).length,
+        deploymentCount: cluster.namespaceCount * 2 // 简化计算
+      },
       labels: {
         env: cluster.name.includes('prod') ? 'production' : 'development',
         managed: 'true',
@@ -317,6 +614,427 @@ export const clusterMockApi = {
 
     mockData.clusters.splice(index, 1)
     return { message: 'Cluster deleted successfully' }
+  },
+
+  /**
+   * 获取 Pods 列表
+   */
+  async getPods(clusterId, params = {}) {
+    await delay(import.meta.env.VITE_MOCK_DELAY || 300)
+
+    let pods = [...mockData.pods]
+
+    // 按集群过滤
+    if (clusterId) {
+      pods = pods.filter(p => p.clusterId == clusterId)
+    }
+
+    // 按命名空间过滤
+    if (params.namespace) {
+      pods = pods.filter(p => p.namespace === params.namespace)
+    }
+
+    // 按节点名称过滤
+    if (params.nodeName) {
+      pods = pods.filter(p => p.nodeName === params.nodeName)
+    }
+
+    // 搜索
+    if (params.search) {
+      pods = pods.filter(p => p.name.includes(params.search))
+    }
+
+    // 分页
+    const page = params.page || 1
+    const pageSize = params.pageSize || 10
+    const start = (page - 1) * pageSize
+    const end = start + pageSize
+
+    return {
+      data: pods.slice(start, end),
+      items: pods.slice(start, end),
+      total: pods.length
+    }
+  },
+
+  /**
+   * 获取 Services 列表
+   */
+  async getServices(clusterId, params = {}) {
+    await delay(import.meta.env.VITE_MOCK_DELAY || 300)
+
+    let services = [...mockData.services]
+
+    // 按集群过滤
+    if (clusterId) {
+      services = services.filter(s => s.clusterId == clusterId)
+    }
+
+    // 按命名空间过滤
+    if (params.namespace) {
+      services = services.filter(s => s.namespace === params.namespace)
+    }
+
+    // 搜索
+    if (params.search) {
+      services = services.filter(s => s.name.includes(params.search))
+    }
+
+    // 分页
+    const page = params.page || 1
+    const pageSize = params.pageSize || 10
+    const start = (page - 1) * pageSize
+    const end = start + pageSize
+
+    return {
+      data: services.slice(start, end),
+      items: services.slice(start, end),
+      total: services.length
+    }
+  },
+
+  /**
+   * 获取 Deployments 列表
+   */
+  async getDeployments(clusterId, params = {}) {
+    await delay(import.meta.env.VITE_MOCK_DELAY || 300)
+
+    let deployments = [...mockData.deployments]
+
+    // 按集群过滤
+    if (clusterId) {
+      deployments = deployments.filter(d => d.clusterId == clusterId)
+    }
+
+    // 按命名空间过滤
+    if (params.namespace) {
+      deployments = deployments.filter(d => d.namespace === params.namespace)
+    }
+
+    // 搜索
+    if (params.search) {
+      deployments = deployments.filter(d => d.name.includes(params.search))
+    }
+
+    // 分页
+    const page = params.page || 1
+    const pageSize = params.pageSize || 10
+    const start = (page - 1) * pageSize
+    const end = start + pageSize
+
+    return {
+      data: deployments.slice(start, end),
+      items: deployments.slice(start, end),
+      total: deployments.length
+    }
+  },
+
+  // 获取 Pod 容器列表
+  async getPodContainers({ clusterId, namespace, podName }) {
+    await delay(import.meta.env.VITE_MOCK_DELAY || 300)
+
+    // 根据 Pod 名称返回不同的容器配置
+    const containers = [
+      {
+        name: 'app',
+        image: 'nginx:1.21',
+        ready: true,
+        restartCount: 0,
+        state: 'running'
+      }
+    ]
+
+    // 某些 Pod 有多个容器
+    if (podName.includes('multi') || podName.includes('sidecar')) {
+      containers.push({
+        name: 'sidecar',
+        image: 'busybox:latest',
+        ready: true,
+        restartCount: 0,
+        state: 'running'
+      })
+    }
+
+    return {
+      data: containers,
+      items: containers
+    }
+  },
+
+  // 获取 Pod 日志
+  async getPodLogs({ clusterId, namespace, podName, container, tail = 100, follow = false }) {
+    await delay(import.meta.env.VITE_MOCK_DELAY || 300)
+
+    // 生成模拟日志
+    const generateLogLines = (count) => {
+      const logLevels = ['INFO', 'DEBUG', 'WARN', 'ERROR']
+      const messages = [
+        'Application started successfully',
+        'Connected to database',
+        'Processing request',
+        'Query executed in 45ms',
+        'Cache hit ratio: 85%',
+        'HTTP GET /api/users 200 OK',
+        'Background job completed',
+        'Scheduled task started',
+        'Memory usage: 256MB',
+        'CPU usage: 15%'
+      ]
+
+      const logs = []
+      const now = Date.now()
+
+      for (let i = 0; i < count; i++) {
+        const timestamp = new Date(now - (count - i) * 1000).toISOString()
+        const level = logLevels[Math.floor(Math.random() * logLevels.length)]
+        const message = messages[Math.floor(Math.random() * messages.length)]
+        logs.push(`${timestamp} [${level}] ${message}`)
+      }
+
+      return logs
+    }
+
+    const logs = generateLogLines(tail || 100)
+
+    return {
+      data: {
+        logs: logs.join('\n'),
+        lines: logs
+      }
+    }
+  },
+
+  // 获取 Pod 详情
+  async getPodDetail({ clusterId, namespace, podName }) {
+    await delay(import.meta.env.VITE_MOCK_DELAY || 300)
+
+    const now = Date.now()
+    const createdAt = now - 7 * 24 * 3600 * 1000 // 7天前
+
+    return {
+      data: {
+        name: podName,
+        namespace: namespace,
+        status: 'Running',
+        podIP: '10.244.1.23',
+        hostIP: '192.168.1.10',
+        nodeName: 'node-worker-01',
+        qosClass: 'Burstable',
+        restartPolicy: 'Always',
+        serviceAccountName: 'default',
+        priority: 0,
+        createdAt: createdAt,
+        age: '7d',
+        labels: {
+          'app': 'nginx',
+          'version': 'v1.21',
+          'env': 'production',
+          'team': 'platform'
+        },
+        annotations: {
+          'kubectl.kubernetes.io/last-applied-configuration': '{"apiVersion":"v1","kind":"Pod",...}',
+          'prometheus.io/scrape': 'true',
+          'prometheus.io/port': '9090'
+        },
+        containers: [
+          {
+            name: 'app',
+            image: 'nginx:1.21',
+            state: 'running',
+            ready: true,
+            restartCount: 0,
+            resources: {
+              requests: {
+                cpu: '100m',
+                memory: '128Mi'
+              },
+              limits: {
+                cpu: '500m',
+                memory: '512Mi'
+              }
+            }
+          },
+          {
+            name: 'sidecar',
+            image: 'busybox:latest',
+            state: 'running',
+            ready: true,
+            restartCount: 0,
+            resources: {
+              requests: {
+                cpu: '50m',
+                memory: '64Mi'
+              },
+              limits: {
+                cpu: '100m',
+                memory: '128Mi'
+              }
+            }
+          }
+        ],
+        cpuUsage: 85,
+        cpuUsagePercent: 17,
+        cpuRequest: '150m',
+        cpuLimit: '600m',
+        memoryUsage: 256,
+        memoryUsagePercent: 40,
+        memoryRequest: '192Mi',
+        memoryLimit: '640Mi',
+        volumes: [
+          {
+            name: 'config-volume',
+            type: 'ConfigMap',
+            mountPath: '/etc/config',
+            readOnly: true
+          },
+          {
+            name: 'data-volume',
+            type: 'PersistentVolumeClaim',
+            mountPath: '/data',
+            readOnly: false
+          },
+          {
+            name: 'secret-volume',
+            type: 'Secret',
+            mountPath: '/etc/secrets',
+            readOnly: true
+          }
+        ],
+        conditions: [
+          {
+            type: 'Initialized',
+            status: 'True',
+            reason: 'PodInitialized',
+            message: 'All init containers have completed successfully',
+            lastTransitionTime: createdAt
+          },
+          {
+            type: 'Ready',
+            status: 'True',
+            reason: 'ContainersReady',
+            message: 'All containers are ready',
+            lastTransitionTime: createdAt + 30000
+          },
+          {
+            type: 'ContainersReady',
+            status: 'True',
+            reason: 'ContainersReady',
+            message: 'All containers are ready',
+            lastTransitionTime: createdAt + 30000
+          },
+          {
+            type: 'PodScheduled',
+            status: 'True',
+            reason: 'PodScheduled',
+            message: 'Successfully assigned to node-worker-01',
+            lastTransitionTime: createdAt
+          }
+        ],
+        events: [
+          {
+            id: 1,
+            type: 'Normal',
+            reason: 'Scheduled',
+            message: 'Successfully assigned default/nginx-deployment-7d9c8f5b6d-abc12 to node-worker-01',
+            timestamp: createdAt
+          },
+          {
+            id: 2,
+            type: 'Normal',
+            reason: 'Pulling',
+            message: 'Pulling image "nginx:1.21"',
+            timestamp: createdAt + 5000
+          },
+          {
+            id: 3,
+            type: 'Normal',
+            reason: 'Pulled',
+            message: 'Successfully pulled image "nginx:1.21" in 15.234s',
+            timestamp: createdAt + 20000
+          },
+          {
+            id: 4,
+            type: 'Normal',
+            reason: 'Created',
+            message: 'Created container app',
+            timestamp: createdAt + 22000
+          },
+          {
+            id: 5,
+            type: 'Normal',
+            reason: 'Started',
+            message: 'Started container app',
+            timestamp: createdAt + 25000
+          }
+        ],
+        yaml: `apiVersion: v1
+kind: Pod
+metadata:
+  name: ${podName}
+  namespace: ${namespace}
+  labels:
+    app: nginx
+    version: v1.21
+    env: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  containers:
+  - name: app
+    image: nginx:1.21
+    ports:
+    - containerPort: 80
+      protocol: TCP
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    volumeMounts:
+    - name: config-volume
+      mountPath: /etc/config
+      readOnly: true
+  - name: sidecar
+    image: busybox:latest
+    command: ['sh', '-c', 'tail -f /dev/null']
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+  volumes:
+  - name: config-volume
+    configMap:
+      name: app-config
+  restartPolicy: Always
+  serviceAccountName: default
+  nodeName: node-worker-01
+status:
+  phase: Running
+  podIP: 10.244.1.23
+  hostIP: 192.168.1.10
+  conditions:
+  - type: Ready
+    status: "True"
+    lastTransitionTime: "${new Date(createdAt + 30000).toISOString()}"
+  - type: ContainersReady
+    status: "True"
+    lastTransitionTime: "${new Date(createdAt + 30000).toISOString()}"
+  containerStatuses:
+  - name: app
+    ready: true
+    restartCount: 0
+    state:
+      running:
+        startedAt: "${new Date(createdAt + 25000).toISOString()}"
+`
+      }
+    }
   }
 }
 

@@ -33,6 +33,7 @@ app.use(VXETable)
 
 // 在 Wujie 环境中监听主应用的路由变化
 if (isWujie) {
+  console.log('[System App] ==================== WUJIE INITIALIZATION ====================')
   console.log('[System App] Running in Wujie environment')
   console.log('[System App] window.$wujie:', window.$wujie)
   console.log('[System App] window.$wujie.bus:', window.$wujie?.bus)
@@ -86,4 +87,8 @@ function getRouteTitle(route) {
 }
 
 // 始终挂载到 #system-app（Wujie 会加载完整的 HTML）
+console.log('[System App] Mounting app to #system-app')
 app.mount('#system-app')
+console.log('[System App] ==================== APP MOUNTED ====================')
+console.log('[System App] Current route:', router.currentRoute.value.path)
+console.log('[System App] Current route name:', router.currentRoute.value.name)

@@ -85,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import { getRoles, createRole, updateRole, deleteRole } from '@/api/system'
@@ -118,7 +118,7 @@ const gridOptions = {
       minWidth: 200,
       slots: { default: 'permissions' }
     },
-    { field: 'description', title: '描述', minWidth: 150, showOverflow: 'tooltip' },
+    { field: 'description', title: '描述', minWidth: 150, showOverflow: 'title' },
     {
       title: '操作',
       width: 150,
@@ -153,6 +153,7 @@ const loadRolesApi = async (params) => {
 }
 
 const onTableRegister = (api) => {
+  console.log('[RoleList] Table registered, API:', api)
   tableApi = api
 }
 
@@ -213,6 +214,31 @@ const handleDelete = async (record) => {
     message.error('删除失败')
   }
 }
+
+// 组件挂载后确保数据加载
+// 修复在 Wujie 微前端环境中直接导航到页面时数据不加载的问题
+onMounted(() => {
+  console.log('[RoleList] Component mounted')
+  // 延迟一小段时间，确保 VxeBasicTable 已经完成注册和首次加载
+  nextTick(() => {
+    setTimeout(() => {
+      console.log('[RoleList] Checking if need to reload data, tableApi exists:', !!tableApi)
+      // 如果表格 API 已注册但数据为空，则手动加载数据
+      // 这是针对首次进入页面时 VxeBasicTable 的 immediate 加载可能失败的补救措施
+      if (tableApi && tableRef.value) {
+        const gridRef = tableRef.value.gridRef
+        console.log('[RoleList] Current table data length:', gridRef?.tableData?.length || 0)
+        // 如果表格数据为空，手动触发加载
+        if (!gridRef?.tableData || gridRef.tableData.length === 0) {
+          console.log('[RoleList] Table data is empty, manually triggering reload')
+          tableApi.reload()
+        } else {
+          console.log('[RoleList] Table data already loaded, no need to reload')
+        }
+      }
+    }, 300)
+  })
+})
 </script>
 
 <style scoped lang="scss">
