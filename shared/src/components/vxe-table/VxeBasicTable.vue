@@ -166,20 +166,29 @@ const columns = computed(() => {
 const tableOptions = computed(() => {
   const { columns: _, ...options } = props.gridOptions || {}
   return {
-    border: true,
-    showOverflow: 'title',
-    showHeaderOverflow: 'title',
+    border: 'inner',
+    round: true,
+    showOverflow: 'tooltip',
+    showHeaderOverflow: 'tooltip',
     stripe: true,
+    align: 'left',
+    headerAlign: 'left',
+    highlightHoverRow: true,
     rowConfig: {
-      isHover: true
+      isHover: true,
+      isCurrent: false,
+      height: 54
     },
     columnConfig: {
-      resizable: true
+      resizable: true,
+      minWidth: 100
     },
     autoResize: true,
     scrollY: {
-      enabled: true
+      enabled: true,
+      gt: 20
     },
+    emptyText: '暂无数据',
     ...options
   }
 })
@@ -285,6 +294,8 @@ defineExpose({
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: #fff;
+  border-radius: 2px;
 
   &.is-full-screen {
     position: fixed;
@@ -301,8 +312,8 @@ defineExpose({
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px;
-    margin-bottom: 16px;
+    padding: 16px 20px;
+    background: #fafafa;
     border-bottom: 1px solid #f0f0f0;
     flex-shrink: 0;
 
@@ -311,7 +322,7 @@ defineExpose({
 
       .title-text {
         font-size: 16px;
-        font-weight: 500;
+        font-weight: 600;
         color: rgba(0, 0, 0, 0.85);
       }
     }
@@ -328,6 +339,7 @@ defineExpose({
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    padding: 16px;
   }
 
   .vxe-table-main {
@@ -347,9 +359,118 @@ defineExpose({
   .vxe-custom-pager {
     display: flex;
     justify-content: flex-end;
-    padding: 16px 0;
-    margin-top: 16px;
+    padding: 16px 0 0 0;
     flex-shrink: 0;
+  }
+
+  // VXE Table 样式优化
+  :deep(.vxe-table) {
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background: #fff;
+
+    // 表头样式
+    .vxe-table--header-wrapper {
+      background: #fafafa;
+
+      .vxe-header--row {
+        .vxe-header--column {
+          background: #fafafa !important;
+          font-weight: 600;
+          color: rgba(0, 0, 0, 0.85);
+          font-size: 14px;
+          border-bottom: 1px solid #f0f0f0;
+
+          .vxe-cell {
+            padding: 14px 16px;
+            line-height: 1.5715;
+          }
+        }
+      }
+    }
+
+    // 表体样式
+    .vxe-table--body-wrapper {
+      background: #fff;
+
+      .vxe-body--row {
+        background: #fff !important;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: #fafafa !important;
+        }
+
+        &.row--stripe {
+          background-color: #fff !important;
+
+          &:hover {
+            background-color: #fafafa !important;
+          }
+        }
+
+        .vxe-body--column {
+          background: #fff !important;
+          color: rgba(0, 0, 0, 0.85);
+          font-size: 14px;
+          border-bottom: 1px solid #f0f0f0;
+
+          .vxe-cell {
+            padding: 14px 16px;
+            line-height: 1.5715;
+          }
+
+          // 序号列特殊样式
+          &.col--seq .vxe-cell {
+            color: rgba(0, 0, 0, 0.45);
+            font-weight: normal;
+          }
+        }
+
+        // 最后一行不显示底部边框
+        &:last-child .vxe-body--column {
+          border-bottom: none;
+        }
+      }
+    }
+
+    // 边框样式
+    &.border--inner,
+    &.border--default {
+      border: 1px solid #f0f0f0;
+
+      .vxe-table--header-wrapper,
+      .vxe-table--body-wrapper,
+      .vxe-table--footer-wrapper {
+        .vxe-header--column,
+        .vxe-body--column,
+        .vxe-footer--column {
+          border-right: 1px solid #f0f0f0;
+
+          &:last-child {
+            border-right: none;
+          }
+        }
+      }
+    }
+
+    // 空数据样式
+    .vxe-table--empty-block {
+      padding: 80px 0;
+
+      .vxe-table--empty-content {
+        color: rgba(0, 0, 0, 0.25);
+        font-size: 14px;
+      }
+    }
+
+    // Loading 样式
+    .vxe-table--loading {
+      .vxe-table--spinner {
+        background: rgba(255, 255, 255, 0.9);
+      }
+    }
   }
 }
 </style>

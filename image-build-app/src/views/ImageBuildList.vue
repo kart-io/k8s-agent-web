@@ -21,6 +21,16 @@
             <a-select-option value="success">成功</a-select-option>
             <a-select-option value="failed">失败</a-select-option>
           </a-select>
+          <a-popconfirm
+            v-if="selectedRowKeys.length > 0"
+            :title="`确定要删除选中的 ${selectedRowKeys.length} 个构建记录吗？`"
+            @confirm="handleBatchDelete"
+          >
+            <a-button type="primary" danger>
+              <template #icon><DeleteOutlined /></template>
+              批量删除 ({{ selectedRowKeys.length }})
+            </a-button>
+          </a-popconfirm>
           <a-button type="primary" @click="showAddModal">
             <template #icon><PlusOutlined /></template>
             新建构建
@@ -37,6 +47,8 @@
         :data-source="builds"
         :loading="loading"
         :pagination="pagination"
+        :row-selection="rowSelection"
+        :row-key="record => record.id"
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
@@ -131,10 +143,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, ReloadOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import { getImageBuilds, createImageBuild, deleteImageBuild, rebuildImage } from '@/api/image-build'
 import dayjs from 'dayjs'
 
@@ -145,6 +157,16 @@ const builds = ref([])
 const modalVisible = ref(false)
 const searchText = ref('')
 const statusFilter = ref(undefined)
+const selectedRowKeys = ref([])
+
+// 行选择配置
+const rowSelection = computed(() => ({
+  selectedRowKeys: selectedRowKeys.value,
+  onChange: (keys) => {
+    selectedRowKeys.value = keys
+  },
+  columnWidth: 60
+}))
 
 const buildForm = reactive({
   name: '',
@@ -338,6 +360,18 @@ const handleDelete = async (record) => {
     loadBuilds()
   } catch (error) {
     message.error('删除失败')
+  }
+}
+
+const handleBatchDelete = async () => {
+  try {
+    // 批量删除所有选中的记录
+    await Promise.all(selectedRowKeys.value.map(id => deleteImageBuild(id)))
+    message.success(`成功删除 ${selectedRowKeys.value.length} 条记录`)
+    selectedRowKeys.value = []
+    loadBuilds()
+  } catch (error) {
+    message.error('批量删除失败')
   }
 }
 
