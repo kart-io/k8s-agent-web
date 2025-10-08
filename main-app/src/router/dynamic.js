@@ -3,9 +3,10 @@
  * 根据接口返回的菜单数据动态生成和注册路由
  */
 import { h } from 'vue'
+import MicroAppContainer from '@/views/MicroAppContainer.vue'
 
-// 微前端占位组件 - 不渲染任何内容，由 qiankun 接管
-const MicroAppPlaceholder = { render: () => h('div') }
+// 微前端占位组件 - 使用真实的 MicroAppContainer 组件
+const MicroAppPlaceholder = MicroAppContainer
 
 // 组件映射表
 const componentMap = {

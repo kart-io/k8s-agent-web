@@ -60,7 +60,10 @@ export function deleteCluster(id) {
 }
 
 export function getPods(clusterId, params) {
-  // Mock 暂不支持，返回真实接口
+  if (isMockEnabled()) {
+    return mockApi.getPods(clusterId, params)
+  }
+
   return request({
     url: `/clusters/${clusterId}/pods`,
     method: 'get',
@@ -69,7 +72,10 @@ export function getPods(clusterId, params) {
 }
 
 export function getServices(clusterId, params) {
-  // Mock 暂不支持，返回真实接口
+  if (isMockEnabled()) {
+    return mockApi.getServices(clusterId, params)
+  }
+
   return request({
     url: `/clusters/${clusterId}/services`,
     method: 'get',
@@ -78,7 +84,10 @@ export function getServices(clusterId, params) {
 }
 
 export function getDeployments(clusterId, params) {
-  // Mock 暂不支持，返回真实接口
+  if (isMockEnabled()) {
+    return mockApi.getDeployments(clusterId, params)
+  }
+
   return request({
     url: `/clusters/${clusterId}/deployments`,
     method: 'get',
@@ -93,6 +102,52 @@ export function getNamespaces(clusterId) {
 
   return request({
     url: `/clusters/${clusterId}/namespaces`,
+    method: 'get'
+  })
+}
+
+export function getNodes(clusterId, params) {
+  if (isMockEnabled()) {
+    return mockApi.getNodes({ clusterId, ...params })
+  }
+
+  return request({
+    url: `/clusters/${clusterId}/nodes`,
+    method: 'get',
+    params
+  })
+}
+
+export function getPodLogs(clusterId, namespace, podName, params) {
+  if (isMockEnabled()) {
+    return mockApi.getPodLogs({ clusterId, namespace, podName, ...params })
+  }
+
+  return request({
+    url: `/clusters/${clusterId}/namespaces/${namespace}/pods/${podName}/logs`,
+    method: 'get',
+    params
+  })
+}
+
+export function getPodContainers(clusterId, namespace, podName) {
+  if (isMockEnabled()) {
+    return mockApi.getPodContainers({ clusterId, namespace, podName })
+  }
+
+  return request({
+    url: `/clusters/${clusterId}/namespaces/${namespace}/pods/${podName}/containers`,
+    method: 'get'
+  })
+}
+
+export function getPodDetail(clusterId, namespace, podName) {
+  if (isMockEnabled()) {
+    return mockApi.getPodDetail({ clusterId, namespace, podName })
+  }
+
+  return request({
+    url: `/clusters/${clusterId}/namespaces/${namespace}/pods/${podName}`,
     method: 'get'
   })
 }

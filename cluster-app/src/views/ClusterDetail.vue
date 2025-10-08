@@ -33,6 +33,61 @@
       </a-descriptions>
     </a-page-header>
 
+    <!-- 资源快捷入口 -->
+    <a-card title="集群资源" style="margin-top: 24px">
+      <a-row :gutter="16">
+        <a-col :span="6">
+          <a-card hoverable @click="handleNavigateToNodes">
+            <a-statistic
+              title="节点"
+              :value="clusterStats?.nodeCount || 0"
+              prefix-icon="cluster"
+            >
+              <template #prefix>
+                <ClusterOutlined style="color: #1890ff" />
+              </template>
+            </a-statistic>
+          </a-card>
+        </a-col>
+        <a-col :span="6">
+          <a-card hoverable @click="handleNavigateToPods">
+            <a-statistic
+              title="Pods"
+              :value="clusterStats?.podCount || 0"
+            >
+              <template #prefix>
+                <AppstoreOutlined style="color: #52c41a" />
+              </template>
+            </a-statistic>
+          </a-card>
+        </a-col>
+        <a-col :span="6">
+          <a-card hoverable @click="handleNavigateToServices">
+            <a-statistic
+              title="Services"
+              :value="clusterStats?.serviceCount || 0"
+            >
+              <template #prefix>
+                <ApiOutlined style="color: #faad14" />
+              </template>
+            </a-statistic>
+          </a-card>
+        </a-col>
+        <a-col :span="6">
+          <a-card hoverable>
+            <a-statistic
+              title="Deployments"
+              :value="clusterStats?.deploymentCount || 0"
+            >
+              <template #prefix>
+                <RocketOutlined style="color: #722ed1" />
+              </template>
+            </a-statistic>
+          </a-card>
+        </a-col>
+      </a-row>
+    </a-card>
+
     <a-tabs v-model:activeKey="activeTab" style="margin-top: 24px">
       <a-tab-pane key="pods" tab="Pods">
         <a-table
@@ -88,7 +143,13 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { ReloadOutlined } from '@ant-design/icons-vue'
+import {
+  ReloadOutlined,
+  ClusterOutlined,
+  AppstoreOutlined,
+  ApiOutlined,
+  RocketOutlined
+} from '@ant-design/icons-vue'
 import {
   getClusterDetail,
   getPods,
@@ -101,6 +162,12 @@ const route = useRoute()
 
 const cluster = ref(null)
 const activeTab = ref('pods')
+const clusterStats = ref({
+  nodeCount: 0,
+  podCount: 0,
+  serviceCount: 0,
+  deploymentCount: 0
+})
 
 const pods = ref([])
 const podsLoading = ref(false)
@@ -152,9 +219,25 @@ const loadClusterDetail = async () => {
   try {
     const res = await getClusterDetail(route.params.id)
     cluster.value = res
+    // 更新统计数据
+    if (res.stats) {
+      clusterStats.value = res.stats
+    }
   } catch (error) {
     message.error('加载集群详情失败')
   }
+}
+
+const handleNavigateToNodes = () => {
+  router.push(`/${route.params.id}/nodes`)
+}
+
+const handleNavigateToPods = () => {
+  router.push(`/${route.params.id}/pods`)
+}
+
+const handleNavigateToServices = () => {
+  router.push(`/${route.params.id}/services`)
 }
 
 const loadPods = async () => {

@@ -194,6 +194,9 @@ onMounted(() => {
   }
 })
 
+// 用于防止路由循环的标志
+let isUpdatingFromSubApp = false
+
 // 处理子应用页面变化
 const handleSubAppPageChange = (pageInfo) => {
   console.log('[VbenLayout] Received sub-app page change:', pageInfo)
@@ -201,9 +204,21 @@ const handleSubAppPageChange = (pageInfo) => {
   // 存储子应用页面信息
   subAppPageInfo.value[pageInfo.path] = pageInfo
 
-  // 如果当前路由匹配这个页面，查找并更新已有的 tab
-  if (route.path === pageInfo.path && props.showTabs) {
-    console.log('[VbenLayout] Current route matches, looking for existing tab to update')
+  // 同步更新主应用的 URL（如果与当前路由不同）
+  if (route.path !== pageInfo.path) {
+    console.log('[VbenLayout] Updating main app URL from:', route.path, 'to:', pageInfo.path)
+    isUpdatingFromSubApp = true
+    router.replace(pageInfo.path).then(() => {
+      // 延迟重置标志，确保路由变化已完成
+      setTimeout(() => {
+        isUpdatingFromSubApp = false
+      }, 100)
+    })
+  }
+
+  // 如果需要显示 tabs，查找并更新已有的 tab
+  if (props.showTabs) {
+    console.log('[VbenLayout] Looking for existing tab to update')
 
     // 查找是否已经有这个页面的 tab（可能使用了 route.name 作为 key）
     const existingTabByRouteName = tabs.value.find(t => t.key === route.name)

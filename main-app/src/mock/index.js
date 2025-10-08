@@ -106,7 +106,9 @@ const mockData = {
               component: 'MicroAppPlaceholder',
               meta: {
                 requiresAuth: true,
-                title: '用户管理'
+                title: '用户管理',
+                icon: 'UserOutlined',
+                microApp: 'system-app'
               }
             },
             {
@@ -118,7 +120,9 @@ const mockData = {
               component: 'MicroAppPlaceholder',
               meta: {
                 requiresAuth: true,
-                title: '角色管理'
+                title: '角色管理',
+                icon: 'TeamOutlined',
+                microApp: 'system-app'
               }
             },
             {
@@ -130,7 +134,9 @@ const mockData = {
               component: 'MicroAppPlaceholder',
               meta: {
                 requiresAuth: true,
-                title: '权限管理'
+                title: '权限管理',
+                icon: 'SafetyOutlined',
+                microApp: 'system-app'
               }
             }
           ]

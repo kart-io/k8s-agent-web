@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import {
@@ -126,7 +126,7 @@ const gridOptions = {
       slots: { default: 'resource' }
     },
     { field: 'actionType', title: '操作类型', width: 120 },
-    { field: 'description', title: '描述', minWidth: 150, showOverflow: 'tooltip' },
+    { field: 'description', title: '描述', minWidth: 150, showOverflow: 'title' },
     {
       title: '操作',
       width: 150,
@@ -223,6 +223,26 @@ const handleDelete = async (record) => {
     message.error('删除失败')
   }
 }
+
+// 组件挂载后确保数据加载
+onMounted(() => {
+  console.log('[PermissionList] Component mounted')
+  nextTick(() => {
+    setTimeout(() => {
+      console.log('[PermissionList] Checking if need to reload data, tableApi exists:', !!tableApi)
+      if (tableApi && tableRef.value) {
+        const gridRef = tableRef.value.gridRef
+        console.log('[PermissionList] Current table data length:', gridRef?.tableData?.length || 0)
+        if (!gridRef?.tableData || gridRef.tableData.length === 0) {
+          console.log('[PermissionList] Table data is empty, manually triggering reload')
+          tableApi.reload()
+        } else {
+          console.log('[PermissionList] Table data already loaded, no need to reload')
+        }
+      }
+    }, 300)
+  })
+})
 </script>
 
 <style scoped lang="scss">

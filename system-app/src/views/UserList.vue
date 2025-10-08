@@ -100,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import { getUsers, createUser, updateUser, deleteUser } from '@/api/system'
@@ -267,6 +267,26 @@ const handleDelete = async (record) => {
     message.error('删除失败')
   }
 }
+
+// 组件挂载后确保数据加载
+onMounted(() => {
+  console.log('[UserList] Component mounted')
+  nextTick(() => {
+    setTimeout(() => {
+      console.log('[UserList] Checking if need to reload data, tableApi exists:', !!tableApi)
+      if (tableApi && tableRef.value) {
+        const gridRef = tableRef.value.gridRef
+        console.log('[UserList] Current table data length:', gridRef?.tableData?.length || 0)
+        if (!gridRef?.tableData || gridRef.tableData.length === 0) {
+          console.log('[UserList] Table data is empty, manually triggering reload')
+          tableApi.reload()
+        } else {
+          console.log('[UserList] Table data already loaded, no need to reload')
+        }
+      }
+    }, 300)
+  })
+})
 </script>
 
 <style scoped lang="scss">

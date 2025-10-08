@@ -130,7 +130,7 @@ const gridOptions = {
     {
       field: 'message',
       title: '描述',
-      showOverflow: 'tooltip'
+      showOverflow: 'title'
     },
     {
       field: 'timestamp',

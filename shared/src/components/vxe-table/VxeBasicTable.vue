@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onActivated, nextTick } from 'vue'
 
 const props = defineProps({
   // 表格标题
@@ -168,15 +168,16 @@ const tableOptions = computed(() => {
   return {
     border: 'inner',
     round: true,
-    showOverflow: 'tooltip',
-    showHeaderOverflow: 'tooltip',
+    showOverflow: 'title',
+    showHeaderOverflow: 'title',
     stripe: true,
     align: 'left',
     headerAlign: 'left',
-    highlightHoverRow: true,
     rowConfig: {
       isHover: true,
-      isCurrent: false,
+      isCurrent: false
+    },
+    cellConfig: {
       height: 54
     },
     columnConfig: {
@@ -204,6 +205,8 @@ const loadData = async () => {
   }
 
   loading.value = true
+  console.log('[VxeBasicTable] loadData called, current page:', pagerConfig.value.currentPage)
+
   try {
     const params = {
       page: pagerConfig.value.currentPage,
@@ -211,19 +214,29 @@ const loadData = async () => {
       ...props.params
     }
 
+    console.log('[VxeBasicTable] Calling API with params:', params)
     const result = await props.api(params)
+    console.log('[VxeBasicTable] API result:', result)
 
     if (result && result.data) {
       tableData.value = result.data.list || result.data || []
       pagerConfig.value.total = result.data.total || 0
 
+      console.log('[VxeBasicTable] Data loaded successfully, count:', tableData.value.length, 'total:', pagerConfig.value.total)
       emit('load-success', result.data)
+    } else {
+      console.warn('[VxeBasicTable] API returned invalid data structure:', result)
+      tableData.value = []
+      pagerConfig.value.total = 0
     }
   } catch (error) {
     console.error('[VxeBasicTable] 加载数据失败:', error)
+    tableData.value = []
+    pagerConfig.value.total = 0
     emit('load-error', error)
   } finally {
     loading.value = false
+    console.log('[VxeBasicTable] loadData finished, loading:', loading.value, 'data count:', tableData.value.length)
   }
 }
 
@@ -270,13 +283,31 @@ watch(() => props.params, () => {
 
 // 组件挂载
 onMounted(() => {
+  console.log('[VxeBasicTable] Component mounted, immediate:', props.immediate, 'has api:', !!props.api)
   nextTick(() => {
+    console.log('[VxeBasicTable] nextTick, emitting register event')
     emit('register', tableApi)
 
     if (props.immediate && props.api) {
+      console.log('[VxeBasicTable] immediate is true and api exists, calling loadData()')
       loadData()
+    } else {
+      console.log('[VxeBasicTable] Skipping initial loadData, immediate:', props.immediate, 'api:', !!props.api)
     }
   })
+})
+
+// 组件激活（用于 keep-alive 场景，如 Wujie 微前端）
+// 注意：这个钩子只在使用 <keep-alive> 包裹的组件中才会触发
+// Wujie 的 alive 模式在主应用层面实现 keep-alive，子应用内部的组件不会触发 onActivated
+// 所以这个钩子主要用于子应用内部使用 keep-alive 的场景
+onActivated(() => {
+  console.log('[VxeBasicTable] onActivated triggered')
+  // 在 keep-alive 场景中，组件激活时刷新数据
+  if (props.immediate && props.api && tableData.value.length === 0) {
+    console.log('[VxeBasicTable] onActivated: loading data because tableData is empty')
+    loadData()
+  }
 })
 
 // 暴露 API 方法

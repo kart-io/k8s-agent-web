@@ -13,20 +13,36 @@
     @tab-refresh="handleTabRefresh"
   >
     <!-- 微前端容器 -->
-    <router-view class="micro-app-container" />
+    <router-view v-slot="{ Component, route }">
+      <component :is="Component" v-if="Component" :key="route.fullPath" />
+      <div v-else class="no-component-warning" style="padding: 20px; color: red;">
+        No component matched for route: {{ route.fullPath }}
+        <br>Route name: {{ route.name }}
+        <br>Route meta: {{ JSON.stringify(route.meta) }}
+      </div>
+    </router-view>
   </VbenLayout>
 </template>
 
 <script setup>
 import { useUserStore } from '@/store/user'
 import { VbenLayout } from '@k8s-agent/shared/components'
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import WujieVue from 'wujie-vue3'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const { bus: wujieBus } = WujieVue
+
+// 监听路由变化，输出当前匹配的组件
+watch(() => route.matched, (matched) => {
+  console.log('[VbenMainLayout] Route matched count:', matched.length)
+  matched.forEach((r, index) => {
+    console.log(`[VbenMainLayout]   [${index}] name: ${r.name}, path: ${r.path}, hasComponent: ${!!r.components?.default}`)
+  })
+}, { immediate: true, deep: true })
 
 const title = 'K8s Agent 管理平台'
 const logo = '' // 可以设置 Logo 图片 URL
@@ -46,7 +62,14 @@ const defaultMenus = [
   {
     key: '/clusters',
     label: '集群管理',
-    icon: 'DeploymentUnitOutlined'
+    icon: 'DeploymentUnitOutlined',
+    children: [
+      {
+        key: '/clusters/list',
+        label: '集群列表',
+        icon: 'UnorderedListOutlined'
+      }
+    ]
   },
   {
     key: '/monitor',

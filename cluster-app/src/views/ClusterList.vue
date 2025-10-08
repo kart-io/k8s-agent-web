@@ -35,6 +35,24 @@
           <a-button type="link" size="small" @click="handleView(row)">
             查看
           </a-button>
+          <a-dropdown>
+            <a-button type="link" size="small">
+              资源 <DownOutlined />
+            </a-button>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item @click="handleViewNodes(row)">
+                  <ClusterOutlined /> 节点列表
+                </a-menu-item>
+                <a-menu-item @click="handleViewPods(row)">
+                  <AppstoreOutlined /> Pod 列表
+                </a-menu-item>
+                <a-menu-item @click="handleViewServices(row)">
+                  <ApiOutlined /> Service 列表
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
           <a-button type="link" size="small" @click="handleEdit(row)">
             编辑
           </a-button>
@@ -90,7 +108,14 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons-vue'
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  DownOutlined,
+  ClusterOutlined,
+  AppstoreOutlined,
+  ApiOutlined
+} from '@ant-design/icons-vue'
 import { getClusters, createCluster, updateCluster, deleteCluster } from '@/api/cluster'
 import { VxeBasicTable } from '@k8s-agent/shared/components'
 import dayjs from 'dayjs'
@@ -123,7 +148,7 @@ const gridOptions = {
     {
       field: 'apiServer',
       title: 'API Server',
-      showOverflow: 'tooltip'
+      showOverflow: 'title'
     },
     {
       field: 'status',
@@ -133,7 +158,7 @@ const gridOptions = {
     {
       field: 'description',
       title: '描述',
-      showOverflow: 'tooltip'
+      showOverflow: 'title'
     },
     {
       field: 'createdAt',
@@ -143,7 +168,8 @@ const gridOptions = {
     {
       field: 'action',
       title: '操作',
-      width: 200,
+      width: 260,
+      fixed: 'right',
       slots: { default: 'action' }
     }
   ]
@@ -189,7 +215,19 @@ const showAddModal = () => {
 }
 
 const handleView = (record) => {
-  router.push(`/clusters/${record.id}`)
+  router.push(`/${record.id}`)
+}
+
+const handleViewNodes = (record) => {
+  router.push(`/${record.id}/nodes`)
+}
+
+const handleViewPods = (record) => {
+  router.push(`/${record.id}/pods`)
+}
+
+const handleViewServices = (record) => {
+  router.push(`/${record.id}/services`)
 }
 
 const handleEdit = (record) => {
