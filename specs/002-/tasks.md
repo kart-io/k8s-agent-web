@@ -24,11 +24,11 @@
 
 **Purpose**: Project initialization and basic structure for architecture optimization
 
-- [ ] T001 [P] Create configuration directory at `config/` for JSON schema
-- [ ] T002 [P] Create shared utilities directory at `shared/src/core/` for event bus helpers
-- [ ] T003 [P] Add Vitest testing framework to `main-app/package.json` and `shared/package.json`
-- [ ] T004 [P] Add Playwright E2E testing framework to root `package.json`
-- [ ] T005 [P] Create feature flags in `main-app/.env.development` for gradual rollout
+- [X] T001 [P] Create configuration directory at `config/` for JSON schema
+- [X] T002 [P] Create shared utilities directory at `shared/src/core/` for event bus helpers
+- [X] T003 [P] Add Vitest testing framework to `main-app/package.json` and `shared/package.json`
+- [X] T004 [P] Add Playwright E2E testing framework to root `package.json`
+- [X] T005 [P] Create feature flags in `main-app/.env.development` for gradual rollout
 
 ---
 
@@ -38,11 +38,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Create JSON Schema validation at `config/micro-apps.schema.json` based on `contracts/config-schema.json`
-- [ ] T007 [P] Create base configuration types in `main-app/src/types/micro-app-config.d.ts` (JSDoc types)
-- [ ] T008 [P] Create event protocol types in `shared/src/types/events.d.ts` for route and state events
-- [ ] T009 [P] Implement error reporter utility at `main-app/src/utils/error-reporter.js` with console.log fallback
-- [ ] T010 Create configuration validation utility at `shared/src/utils/config-loader.js` using JSON schema
+- [X] T006 Create JSON Schema validation at `config/micro-apps.schema.json` based on `contracts/config-schema.json`
+- [X] T007 [P] Create base configuration types in `main-app/src/types/micro-app-config.d.ts` (JSDoc types)
+- [X] T008 [P] Create event protocol types in `shared/src/types/events.d.ts` for route and state events
+- [X] T009 [P] Implement error reporter utility at `main-app/src/utils/error-reporter.js` with console.log fallback
+- [X] T010 Create configuration validation utility at `shared/src/utils/config-loader.js` using JSON schema
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -58,20 +58,20 @@
 
 **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T011 [P] [US1] Unit test for `getMicroAppUrl()` in `main-app/src/config/__tests__/micro-apps.config.test.js`
-- [ ] T012 [P] [US1] Unit test for `getMicroAppConfig()` validation in same file
-- [ ] T013 [P] [US1] E2E test for config-driven URL resolution in `tests/e2e/config.spec.js`
+- [X] T011 [P] [US1] Unit test for `getMicroAppUrl()` in `main-app/src/config/__tests__/micro-apps.config.test.js`
+- [X] T012 [P] [US1] Unit test for `getMicroAppConfig()` validation in same file
+- [X] T013 [P] [US1] E2E test for config-driven URL resolution in `tests/e2e/config.spec.js`
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Create centralized configuration file at `main-app/src/config/micro-apps.config.js` with all 6 micro-apps (dashboard, agent, cluster, monitor, system, image-build)
-- [ ] T015 [US1] Implement `getMicroAppUrl(appName, env)` helper function in same file
-- [ ] T016 [US1] Implement `getMicroAppConfig(appName)` helper function in same file
-- [ ] T017 [US1] Update `main-app/src/micro/wujie-config.js` to use `getMicroAppUrl()` instead of hardcoded URLs
-- [ ] T018 [US1] Update `main-app/src/views/MicroAppContainer.vue` to use `getMicroAppUrl()` for dynamic URL resolution
-- [ ] T019 [US1] Add config validation on app startup in `main-app/src/main.js` using schema
-- [ ] T020 [US1] Add fallback mechanism: if config load fails, use legacy hardcoded URLs with warning log
-- [ ] T021 [US1] Add environment variable `VITE_FEATURE_UNIFIED_CONFIG` feature flag support in config loader
+- [X] T014 [US1] Create centralized configuration file at `main-app/src/config/micro-apps.config.js` with all 6 micro-apps (dashboard, agent, cluster, monitor, system, image-build)
+- [X] T015 [US1] Implement `getMicroAppUrl(appName, env)` helper function in same file
+- [X] T016 [US1] Implement `getMicroAppConfig(appName)` helper function in same file
+- [X] T017 [US1] Update `main-app/src/micro/wujie-config.js` to use `getMicroAppUrl()` instead of hardcoded URLs
+- [X] T018 [US1] Update `main-app/src/views/MicroAppContainer.vue` to use `getMicroAppUrl()` for dynamic URL resolution
+- [X] T019 [US1] Add config validation on app startup in `main-app/src/main.js` using schema
+- [X] T020 [US1] Add fallback mechanism: if config load fails, use legacy hardcoded URLs with warning log
+- [X] T021 [US1] Add environment variable `VITE_FEATURE_UNIFIED_CONFIG` feature flag support in config loader
 
 **Checkpoint**: Configuration system complete - all micro-app URLs centralized, environment-aware, validated
 
@@ -85,27 +85,27 @@
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Unit test for `RouteSync.notifyMicroApp()` debounce logic in `shared/src/core/__tests__/route-sync.test.js`
-- [ ] T023 [P] [US2] Unit test for `RouteSync.setupListener()` event handling in same file
-- [ ] T024 [P] [US2] E2E test for direct deep route navigation in `tests/e2e/route-sync.spec.js`
-- [ ] T025 [P] [US2] E2E test for rapid route switching without串台 in same file
+- [X] T022 [P] [US2] Unit test for `RouteSync.notifyMicroApp()` debounce logic in `shared/src/core/__tests__/route-sync.test.js`
+- [X] T023 [P] [US2] Unit test for `RouteSync.setupListener()` event handling in same file
+- [X] T024 [P] [US2] E2E test for direct deep route navigation in `tests/e2e/route-sync.spec.js`
+- [X] T025 [P] [US2] E2E test for rapid route switching without串台 in same file
 
 ### Implementation for User Story 2
 
-- [ ] T026 [P] [US2] Create `RouteSync` class in `shared/src/core/route-sync.js` with `notifyMicroApp()` method
-- [ ] T027 [P] [US2] Add `setupListener()` method to `RouteSync` class for micro-app side
-- [ ] T028 [P] [US2] Implement debounce mechanism (50ms) in `notifyMicroApp()` using timer map
-- [ ] T029 [P] [US2] Implement error emission (`route:error`) on navigation failures
-- [ ] T030 [US2] Update `main-app/src/views/MicroAppContainer.vue` to use `RouteSync` class instead of direct event emission
-- [ ] T031 [US2] Remove `setTimeout` and `lastSyncedPath` hack code from `MicroAppContainer.vue`
-- [ ] T032 [US2] Update `system-app/src/main.js` to use `RouteSync.setupListener()` (replace old event listener)
-- [ ] T033 [P] [US2] Update `dashboard-app/src/main.js` to use `RouteSync.setupListener()`
-- [ ] T034 [P] [US2] Update `agent-app/src/main.js` to use `RouteSync.setupListener()`
-- [ ] T035 [P] [US2] Update `cluster-app/src/main.js` to use `RouteSync.setupListener()`
-- [ ] T036 [P] [US2] Update `monitor-app/src/main.js` to use `RouteSync.setupListener()`
-- [ ] T037 [P] [US2] Update `image-build-app/src/main.js` to use `RouteSync.setupListener()`
-- [ ] T038 [US2] Add environment variable `VITE_FEATURE_STANDARD_ROUTE_SYNC` feature flag support
-- [ ] T039 [US2] Add backward compatibility: keep old event listeners active if feature flag disabled
+- [X] T026 [P] [US2] Create `RouteSync` class in `shared/src/core/route-sync.js` with `notifyMicroApp()` method
+- [X] T027 [P] [US2] Add `setupListener()` method to `RouteSync` class for micro-app side
+- [X] T028 [P] [US2] Implement debounce mechanism (50ms) in `notifyMicroApp()` using timer map
+- [X] T029 [P] [US2] Implement error emission (`route:error`) on navigation failures
+- [X] T030 [US2] Update `main-app/src/views/MicroAppContainer.vue` to use `RouteSync` class instead of direct event emission
+- [X] T031 [US2] Remove `setTimeout` and `lastSyncedPath` hack code from `MicroAppContainer.vue`
+- [X] T032 [US2] Update `system-app/src/main.js` to use `RouteSync.setupListener()` (replace old event listener)
+- [X] T033 [P] [US2] Update `dashboard-app/src/main.js` to use `RouteSync.setupListener()`
+- [X] T034 [P] [US2] Update `agent-app/src/main.js` to use `RouteSync.setupListener()`
+- [X] T035 [P] [US2] Update `cluster-app/src/main.js` to use `RouteSync.setupListener()`
+- [X] T036 [P] [US2] Update `monitor-app/src/main.js` to use `RouteSync.setupListener()`
+- [X] T037 [P] [US2] Update `image-build-app/src/main.js` to use `RouteSync.setupListener()`
+- [X] T038 [US2] Add environment variable `VITE_FEATURE_STANDARD_ROUTE_SYNC` feature flag support
+- [X] T039 [US2] Add backward compatibility: keep old event listeners active if feature flag disabled
 
 **Checkpoint**: Route synchronization stable - no setTimeout, no delays, direct navigation works, all 6 micro-apps migrated
 
@@ -119,27 +119,27 @@
 
 ### Tests for User Story 3
 
-- [ ] T040 [P] [US3] Unit test for `SharedStateManager.setState()` in `main-app/src/store/__tests__/shared-state.test.js`
-- [ ] T041 [P] [US3] Unit test for `SharedStateManager.subscribe()` callback triggering in same file
-- [ ] T042 [P] [US3] Unit test for `useSharedState` composable in `shared/src/composables/__tests__/useSharedState.test.js`
-- [ ] T043 [P] [US3] E2E test for cross-app state sync in `tests/e2e/state-sync.spec.js`
+- [X] T040 [P] [US3] Unit test for `SharedStateManager.setState()` in `main-app/src/store/__tests__/shared-state.test.js`
+- [X] T041 [P] [US3] Unit test for `SharedStateManager.subscribe()` callback triggering in same file
+- [X] T042 [P] [US3] Unit test for `useSharedState` composable in `shared/src/composables/__tests__/useSharedState.test.js`
+- [X] T043 [P] [US3] E2E test for cross-app state sync in `tests/e2e/state-sync.spec.js`
 
 ### Implementation for User Story 3
 
-- [ ] T044 [US3] Create `SharedStateManager` class in `main-app/src/store/shared-state.js` with reactive state
-- [ ] T045 [US3] Implement `setState(namespace, key, value)` method with event emission
-- [ ] T046 [US3] Implement `getState(namespace, key)` method
-- [ ] T047 [US3] Implement `subscribe(namespace, key, callback)` method
-- [ ] T048 [US3] Implement `setupBusListeners()` to handle `state:update` events from micro-apps
-- [ ] T049 [US3] Add namespace isolation (format: `${namespace}:${key}`)
-- [ ] T050 [US3] Add memory cleanup: unsubscribe on micro-app unmount
-- [ ] T051 [US3] Initialize `SharedStateManager` singleton in `main-app/src/main.js`
-- [ ] T052 [P] [US3] Create `useSharedState` composable in `shared/src/composables/useSharedState.js`
-- [ ] T053 [P] [US3] Add reactive ref and bus listener setup in composable
-- [ ] T054 [P] [US3] Add `setState` helper function in composable
-- [ ] T055 [P] [US3] Add automatic cleanup `onUnmounted` in composable
-- [ ] T056 [US3] Add optional localStorage persistence for `user` and `system` namespaces
-- [ ] T057 [US3] Document standard namespaces (`user`, `notification`, `permission`, `system`) in code comments
+- [X] T044 [US3] Create `SharedStateManager` class in `main-app/src/store/shared-state.js` with reactive state
+- [X] T045 [US3] Implement `setState(namespace, key, value)` method with event emission
+- [X] T046 [US3] Implement `getState(namespace, key)` method
+- [X] T047 [US3] Implement `subscribe(namespace, key, callback)` method
+- [X] T048 [US3] Implement `setupBusListeners()` to handle `state:update` events from micro-apps
+- [X] T049 [US3] Add namespace isolation (format: `${namespace}:${key}`)
+- [X] T050 [US3] Add memory cleanup: unsubscribe on micro-app unmount
+- [X] T051 [US3] Initialize `SharedStateManager` singleton in `main-app/src/main.js`
+- [X] T052 [P] [US3] Create `useSharedState` composable in `shared/src/composables/useSharedState.js`
+- [X] T053 [P] [US3] Add reactive ref and bus listener setup in composable
+- [X] T054 [P] [US3] Add `setState` helper function in composable
+- [X] T055 [P] [US3] Add automatic cleanup `onUnmounted` in composable
+- [X] T056 [US3] Add optional localStorage persistence for `user` and `system` namespaces
+- [X] T057 [US3] Document standard namespaces (`user`, `notification`, `permission`, `system`) in code comments
 
 **Checkpoint**: Shared state manager working - cross-app reactive updates, opt-in usage, no memory leaks
 
@@ -153,25 +153,25 @@
 
 ### Tests for User Story 4
 
-- [ ] T058 [P] [US4] Unit test for `ErrorBoundary` onErrorCaptured in `main-app/src/views/__tests__/ErrorBoundary.test.js`
-- [ ] T059 [P] [US4] Unit test for `reportError()` function in `main-app/src/utils/__tests__/error-reporter.test.js`
-- [ ] T060 [P] [US4] E2E test for error boundary display in `tests/e2e/error-boundary.spec.js`
-- [ ] T061 [P] [US4] E2E test for retry functionality in same file
+- [X] T058 [P] [US4] Unit test for `ErrorBoundary` onErrorCaptured in `main-app/src/views/__tests__/ErrorBoundary.test.js`
+- [X] T059 [P] [US4] Unit test for `reportError()` function in `main-app/src/utils/__tests__/error-reporter.test.js`
+- [X] T060 [P] [US4] E2E test for error boundary display in `tests/e2e/error-boundary.spec.js`
+- [X] T061 [P] [US4] E2E test for retry functionality in same file
 
 ### Implementation for User Story 4
 
-- [ ] T062 [US4] Create `ErrorBoundary.vue` component in `main-app/src/views/ErrorBoundary.vue`
-- [ ] T063 [US4] Implement `onErrorCaptured` lifecycle hook with error state
-- [ ] T064 [US4] Add error UI using Ant Design `<a-result>` component with "error" status
-- [ ] T065 [US4] Add retry button that clears error and reloads micro-app
-- [ ] T066 [US4] Add "返回首页" button that navigates to `/`
-- [ ] T067 [US4] Implement `reportError()` function in `main-app/src/utils/error-reporter.js`
-- [ ] T068 [US4] Add error reporting to console.log with structured format (appName, errorType, message, stack, timestamp)
-- [ ] T069 [US4] Add TODO comment for future Sentry/DataDog integration in error reporter
-- [ ] T070 [US4] Wrap `<WujieVue>` in `MicroAppContainer.vue` with `<ErrorBoundary>` component
-- [ ] T071 [US4] Add error propagation stop (`return false` in onErrorCaptured)
-- [ ] T072 [US4] Add 5-second loading timeout detection for micro-app load failures
-- [ ] T073 [US4] Add network error detection and user-friendly messaging
+- [X] T062 [US4] Create `ErrorBoundary.vue` component in `main-app/src/views/ErrorBoundary.vue`
+- [X] T063 [US4] Implement `onErrorCaptured` lifecycle hook with error state
+- [X] T064 [US4] Add error UI using Ant Design `<a-result>` component with "error" status
+- [X] T065 [US4] Add retry button that clears error and reloads micro-app
+- [X] T066 [US4] Add "返回首页" button that navigates to `/`
+- [X] T067 [US4] Implement `reportError()` function in `main-app/src/utils/error-reporter.js`
+- [X] T068 [US4] Add error reporting to console.log with structured format (appName, errorType, message, stack, timestamp)
+- [X] T069 [US4] Add TODO comment for future Sentry/DataDog integration in error reporter
+- [X] T070 [US4] Wrap `<WujieVue>` in `MicroAppContainer.vue` with `<ErrorBoundary>` component
+- [X] T071 [US4] Add error propagation stop (`return false` in onErrorCaptured)
+- [X] T072 [US4] Add 5-second loading timeout detection for micro-app load failures
+- [X] T073 [US4] Add network error detection and user-friendly messaging
 
 **Checkpoint**: Error boundaries active - white screens eliminated, retry UX available, errors logged
 

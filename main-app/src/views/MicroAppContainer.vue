@@ -1,24 +1,33 @@
 <template>
   <div class="micro-app-container">
-    <WujieVue
-      :name="microAppName"
-      :url="microAppUrl"
-      :sync="false"
-      :alive="true"
-      :props="appProps"
-      @activated="handleActivated"
-      @deactivated="handleDeactivated"
-    />
+    <ErrorBoundary
+      ref="errorBoundary"
+      :timeout="loadTimeout"
+      @error="handleError"
+      @retry="handleRetry"
+    >
+      <WujieVue
+        :name="microAppName"
+        :url="microAppUrl"
+        :sync="false"
+        :alive="true"
+        :props="appProps"
+        @activated="handleActivated"
+        @deactivated="handleDeactivated"
+      />
+    </ErrorBoundary>
   </div>
 </template>
 
 <script setup>
-import { computed, watch, ref, onUnmounted } from 'vue'
+import { computed, watch, ref, onUnmounted, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import WujieVue from 'wujie-vue3'
 import { getMicroAppUrl } from '@/config/micro-apps.config.js'
 import { RouteSync } from '@k8s-agent/shared/core/route-sync.js'
+import ErrorBoundary from './ErrorBoundary.vue'
+import { reportMicroAppLoadError } from '@/utils/error-reporter'
 
 const route = useRoute()
 const router = useRouter()
@@ -64,6 +73,27 @@ const appProps = computed(() => ({
  * Replaces setTimeout-based sync with standardized debounced protocol
  */
 const routeSync = ref(null)
+
+/**
+ * ErrorBoundary reference
+ */
+const errorBoundary = ref(null)
+
+/**
+ * Loading timeout in milliseconds
+ * Default: 5000ms (5 seconds)
+ */
+const loadTimeout = ref(5000)
+
+/**
+ * Timeout timer reference
+ */
+const timeoutTimer = ref(null)
+
+/**
+ * Loading state
+ */
+const isLoading = ref(false)
 
 /**
  * Sync route to micro-app using RouteSync class
@@ -142,14 +172,113 @@ const handleActivated = () => {
 // Handle micro-app deactivation
 const handleDeactivated = () => {
   console.log('[MicroAppContainer] App deactivated:', microAppName.value)
+  // Clear timeout when micro-app is deactivated
+  clearLoadTimeout()
 }
 
-// Cleanup RouteSync instance on component unmount
+/**
+ * Handle error from ErrorBoundary
+ */
+const handleError = (errorData) => {
+  console.error('[MicroAppContainer] Error caught by ErrorBoundary:', errorData)
+
+  // Clear timeout timer
+  clearLoadTimeout()
+
+  // Report micro-app load error
+  if (microAppName.value) {
+    reportMicroAppLoadError(
+      microAppName.value,
+      errorData.error,
+      {
+        url: microAppUrl.value,
+        route: route.path
+      }
+    )
+  }
+}
+
+/**
+ * Handle retry from ErrorBoundary
+ */
+const handleRetry = () => {
+  console.log('[MicroAppContainer] Retry requested')
+
+  // Reset loading state
+  isLoading.value = false
+
+  // Clear any existing timeout
+  clearLoadTimeout()
+
+  // Start new timeout
+  startLoadTimeout()
+}
+
+/**
+ * Start loading timeout timer
+ */
+const startLoadTimeout = () => {
+  // Clear any existing timer
+  clearLoadTimeout()
+
+  // Set new timer
+  timeoutTimer.value = setTimeout(() => {
+    console.error('[MicroAppContainer] Micro-app loading timeout:', microAppName.value)
+
+    // Trigger timeout error in ErrorBoundary
+    if (errorBoundary.value) {
+      errorBoundary.value.triggerTimeout()
+    }
+
+    // Report timeout error
+    if (microAppName.value) {
+      reportMicroAppLoadError(
+        microAppName.value,
+        new Error(`Micro-app loading timeout after ${loadTimeout.value}ms`),
+        {
+          url: microAppUrl.value,
+          timeout: loadTimeout.value,
+          route: route.path
+        }
+      )
+    }
+  }, loadTimeout.value)
+}
+
+/**
+ * Clear loading timeout timer
+ */
+const clearLoadTimeout = () => {
+  if (timeoutTimer.value) {
+    clearTimeout(timeoutTimer.value)
+    timeoutTimer.value = null
+  }
+}
+
+// Start timeout on mount
+onMounted(() => {
+  console.log('[MicroAppContainer] Component mounted, starting load timeout')
+  startLoadTimeout()
+})
+
+// Watch for micro-app changes and restart timeout
+watch([microAppName, microAppUrl], () => {
+  console.log('[MicroAppContainer] Micro-app or URL changed, restarting timeout')
+  startLoadTimeout()
+})
+
+// Cleanup RouteSync instance and timeout on component unmount
 onUnmounted(() => {
+  console.log('[MicroAppContainer] Component unmounting, cleaning up')
+
+  // Teardown RouteSync
   if (routeSync.value) {
     routeSync.value.teardown()
     routeSync.value = null
   }
+
+  // Clear timeout
+  clearLoadTimeout()
 })
 </script>
 

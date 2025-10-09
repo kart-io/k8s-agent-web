@@ -215,7 +215,7 @@ describe('Micro-Apps Configuration', () => {
       const { validateConfig } = await import('@k8s-agent/shared/utils/config-loader.js')
 
       // Load schema
-      const schema = await import('/home/hellotalk/code/web/k8s-agent-web/config/micro-apps.schema.json')
+      const schema = await import('../../../../config/micro-apps.schema.json')
 
       const result = validateConfig(microAppsConfig, schema)
 
@@ -225,7 +225,7 @@ describe('Micro-Apps Configuration', () => {
 
     it('should detect invalid app name format', async () => {
       const { validateConfig } = await import('@k8s-agent/shared/utils/config-loader.js')
-      const schema = await import('/home/hellotalk/code/web/k8s-agent-web/config/micro-apps.schema.json')
+      const schema = await import('../../../../config/micro-apps.schema.json')
 
       const invalidConfig = {
         'InvalidAppName': {  // Should be lowercase with hyphens
@@ -247,7 +247,7 @@ describe('Micro-Apps Configuration', () => {
 
     it('should detect missing required fields', async () => {
       const { validateConfig } = await import('@k8s-agent/shared/utils/config-loader.js')
-      const schema = await import('/home/hellotalk/code/web/k8s-agent-web/config/micro-apps.schema.json')
+      const schema = await import('../../../../config/micro-apps.schema.json')
 
       const invalidConfig = {
         'test-app': {
@@ -266,7 +266,7 @@ describe('Micro-Apps Configuration', () => {
 
     it('should detect invalid port range', async () => {
       const { validateConfig } = await import('@k8s-agent/shared/utils/config-loader.js')
-      const schema = await import('/home/hellotalk/code/web/k8s-agent-web/config/micro-apps.schema.json')
+      const schema = await import('../../../../config/micro-apps.schema.json')
 
       const invalidConfig = {
         'test-app': {

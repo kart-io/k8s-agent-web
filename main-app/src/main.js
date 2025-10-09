@@ -8,6 +8,8 @@ import router from './router'
 import permissionDirective from './directives/permission'
 import { setupWujie } from './micro/wujie-config'
 import { setupGlobalErrorHandler } from './utils/error-reporter'
+import { initSharedStateManager } from './store/shared-state'
+import WujieVue from 'wujie-vue3'
 
 import './assets/styles/main.scss'
 
@@ -95,6 +97,10 @@ app.use(router)
 app.use(Antd)
 app.use(permissionDirective)
 setupWujie(app) // 注册 Wujie
+
+// Initialize shared state manager with Wujie bus
+const sharedStateManager = initSharedStateManager(WujieVue.bus)
+app.provide('sharedState', sharedStateManager)
 
 // Log configuration status
 if (configValidation.valid) {
