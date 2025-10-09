@@ -30,8 +30,8 @@ async function validateMicroAppsConfig() {
     const { validateConfig, validatePortUniqueness, validateBasePathUniqueness } =
       await import('@k8s-agent/shared/utils/config-loader.js')
 
-    // Load JSON schema
-    const schema = await import('/home/hellotalk/code/web/k8s-agent-web/config/micro-apps.schema.json')
+    // Load JSON schema (relative to project root)
+    const schema = await import('../../config/micro-apps.schema.json')
 
     // Validate against schema
     const validationResult = validateConfig(microAppsConfig, schema)
