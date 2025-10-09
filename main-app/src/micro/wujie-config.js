@@ -1,51 +1,36 @@
 import WujieVue from 'wujie-vue3'
+import {
+  getMicroAppUrl,
+  getMicroAppConfig,
+  getMicroAppNames
+} from '@/config/micro-apps.config.js'
 
-export const wujieConfig = {
-  apps: [
-    {
-      name: 'dashboard-app',
-      url: '//localhost:3001',
-      exec: true,
-      alive: true,
-      sync: true
-    },
-    {
-      name: 'agent-app',
-      url: '//localhost:3002',
-      exec: true,
-      alive: true,
-      sync: true
-    },
-    {
-      name: 'cluster-app',
-      url: '//localhost:3003',
-      exec: true,
-      alive: true,
-      sync: true
-    },
-    {
-      name: 'monitor-app',
-      url: '//localhost:3004',
-      exec: true,
-      alive: true,
-      sync: true
-    },
-    {
-      name: 'system-app',
-      url: '//localhost:3005',
-      exec: true,
-      alive: true,
-      sync: true
-    },
-    {
-      name: 'image-build-app',
-      url: '//localhost:3006',
-      exec: true,
-      alive: true,
-      sync: true
-    }
-  ]
+/**
+ * Generate Wujie configuration from centralized micro-apps config
+ * This replaces hardcoded URLs with config-driven URL resolution
+ */
+function generateWujieConfig() {
+  const appNames = getMicroAppNames()
+
+  return {
+    apps: appNames.map(appName => {
+      const config = getMicroAppConfig(appName)
+
+      return {
+        name: config.name,
+        url: getMicroAppUrl(appName), // Uses centralized config with environment awareness
+        exec: config.wujie?.exec !== undefined ? config.wujie.exec : true,
+        alive: config.wujie?.alive !== undefined ? config.wujie.alive : true,
+        sync: config.wujie?.sync !== undefined ? config.wujie.sync : true,
+        ...(config.wujie?.props && { props: config.wujie.props }),
+        ...(config.wujie?.attrs && { attrs: config.wujie.attrs })
+      }
+    })
+  }
 }
+
+// Export the dynamically generated configuration
+export const wujieConfig = generateWujieConfig()
 
 export function setupWujie(app) {
   app.use(WujieVue)

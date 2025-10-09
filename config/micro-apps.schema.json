@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://k8s-agent-web/schemas/micro-apps-config.json",
+  "title": "Micro-Apps Configuration Schema",
+  "description": "Validation schema for centralized micro-app configuration in K8s Agent Web",
+  "type": "object",
+  "patternProperties": {
+    "^[a-z0-9-]+$": {
+      "type": "object",
+      "required": ["name", "port", "basePath", "entry"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Unique micro-app identifier (lowercase alphanumeric with hyphens)"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 3000,
+          "maximum": 3999,
+          "description": "Development server port (must be unique across all apps)"
+        },
+        "basePath": {
+          "type": "string",
+          "pattern": "^/[a-z0-9-]+$",
+          "description": "URL base path for routing (must start with /)"
+        },
+        "entry": {
+          "type": "object",
+          "required": ["development", "production"],
+          "properties": {
+            "development": {
+              "type": "string",
+              "pattern": "^//localhost:\\d+$",
+              "description": "Development environment URL (e.g., //localhost:3001)"
+            },
+            "test": {
+              "type": "string",
+              "format": "uri-reference",
+              "description": "Test environment URL (optional)"
+            },
+            "production": {
+              "type": "string",
+              "format": "uri-reference",
+              "description": "Production environment URL (e.g., /micro-apps/dashboard/)"
+            }
+          },
+          "additionalProperties": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Additional environment URLs"
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string",
+              "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-z0-9.]+)?(\\+[a-z0-9.]+)?$",
+              "description": "Semantic version (e.g., 1.2.3, 1.0.0-beta.1)"
+            },
+            "owner": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "description": "Team or individual responsible for the app"
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 500,
+              "description": "Brief description of the micro-app functionality"
+            },
+            "icon": {
+              "type": "string",
+              "format": "uri-reference",
+              "description": "Icon URL or path (optional)"
+            }
+          }
+        },
+        "wujie": {
+          "type": "object",
+          "properties": {
+            "exec": {
+              "type": "boolean",
+              "default": true,
+              "description": "Execute scripts in micro-app (default: true)"
+            },
+            "alive": {
+              "type": "boolean",
+              "default": true,
+              "description": "Keep-alive mode to preserve state (default: true)"
+            },
+            "sync": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable route synchronization (default: true)"
+            },
+            "props": {
+              "type": "object",
+              "description": "Custom props passed to micro-app"
+            },
+            "attrs": {
+              "type": "object",
+              "description": "Custom attributes for Wujie configuration"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "minProperties": 1,
+  "examples": [
+    {
+      "dashboard-app": {
+        "name": "dashboard-app",
+        "port": 3001,
+        "basePath": "/dashboard",
+        "entry": {
+          "development": "//localhost:3001",
+          "test": "//test.example.com/dashboard",
+          "production": "/micro-apps/dashboard/"
+        },
+        "metadata": {
+          "version": "1.0.0",
+          "owner": "team-platform",
+          "description": "仪表盘应用 - 提供系统概览和统计数据"
+        },
+        "wujie": {
+          "exec": true,
+          "alive": true,
+          "sync": true
+        }
+      },
+      "agent-app": {
+        "name": "agent-app",
+        "port": 3002,
+        "basePath": "/agents",
+        "entry": {
+          "development": "//localhost:3002",
+          "production": "/micro-apps/agent/"
+        },
+        "metadata": {
+          "version": "1.1.0",
+          "owner": "team-agent",
+          "description": "Agent 管理应用"
+        }
+      }
+    }
+  ]
+}

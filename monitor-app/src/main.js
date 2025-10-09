@@ -33,12 +33,27 @@ app.use(VXETable)
 
 // 在 Wujie 环境中监听主应用的路由变化
 if (isWujie && window.$wujie) {
-  window.$wujie.bus.$on('monitor-app-route-change', (subPath) => {
-    console.log('[Monitor App] Received route change from main app:', subPath)
-    if (router.currentRoute.value.path !== subPath) {
-      router.push(subPath)
-    }
-  })
+  const useStandardRouteSync = import.meta.env.VITE_FEATURE_STANDARD_ROUTE_SYNC === 'true'
+
+  if (useStandardRouteSync) {
+    import('@k8s-agent/shared/core/route-sync.js').then(({ RouteSync }) => {
+      const routeSync = new RouteSync('monitor-app', window.$wujie.bus, router)
+      routeSync.setupListener()
+      window.__ROUTE_SYNC__ = routeSync
+      console.log('[Monitor App] ✅ RouteSync listener set up')
+    }).catch(() => {
+      window.$wujie.bus.$on('monitor-app-route-change', (subPath) => {
+        if (router.currentRoute.value.path !== subPath) router.push(subPath)
+      })
+    })
+  } else {
+    window.$wujie.bus.$on('monitor-app-route-change', (subPath) => {
+      console.log('[Monitor App] Received route change from main app:', subPath)
+      if (router.currentRoute.value.path !== subPath) {
+        router.push(subPath)
+      }
+    })
+  }
 }
 
 // 始终挂载到 #monitor-app（Wujie 会加载完整的 HTML）

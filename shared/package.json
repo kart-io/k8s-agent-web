@@ -21,6 +21,12 @@
     "./utils": {
       "import": "./src/utils/index.js"
     },
+    "./utils/config-loader.js": {
+      "import": "./src/utils/config-loader.js"
+    },
+    "./core/route-sync.js": {
+      "import": "./src/core/route-sync.js"
+    },
     "./config/vxeTable": {
       "import": "./src/config/vxeTable.js"
     }
@@ -29,7 +35,9 @@
     "src"
   ],
   "scripts": {
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "keywords": [
     "vue3",
@@ -46,6 +54,8 @@
     "xe-utils": "^3.5.0"
   },
   "devDependencies": {
-    "eslint": "^8.0.0"
+    "@vitest/ui": "^1.0.4",
+    "eslint": "^8.0.0",
+    "vitest": "^1.0.4"
   }
 }
