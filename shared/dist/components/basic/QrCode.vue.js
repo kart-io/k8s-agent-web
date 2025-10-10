@@ -1,7 +1,8 @@
-import { ref, onMounted, watch, resolveComponent, openBlock, createElementBlock, createElementVNode, createVNode, createCommentVNode, withCtx, unref, createTextVNode } from 'vue';
+import { ref, onMounted, watch, resolveComponent, createElementBlock, openBlock, createElementVNode, createCommentVNode, createVNode, withCtx, createTextVNode, unref } from 'vue';
 import { message } from 'ant-design-vue';
 import { DownloadOutlined } from '@ant-design/icons-vue';
-/* empty css             */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css            */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "qrcode-wrapper" };
 const _hoisted_2 = {
@@ -50,6 +51,8 @@ const _sfc_main = {
   setup(__props, { expose: __expose }) {
 
 const props = __props;
+
+
 
 const canvasRef = ref(null);
 const loading = ref(false);
@@ -160,7 +163,7 @@ return (_ctx, _cache) => {
               createVNode(unref(DownloadOutlined))
             ]),
             default: withCtx(() => [
-              _cache[0] || (_cache[0] = createTextVNode(" 下载二维码 ", -1))
+              createTextVNode(" 下载二维码 ")
             ]),
             _: 1
           })

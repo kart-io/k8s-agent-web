@@ -4,6 +4,7 @@
  */
 import { h } from 'vue'
 import MicroAppContainer from '@/views/MicroAppContainer.vue'
+import { getMicroAppByBasePath } from '@/config/micro-apps.config.js'
 
 // 微前端占位组件 - 使用真实的 MicroAppContainer 组件
 const MicroAppPlaceholder = MicroAppContainer
@@ -12,6 +13,23 @@ const MicroAppPlaceholder = MicroAppContainer
 const componentMap = {
   MicroAppPlaceholder,
   SubMenu: null // 有子菜单的不需要组件
+}
+
+/**
+ * Infer micro-app name from route path
+ * @param {String} path - Route path (e.g., '/dashboard', '/system/users')
+ * @returns {String|undefined} Micro-app name or undefined
+ */
+function inferMicroAppFromPath(path) {
+  if (!path) return undefined
+
+  // Extract base path (first segment)
+  const basePath = '/' + path.split('/').filter(Boolean)[0]
+
+  // Look up config by base path
+  const config = getMicroAppByBasePath(basePath)
+
+  return config ? config.name : undefined
 }
 
 /**
@@ -34,13 +52,18 @@ export function menusToRoutes(menus, parentPath = '') {
       routePath = routePath
     }
 
+    // Infer microApp from path if not explicitly set
+    const inferredMicroApp = inferMicroAppFromPath(menu.path || menu.key)
+
     const route = {
       path: routePath,
       name: menu.name || menu.key.replace(/\//g, '-').slice(1),
       meta: {
         ...(menu.meta || {}),
         title: menu.label,
-        icon: menu.icon
+        icon: menu.icon,
+        // Auto-add microApp if not present and path matches a micro-app
+        microApp: menu.meta?.microApp || inferredMicroApp
       }
     }
 

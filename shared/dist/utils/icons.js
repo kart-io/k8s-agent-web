@@ -1,4 +1,4 @@
-import { DashboardOutlined, ClusterOutlined, DeploymentUnitOutlined, MonitorOutlined, BuildOutlined, SettingOutlined, UserOutlined, TeamOutlined, SafetyOutlined, AppstoreOutlined, BarsOutlined, DatabaseOutlined, CloudOutlined, ApiOutlined, CodeOutlined, FileTextOutlined, BellOutlined, WarningOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue';
+import { InfoCircleOutlined, CloseCircleOutlined, CheckCircleOutlined, WarningOutlined, BellOutlined, FileTextOutlined, CodeOutlined, ApiOutlined, CloudOutlined, DatabaseOutlined, BarsOutlined, AppstoreOutlined, SafetyOutlined, TeamOutlined, UserOutlined, SettingOutlined, BuildOutlined, MonitorOutlined, DeploymentUnitOutlined, ClusterOutlined, DashboardOutlined } from '@ant-design/icons-vue';
 
 // 图标映射表
 const iconMap = {

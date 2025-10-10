@@ -1,7 +1,9 @@
-import { resolveComponent, openBlock, createBlock, normalizeClass, withCtx, createElementBlock, Fragment, renderList, resolveDynamicComponent, createCommentVNode, toDisplayString } from 'vue';
+import { resolveComponent, createBlock, openBlock, normalizeClass, withCtx, createElementBlock, Fragment, renderList, createCommentVNode, resolveDynamicComponent, toDisplayString } from 'vue';
 import { useRouter } from 'vue-router';
+import '../../utils/storage.js';
 import { getIconComponent } from '../../utils/icons.js';
-/* empty css                      */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css                     */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = ["onClick"];
 const _hoisted_2 = { key: 2 };
@@ -23,9 +25,11 @@ const _sfc_main = {
   }
 },
   emits: ['item-click'],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
-const emit = __emit;
+
+
+
 const router = useRouter();
 
 const getIcon = (iconName) => {

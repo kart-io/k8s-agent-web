@@ -1,9 +1,11 @@
-import { ref, onMounted, computed, watch, resolveComponent, openBlock, createBlock, withCtx, createVNode, normalizeClass, createElementVNode, renderSlot, createElementBlock, createCommentVNode, toDisplayString, Fragment, renderList, resolveDynamicComponent, createTextVNode } from 'vue';
+import { ref, onMounted, computed, watch, resolveComponent, createBlock, openBlock, withCtx, createVNode, normalizeClass, createElementVNode, renderSlot, createElementBlock, createCommentVNode, toDisplayString, Fragment, renderList, resolveDynamicComponent, createTextVNode } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import LayoutHeader from './LayoutHeader.vue.js';
 import LayoutTabBar from './LayoutTabBar.vue.js';
+import '../../utils/storage.js';
 import { getIconComponent } from '../../utils/icons.js';
-/* empty css                 */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css                */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "sider-logo" };
 const _hoisted_2 = { class: "logo-content" };
@@ -80,11 +82,13 @@ const _sfc_main = {
   'breadcrumb-click',
   'tab-refresh'
 ],
-  setup(__props, { expose: __expose, emit: __emit }) {
+  setup(__props, { expose: __expose, emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const router = useRouter();
 const route = useRoute();

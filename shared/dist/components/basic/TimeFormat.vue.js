@@ -1,4 +1,4 @@
-import { computed, openBlock, createElementBlock, normalizeClass, toDisplayString } from 'vue';
+import { computed, createElementBlock, openBlock, normalizeClass, toDisplayString } from 'vue';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/zh-cn';
@@ -40,10 +40,12 @@ const _sfc_main = {
 },
   setup(__props) {
 
+const props = __props;
+
 dayjs.extend(relativeTime);
 dayjs.locale('zh-cn');
 
-const props = __props;
+
 
 // 格式化时间
 const formattedTime = computed(() => {

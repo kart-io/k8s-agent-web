@@ -1,6 +1,7 @@
-import { ref, watch, resolveComponent, openBlock, createElementBlock, createVNode, withCtx, Fragment, renderList, createBlock, createElementVNode, renderSlot } from 'vue';
+import { ref, watch, resolveComponent, createElementBlock, openBlock, createVNode, createElementVNode, withCtx, Fragment, renderList, createBlock, renderSlot } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-/* empty css                */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css               */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "tab-layout" };
 const _hoisted_2 = { class: "tab-content" };
@@ -20,11 +21,13 @@ const _sfc_main = {
   }
 },
   emits: ['tab-change', 'tab-close'],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const router = useRouter();
 const route = useRoute();

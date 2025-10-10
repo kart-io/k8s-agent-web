@@ -1,5 +1,6 @@
-import { computed, resolveComponent, openBlock, createElementBlock, createVNode, createSlots, withCtx, renderSlot } from 'vue';
-/* empty css                */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+import { computed, resolveComponent, createElementBlock, openBlock, createVNode, createSlots, withCtx, renderSlot } from 'vue';
+/* empty css               */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "count-down" };
 
@@ -21,11 +22,13 @@ const _sfc_main = {
   }
 },
   emits: ['finish'],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const deadline = computed(() => {
   return Date.now() + props.value

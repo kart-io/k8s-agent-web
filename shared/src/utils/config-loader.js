@@ -224,8 +224,13 @@ export function loadConfig(config, schema, options = {}) {
  * Get environment-specific URL from micro-app entry configuration
  *
  * @param {Object} entry - Entry configuration object with environment URLs
- * @param {string} [env] - Target environment (defaults to current VITE_MODE or 'development')
+ * @param {string} [env] - Target environment (defaults to 'development')
  * @returns {string} Environment-specific URL
+ *
+ * IMPORTANT: In pre-built libraries, import.meta.env reflects the library's build-time environment,
+ * NOT the consuming app's runtime environment. Therefore:
+ * - Always pass explicit env parameter from the consuming app
+ * - Default to 'development' to avoid unexpected production URLs in dev mode
  */
 export function getEntryUrl(entry, env) {
   if (!entry || typeof entry !== 'object') {
@@ -233,14 +238,27 @@ export function getEntryUrl(entry, env) {
   }
 
   // Determine environment
-  const targetEnv = env || import.meta.env.MODE || 'development'
+  // Priority: explicit env param > 'development' default
+  // NOTE: DO NOT use import.meta.env here - it reflects library build-time, not runtime!
+  let targetEnv = env
+
+  if (!targetEnv) {
+    // Default to development to avoid serving production URLs in dev mode
+    targetEnv = 'development'
+    console.warn(
+      `[CONFIG LOADER] No explicit env provided, defaulting to 'development'. ` +
+      `Pass env parameter explicitly from consuming app to ensure correct environment.`
+    )
+  }
+
+  console.log(`[CONFIG LOADER] Environment detection: ${targetEnv}`)
 
   // Get URL for target environment
   const url = entry[targetEnv]
 
   if (!url) {
-    // Fallback order: production -> development
-    const fallbackUrl = entry.production || entry.development
+    // Fallback order: development -> production
+    const fallbackUrl = entry.development || entry.production
 
     if (!fallbackUrl) {
       throw new Error(`No URL found for environment: ${targetEnv}`)

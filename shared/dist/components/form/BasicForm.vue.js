@@ -1,4 +1,4 @@
-import { ref, reactive, watch, computed, resolveComponent, openBlock, createBlock, mergeProps, withCtx, createVNode, createElementBlock, Fragment, renderList, renderSlot, createCommentVNode, createTextVNode, toDisplayString } from 'vue';
+import { ref, reactive, watch, computed, resolveComponent, createBlock, openBlock, mergeProps, withCtx, createVNode, createElementBlock, createCommentVNode, Fragment, renderList, renderSlot, createTextVNode, toDisplayString } from 'vue';
 
 const _sfc_main = {
   __name: 'BasicForm',
@@ -65,11 +65,13 @@ const _sfc_main = {
   }
 },
   emits: ['submit', 'reset', 'update:model', 'register'],
-  setup(__props, { expose: __expose, emit: __emit }) {
+  setup(__props, { expose: __expose, emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 // 表单引用
 const formRef = ref(null);
@@ -229,21 +231,21 @@ return (_ctx, _cache) => {
                                 value: formModel[schema.field],
                                 "onUpdate:value": $event => ((formModel[schema.field]) = $event),
                                 placeholder: schema.placeholder || `请输入${schema.label}`
-                              }, { ref_for: true }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
+                              }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
                             : (schema.component === 'InputPassword')
                               ? (openBlock(), createBlock(_component_a_input_password, mergeProps({
                                   key: 1,
                                   value: formModel[schema.field],
                                   "onUpdate:value": $event => ((formModel[schema.field]) = $event),
                                   placeholder: schema.placeholder || `请输入${schema.label}`
-                                }, { ref_for: true }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
+                                }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
                               : (schema.component === 'Textarea')
                                 ? (openBlock(), createBlock(_component_a_textarea, mergeProps({
                                     key: 2,
                                     value: formModel[schema.field],
                                     "onUpdate:value": $event => ((formModel[schema.field]) = $event),
                                     placeholder: schema.placeholder || `请输入${schema.label}`
-                                  }, { ref_for: true }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
+                                  }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
                                 : (schema.component === 'InputNumber')
                                   ? (openBlock(), createBlock(_component_a_input_number, mergeProps({
                                       key: 3,
@@ -251,7 +253,7 @@ return (_ctx, _cache) => {
                                       "onUpdate:value": $event => ((formModel[schema.field]) = $event),
                                       placeholder: schema.placeholder || `请输入${schema.label}`,
                                       style: {"width":"100%"}
-                                    }, { ref_for: true }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
+                                    }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
                                   : (schema.component === 'Select')
                                     ? (openBlock(), createBlock(_component_a_select, mergeProps({
                                         key: 4,
@@ -259,27 +261,27 @@ return (_ctx, _cache) => {
                                         "onUpdate:value": $event => ((formModel[schema.field]) = $event),
                                         placeholder: schema.placeholder || `请选择${schema.label}`,
                                         options: schema.options
-                                      }, { ref_for: true }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder", "options"]))
+                                      }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder", "options"]))
                                     : (schema.component === 'CheckboxGroup')
                                       ? (openBlock(), createBlock(_component_a_checkbox_group, mergeProps({
                                           key: 5,
                                           value: formModel[schema.field],
                                           "onUpdate:value": $event => ((formModel[schema.field]) = $event),
                                           options: schema.options
-                                        }, { ref_for: true }, schema.componentProps), null, 16, ["value", "onUpdate:value", "options"]))
+                                        }, schema.componentProps), null, 16, ["value", "onUpdate:value", "options"]))
                                       : (schema.component === 'RadioGroup')
                                         ? (openBlock(), createBlock(_component_a_radio_group, mergeProps({
                                             key: 6,
                                             value: formModel[schema.field],
                                             "onUpdate:value": $event => ((formModel[schema.field]) = $event),
                                             options: schema.options
-                                          }, { ref_for: true }, schema.componentProps), null, 16, ["value", "onUpdate:value", "options"]))
+                                          }, schema.componentProps), null, 16, ["value", "onUpdate:value", "options"]))
                                         : (schema.component === 'Switch')
                                           ? (openBlock(), createBlock(_component_a_switch, mergeProps({
                                               key: 7,
                                               checked: formModel[schema.field],
                                               "onUpdate:checked": $event => ((formModel[schema.field]) = $event)
-                                            }, { ref_for: true }, schema.componentProps), null, 16, ["checked", "onUpdate:checked"]))
+                                            }, schema.componentProps), null, 16, ["checked", "onUpdate:checked"]))
                                           : (schema.component === 'DatePicker')
                                             ? (openBlock(), createBlock(_component_a_date_picker, mergeProps({
                                                 key: 8,
@@ -287,7 +289,7 @@ return (_ctx, _cache) => {
                                                 "onUpdate:value": $event => ((formModel[schema.field]) = $event),
                                                 placeholder: schema.placeholder || `请选择${schema.label}`,
                                                 style: {"width":"100%"}
-                                              }, { ref_for: true }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
+                                              }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
                                             : (schema.component === 'TimePicker')
                                               ? (openBlock(), createBlock(_component_a_time_picker, mergeProps({
                                                   key: 9,
@@ -295,14 +297,14 @@ return (_ctx, _cache) => {
                                                   "onUpdate:value": $event => ((formModel[schema.field]) = $event),
                                                   placeholder: schema.placeholder || `请选择${schema.label}`,
                                                   style: {"width":"100%"}
-                                                }, { ref_for: true }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
+                                                }, schema.componentProps), null, 16, ["value", "onUpdate:value", "placeholder"]))
                                               : (schema.component === 'RangePicker')
                                                 ? (openBlock(), createBlock(_component_a_range_picker, mergeProps({
                                                     key: 10,
                                                     value: formModel[schema.field],
                                                     "onUpdate:value": $event => ((formModel[schema.field]) = $event),
                                                     style: {"width":"100%"}
-                                                  }, { ref_for: true }, schema.componentProps), null, 16, ["value", "onUpdate:value"]))
+                                                  }, schema.componentProps), null, 16, ["value", "onUpdate:value"]))
                                                 : (schema.slot)
                                                   ? renderSlot(_ctx.$slots, schema.slot, {
                                                       key: 11,

@@ -1,6 +1,7 @@
-import { computed, ref, watch, resolveComponent, openBlock, createElementBlock, createElementVNode, renderSlot, toDisplayString, createCommentVNode, createVNode, withCtx, createBlock, unref, createTextVNode, mergeProps, createSlots, renderList, normalizeProps, guardReactiveProps } from 'vue';
+import { computed, ref, watch, resolveComponent, createElementBlock, openBlock, createCommentVNode, createVNode, createElementVNode, renderSlot, toDisplayString, withCtx, createBlock, createTextVNode, unref, mergeProps, createSlots, renderList, normalizeProps, guardReactiveProps } from 'vue';
 import { ReloadOutlined, SettingOutlined } from '@ant-design/icons-vue';
-/* empty css                 */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css                */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "basic-table" };
 const _hoisted_2 = {
@@ -90,11 +91,13 @@ const _sfc_main = {
   }
 },
   emits: ['refresh', 'edit', 'delete', 'change', 'register'],
-  setup(__props, { expose: __expose, emit: __emit }) {
+  setup(__props, { expose: __expose, emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 // 内部分页配置
 const innerPagination = computed(() => {
@@ -231,7 +234,7 @@ return (_ctx, _cache) => {
                           createVNode(unref(ReloadOutlined))
                         ]),
                         default: withCtx(() => [
-                          _cache[0] || (_cache[0] = createTextVNode(" 刷新 ", -1))
+                          createTextVNode(" 刷新 ")
                         ]),
                         _: 1
                       }))
@@ -242,7 +245,7 @@ return (_ctx, _cache) => {
                           createVNode(unref(SettingOutlined))
                         ]),
                         default: withCtx(() => [
-                          _cache[1] || (_cache[1] = createTextVNode(" 列设置 ", -1))
+                          createTextVNode(" 列设置 ")
                         ]),
                         _: 1
                       }))
@@ -285,11 +288,11 @@ return (_ctx, _cache) => {
                           size: "small",
                           onClick: $event => (handleEdit(record))
                         }, {
-                          default: withCtx(() => [...(_cache[2] || (_cache[2] = [
-                            createTextVNode(" 编辑 ", -1)
-                          ]))]),
-                          _: 1
-                        }, 8, ["onClick"]))
+                          default: withCtx(() => [
+                            createTextVNode(" 编辑 ")
+                          ]),
+                          _: 2
+                        }, 1032, ["onClick"]))
                       : createCommentVNode("", true),
                     (__props.actionColumn.delete)
                       ? (openBlock(), createBlock(_component_a_popconfirm, {
@@ -303,14 +306,14 @@ return (_ctx, _cache) => {
                               danger: "",
                               size: "small"
                             }, {
-                              default: withCtx(() => [...(_cache[3] || (_cache[3] = [
-                                createTextVNode("删除", -1)
-                              ]))]),
+                              default: withCtx(() => [
+                                createTextVNode("删除")
+                              ]),
                               _: 1
                             })
                           ]),
-                          _: 1
-                        }, 8, ["onConfirm"]))
+                          _: 2
+                        }, 1032, ["onConfirm"]))
                       : createCommentVNode("", true)
                   ]),
                   _: 2

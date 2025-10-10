@@ -1,4 +1,4 @@
-import { ref, watch, resolveComponent, openBlock, createBlock, mergeProps, createSlots, withCtx, renderSlot, createVNode, createTextVNode, toDisplayString } from 'vue';
+import { ref, watch, resolveComponent, createBlock, openBlock, mergeProps, createSlots, withCtx, renderSlot, createVNode, createTextVNode, toDisplayString } from 'vue';
 
 const _sfc_main = {
   __name: 'BasicModal',
@@ -55,11 +55,13 @@ const _sfc_main = {
   }
 },
   emits: ['update:open', 'ok', 'cancel', 'register'],
-  setup(__props, { expose: __expose, emit: __emit }) {
+  setup(__props, { expose: __expose, emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 // 内部可见状态
 const visible = ref(props.open);

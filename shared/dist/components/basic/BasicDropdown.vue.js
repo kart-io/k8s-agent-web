@@ -1,5 +1,6 @@
-import { resolveComponent, openBlock, createBlock, withCtx, createVNode, createElementBlock, Fragment, renderList, resolveDynamicComponent, createCommentVNode, createElementVNode, toDisplayString, renderSlot, createTextVNode, unref } from 'vue';
+import { resolveComponent, createBlock, openBlock, withCtx, renderSlot, createVNode, createTextVNode, unref, createElementBlock, Fragment, renderList, createCommentVNode, createElementVNode, resolveDynamicComponent, toDisplayString } from 'vue';
 import { DownOutlined } from '@ant-design/icons-vue';
+import '../../utils/storage.js';
 import { getIconComponent } from '../../utils/icons.js';
 
 const _sfc_main = {
@@ -19,11 +20,11 @@ const _sfc_main = {
   }
 },
   emits: ['menu-click'],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
 
 
-const emit = __emit;
+
 
 const getIcon = (iconName) => {
   if (!iconName) return null
@@ -78,7 +79,7 @@ return (_ctx, _cache) => {
         createVNode(_component_a_button, null, {
           default: withCtx(() => [
             renderSlot(_ctx.$slots, "button-content", {}, () => [
-              _cache[0] || (_cache[0] = createTextVNode(" 操作 ", -1)),
+              createTextVNode(" 操作 "),
               createVNode(unref(DownOutlined))
             ])
           ]),

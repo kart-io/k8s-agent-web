@@ -1,35 +1,16 @@
-/**
- * Configuration Loader and Validator
- *
- * Loads and validates micro-app configuration against JSON schema.
- * Provides helper functions for accessing configuration safely.
- */
-
-/**
- * Validate a value against a JSON schema property definition
- * This is a simplified validator - for production, consider using ajv or similar
- *
- * @param {any} value - Value to validate
- * @param {Object} schema - JSON schema property definition
- * @param {string} path - Property path for error reporting
- * @returns {Array} Array of validation errors (empty if valid)
- */
-function validateProperty(value, schema, path = '') {
+function validateProperty(value, schema, path = "") {
   const errors = [];
-
-  // Check required type
   if (schema.type) {
-    const actualType = Array.isArray(value) ? 'array' : typeof value;
+    const actualType = Array.isArray(value) ? "array" : typeof value;
     const expectedType = schema.type;
-
-    if (expectedType === 'integer') {
+    if (expectedType === "integer") {
       if (!Number.isInteger(value)) {
         errors.push({
           path,
           message: `Expected integer, got ${actualType}`,
           value
         });
-        return errors
+        return errors;
       }
     } else if (actualType !== expectedType) {
       errors.push({
@@ -37,12 +18,10 @@ function validateProperty(value, schema, path = '') {
         message: `Expected ${expectedType}, got ${actualType}`,
         value
       });
-      return errors
+      return errors;
     }
   }
-
-  // String validations
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     if (schema.pattern) {
       const regex = new RegExp(schema.pattern);
       if (!regex.test(value)) {
@@ -53,14 +32,14 @@ function validateProperty(value, schema, path = '') {
         });
       }
     }
-    if (schema.minLength !== undefined && value.length < schema.minLength) {
+    if (schema.minLength !== void 0 && value.length < schema.minLength) {
       errors.push({
         path,
         message: `String length ${value.length} is less than minimum ${schema.minLength}`,
         value
       });
     }
-    if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+    if (schema.maxLength !== void 0 && value.length > schema.maxLength) {
       errors.push({
         path,
         message: `String length ${value.length} exceeds maximum ${schema.maxLength}`,
@@ -68,17 +47,15 @@ function validateProperty(value, schema, path = '') {
       });
     }
   }
-
-  // Number validations
-  if (typeof value === 'number') {
-    if (schema.minimum !== undefined && value < schema.minimum) {
+  if (typeof value === "number") {
+    if (schema.minimum !== void 0 && value < schema.minimum) {
       errors.push({
         path,
         message: `Value ${value} is less than minimum ${schema.minimum}`,
         value
       });
     }
-    if (schema.maximum !== undefined && value > schema.maximum) {
+    if (schema.maximum !== void 0 && value > schema.maximum) {
       errors.push({
         path,
         message: `Value ${value} exceeds maximum ${schema.maximum}`,
@@ -86,21 +63,18 @@ function validateProperty(value, schema, path = '') {
       });
     }
   }
-
-  // Object validations
-  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
     if (schema.required) {
       for (const requiredProp of schema.required) {
         if (!(requiredProp in value)) {
           errors.push({
             path: `${path}.${requiredProp}`,
             message: `Required property missing: ${requiredProp}`,
-            value: undefined
+            value: void 0
           });
         }
       }
     }
-
     if (schema.properties) {
       for (const [propName, propValue] of Object.entries(value)) {
         const propSchema = schema.properties[propName];
@@ -115,47 +89,31 @@ function validateProperty(value, schema, path = '') {
       }
     }
   }
-
-  return errors
+  return errors;
 }
-
-/**
- * Validate micro-app configuration against schema
- *
- * @param {Object} config - Configuration object to validate
- * @param {Object} schema - JSON schema definition
- * @returns {Object} Validation result { valid: boolean, errors: Array }
- */
 function validateConfig(config, schema) {
   const errors = [];
-
-  if (!config || typeof config !== 'object') {
+  if (!config || typeof config !== "object") {
     return {
       valid: false,
       errors: [{
-        path: '',
-        message: 'Configuration must be an object',
+        path: "",
+        message: "Configuration must be an object",
         value: config
       }]
-    }
+    };
   }
-
-  // Validate using patternProperties (for dynamic app names)
   if (schema.patternProperties) {
     const pattern = Object.keys(schema.patternProperties)[0];
     const appSchema = schema.patternProperties[pattern];
     const regex = new RegExp(pattern);
-
-    // Check minimum properties
     if (schema.minProperties && Object.keys(config).length < schema.minProperties) {
       errors.push({
-        path: '',
+        path: "",
         message: `Configuration must have at least ${schema.minProperties} app(s)`,
         value: config
       });
     }
-
-    // Validate each app configuration
     for (const [appName, appConfig] of Object.entries(config)) {
       if (!regex.test(appName)) {
         errors.push({
@@ -163,158 +121,93 @@ function validateConfig(config, schema) {
           message: `App name does not match pattern: ${pattern}`,
           value: appName
         });
-        continue
+        continue;
       }
-
       const appErrors = validateProperty(appConfig, appSchema, appName);
       errors.push(...appErrors);
     }
   }
-
   return {
     valid: errors.length === 0,
     errors
-  }
+  };
 }
-
-/**
- * Load configuration from a config object with validation
- *
- * @param {Object} config - Configuration object
- * @param {Object} schema - JSON schema for validation
- * @param {Object} options - Options
- * @param {boolean} [options.strict=true] - Throw error on validation failure
- * @param {Function} [options.onError] - Error callback function
- * @returns {Object|null} Validated configuration or null if invalid (when strict=false)
- */
 function loadConfig(config, schema, options = {}) {
   const { strict = true, onError } = options;
-
-  // Validate configuration
   const validationResult = validateConfig(config, schema);
-
   if (!validationResult.valid) {
-    const errorMessage = `Configuration validation failed:\n${validationResult.errors
-      .map(e => `  - ${e.path}: ${e.message}`)
-      .join('\n')}`;
-
-    // Call error callback if provided
+    const errorMessage = `Configuration validation failed:
+${validationResult.errors.map((e) => `  - ${e.path}: ${e.message}`).join("\n")}`;
     if (onError) {
       onError(validationResult.errors);
     }
-
-    // Strict mode: throw error
     if (strict) {
       const error = new Error(errorMessage);
       error.validationErrors = validationResult.errors;
-      throw error
+      throw error;
     }
-
-    // Non-strict mode: log warning and return null
-    console.warn('[CONFIG LOADER]', errorMessage);
-    return null
+    console.warn("[CONFIG LOADER]", errorMessage);
+    return null;
   }
-
-  // Configuration is valid
-  console.log('[CONFIG LOADER] Configuration validated successfully');
-  return config
+  console.log("[CONFIG LOADER] Configuration validated successfully");
+  return config;
 }
-
-/**
- * Get environment-specific URL from micro-app entry configuration
- *
- * @param {Object} entry - Entry configuration object with environment URLs
- * @param {string} [env] - Target environment (defaults to current VITE_MODE or 'development')
- * @returns {string} Environment-specific URL
- */
 function getEntryUrl(entry, env) {
-  if (!entry || typeof entry !== 'object') {
-    throw new Error('Invalid entry configuration')
+  if (!entry || typeof entry !== "object") {
+    throw new Error("Invalid entry configuration");
   }
-
-  // Determine environment
-  const targetEnv = env || "production" || 'development';
-
-  // Get URL for target environment
+  let targetEnv = env;
+  if (!targetEnv) {
+    targetEnv = "development";
+    console.warn(
+      `[CONFIG LOADER] No explicit env provided, defaulting to 'development'. Pass env parameter explicitly from consuming app to ensure correct environment.`
+    );
+  }
+  console.log(`[CONFIG LOADER] Environment detection: ${targetEnv}`);
   const url = entry[targetEnv];
-
   if (!url) {
-    // Fallback order: production -> development
-    const fallbackUrl = entry.production || entry.development;
-
+    const fallbackUrl = entry.development || entry.production;
     if (!fallbackUrl) {
-      throw new Error(`No URL found for environment: ${targetEnv}`)
+      throw new Error(`No URL found for environment: ${targetEnv}`);
     }
-
     console.warn(
       `[CONFIG LOADER] No URL for environment '${targetEnv}', using fallback: ${fallbackUrl}`
     );
-    return fallbackUrl
+    return fallbackUrl;
   }
-
-  return url
+  return url;
 }
-
-/**
- * Deep merge two configuration objects
- * Used for merging default config with user config
- *
- * @param {Object} target - Target object (defaults)
- * @param {Object} source - Source object (overrides)
- * @returns {Object} Merged configuration
- */
 function mergeConfig(target, source) {
   const result = { ...target };
-
   for (const [key, value] of Object.entries(source)) {
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
       result[key] = mergeConfig(result[key] || {}, value);
     } else {
       result[key] = value;
     }
   }
-
-  return result
+  return result;
 }
-
-/**
- * Create default Wujie configuration from app config
- *
- * @param {Object} appConfig - Micro-app configuration
- * @param {string} [env] - Target environment
- * @returns {Object} Wujie-compatible configuration
- */
 function createWujieConfig(appConfig, env) {
   if (!appConfig) {
-    throw new Error('App configuration is required')
+    throw new Error("App configuration is required");
   }
-
   const { name, entry, wujie = {} } = appConfig;
-
   return {
     name,
     url: getEntryUrl(entry, env),
-    exec: wujie.exec !== undefined ? wujie.exec : true,
-    alive: wujie.alive !== undefined ? wujie.alive : true,
-    sync: wujie.sync !== undefined ? wujie.sync : true,
+    exec: wujie.exec !== void 0 ? wujie.exec : true,
+    alive: wujie.alive !== void 0 ? wujie.alive : true,
+    sync: wujie.sync !== void 0 ? wujie.sync : true,
     props: wujie.props || {},
     attrs: wujie.attrs || {}
-  }
+  };
 }
-
-/**
- * Validate port uniqueness across apps
- *
- * @param {Object} config - Full micro-apps configuration
- * @returns {Array} Array of port conflict errors
- */
 function validatePortUniqueness(config) {
-  const portMap = new Map();
+  const portMap = /* @__PURE__ */ new Map();
   const conflicts = [];
-
   for (const [appName, appConfig] of Object.entries(config)) {
     const port = appConfig.port;
-
     if (portMap.has(port)) {
       conflicts.push({
         port,
@@ -325,23 +218,13 @@ function validatePortUniqueness(config) {
       portMap.set(port, appName);
     }
   }
-
-  return conflicts
+  return conflicts;
 }
-
-/**
- * Validate basePath uniqueness across apps
- *
- * @param {Object} config - Full micro-apps configuration
- * @returns {Array} Array of basePath conflict errors
- */
 function validateBasePathUniqueness(config) {
-  const pathMap = new Map();
+  const pathMap = /* @__PURE__ */ new Map();
   const conflicts = [];
-
   for (const [appName, appConfig] of Object.entries(config)) {
     const basePath = appConfig.basePath;
-
     if (pathMap.has(basePath)) {
       conflicts.push({
         basePath,
@@ -352,10 +235,8 @@ function validateBasePathUniqueness(config) {
       pathMap.set(basePath, appName);
     }
   }
-
-  return conflicts
+  return conflicts;
 }
-
 const configLoader = {
   validateConfig,
   loadConfig,

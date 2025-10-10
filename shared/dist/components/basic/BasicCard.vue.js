@@ -1,5 +1,6 @@
-import { resolveComponent, openBlock, createBlock, normalizeClass, createSlots, withCtx, renderSlot } from 'vue';
-/* empty css                */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+import { resolveComponent, createBlock, openBlock, normalizeClass, createSlots, withCtx, renderSlot } from 'vue';
+/* empty css               */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _sfc_main = {
   __name: 'BasicCard',

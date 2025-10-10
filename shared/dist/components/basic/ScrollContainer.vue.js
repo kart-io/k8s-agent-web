@@ -1,5 +1,6 @@
-import { computed, openBlock, createElementBlock, normalizeClass, normalizeStyle, renderSlot } from 'vue';
-/* empty css                      */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+import { computed, createElementBlock, openBlock, normalizeStyle, normalizeClass, renderSlot } from 'vue';
+/* empty css                     */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _sfc_main = {
   __name: 'ScrollContainer',
@@ -21,6 +22,8 @@ const _sfc_main = {
   setup(__props) {
 
 const props = __props;
+
+
 
 const containerStyle = computed(() => {
   const style = {};

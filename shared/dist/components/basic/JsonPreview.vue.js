@@ -1,7 +1,8 @@
-import { ref, computed, resolveComponent, openBlock, createElementBlock, createVNode, withCtx, unref, createTextVNode, createBlock, toDisplayString, createCommentVNode, createElementVNode, normalizeClass } from 'vue';
+import { ref, computed, resolveComponent, createElementBlock, openBlock, createCommentVNode, createElementVNode, createVNode, withCtx, createBlock, createTextVNode, unref, toDisplayString, normalizeClass } from 'vue';
 import { message } from 'ant-design-vue';
 import { CopyOutlined, ExpandOutlined, ShrinkOutlined, DownloadOutlined } from '@ant-design/icons-vue';
-/* empty css                  */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css                 */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "json-preview" };
 const _hoisted_2 = {
@@ -37,6 +38,8 @@ const _sfc_main = {
   setup(__props) {
 
 const props = __props;
+
+
 
 const expanded = ref(true);
 
@@ -97,7 +100,7 @@ return (_ctx, _cache) => {
                   createVNode(unref(CopyOutlined))
                 ]),
                 default: withCtx(() => [
-                  _cache[0] || (_cache[0] = createTextVNode(" 复制 ", -1))
+                  createTextVNode(" 复制 ")
                 ]),
                 _: 1
               }),
@@ -125,7 +128,7 @@ return (_ctx, _cache) => {
                       createVNode(unref(DownloadOutlined))
                     ]),
                     default: withCtx(() => [
-                      _cache[1] || (_cache[1] = createTextVNode(" 下载 ", -1))
+                      createTextVNode(" 下载 ")
                     ]),
                     _: 1
                   }))

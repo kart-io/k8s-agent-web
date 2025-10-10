@@ -1,12 +1,16 @@
-import { ref, computed, resolveComponent, openBlock, createElementBlock, createElementVNode, Fragment, renderList, normalizeClass, withModifiers, createBlock, resolveDynamicComponent, createCommentVNode, toDisplayString, unref, createVNode, withCtx, createTextVNode } from 'vue';
-import { CloseOutlined, ReloadOutlined, VerticalRightOutlined, VerticalLeftOutlined, ColumnWidthOutlined, MinusOutlined, DownOutlined } from '@ant-design/icons-vue';
+import { ref, computed, resolveComponent, createElementBlock, openBlock, createElementVNode, createVNode, Fragment, renderList, withModifiers, normalizeClass, createBlock, createCommentVNode, resolveDynamicComponent, toDisplayString, unref, withCtx, createTextVNode, pushScopeId, popScopeId } from 'vue';
+import { CloseOutlined, ReloadOutlined, DownOutlined, VerticalRightOutlined, VerticalLeftOutlined, ColumnWidthOutlined, MinusOutlined } from '@ant-design/icons-vue';
+import '../../utils/storage.js';
 import { getIconComponent } from '../../utils/icons.js';
-/* empty css                   */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css                  */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
+const _withScopeId = n => (pushScopeId("data-v-4d4cf7c4"),n=n(),popScopeId(),n);
 const _hoisted_1 = { class: "layout-tab-bar" };
 const _hoisted_2 = { class: "tab-bar-content" };
 const _hoisted_3 = ["onClick", "onContextmenu"];
 const _hoisted_4 = { class: "tab-label" };
+const _hoisted_5 = /*#__PURE__*/ _withScopeId(() => /*#__PURE__*/createElementVNode("div", { style: {"position":"absolute","width":"0","height":"0"} }, null, -1));
 
 
 const _sfc_main = {
@@ -31,11 +35,13 @@ const _sfc_main = {
   'close-other',
   'close-all'
 ],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const tabsContainer = ref(null);
 const contextMenuVisible = ref(false);
@@ -211,7 +217,7 @@ return (_ctx, _cache) => {
               createVNode(_component_a_menu_item, { key: "refresh" }, {
                 default: withCtx(() => [
                   createVNode(unref(ReloadOutlined)),
-                  _cache[1] || (_cache[1] = createTextVNode(" 刷新当前 ", -1))
+                  createTextVNode(" 刷新当前 ")
                 ]),
                 _: 1
               }),
@@ -222,7 +228,7 @@ return (_ctx, _cache) => {
               }, {
                 default: withCtx(() => [
                   createVNode(unref(CloseOutlined)),
-                  _cache[2] || (_cache[2] = createTextVNode(" 关闭当前 ", -1))
+                  createTextVNode(" 关闭当前 ")
                 ]),
                 _: 1
               }, 8, ["disabled"]),
@@ -232,7 +238,7 @@ return (_ctx, _cache) => {
               }, {
                 default: withCtx(() => [
                   createVNode(unref(VerticalRightOutlined)),
-                  _cache[3] || (_cache[3] = createTextVNode(" 关闭左侧 ", -1))
+                  createTextVNode(" 关闭左侧 ")
                 ]),
                 _: 1
               }, 8, ["disabled"]),
@@ -242,7 +248,7 @@ return (_ctx, _cache) => {
               }, {
                 default: withCtx(() => [
                   createVNode(unref(VerticalLeftOutlined)),
-                  _cache[4] || (_cache[4] = createTextVNode(" 关闭右侧 ", -1))
+                  createTextVNode(" 关闭右侧 ")
                 ]),
                 _: 1
               }, 8, ["disabled"]),
@@ -252,7 +258,7 @@ return (_ctx, _cache) => {
               }, {
                 default: withCtx(() => [
                   createVNode(unref(ColumnWidthOutlined)),
-                  _cache[5] || (_cache[5] = createTextVNode(" 关闭其他 ", -1))
+                  createTextVNode(" 关闭其他 ")
                 ]),
                 _: 1
               }, 8, ["disabled"]),
@@ -263,7 +269,7 @@ return (_ctx, _cache) => {
               }, {
                 default: withCtx(() => [
                   createVNode(unref(MinusOutlined)),
-                  _cache[6] || (_cache[6] = createTextVNode(" 关闭全部 ", -1))
+                  createTextVNode(" 关闭全部 ")
                 ]),
                 _: 1
               }, 8, ["disabled"])
@@ -299,7 +305,7 @@ return (_ctx, _cache) => {
             createVNode(_component_a_menu_item, { key: "refresh" }, {
               default: withCtx(() => [
                 createVNode(unref(ReloadOutlined)),
-                _cache[7] || (_cache[7] = createTextVNode(" 刷新 ", -1))
+                createTextVNode(" 刷新 ")
               ]),
               _: 1
             }),
@@ -310,7 +316,7 @@ return (_ctx, _cache) => {
             }, {
               default: withCtx(() => [
                 createVNode(unref(CloseOutlined)),
-                _cache[8] || (_cache[8] = createTextVNode(" 关闭 ", -1))
+                createTextVNode(" 关闭 ")
               ]),
               _: 1
             }, 8, ["disabled"]),
@@ -320,7 +326,7 @@ return (_ctx, _cache) => {
             }, {
               default: withCtx(() => [
                 createVNode(unref(VerticalRightOutlined)),
-                _cache[9] || (_cache[9] = createTextVNode(" 关闭左侧 ", -1))
+                createTextVNode(" 关闭左侧 ")
               ]),
               _: 1
             }, 8, ["disabled"]),
@@ -330,7 +336,7 @@ return (_ctx, _cache) => {
             }, {
               default: withCtx(() => [
                 createVNode(unref(VerticalLeftOutlined)),
-                _cache[10] || (_cache[10] = createTextVNode(" 关闭右侧 ", -1))
+                createTextVNode(" 关闭右侧 ")
               ]),
               _: 1
             }, 8, ["disabled"]),
@@ -340,7 +346,7 @@ return (_ctx, _cache) => {
             }, {
               default: withCtx(() => [
                 createVNode(unref(ColumnWidthOutlined)),
-                _cache[11] || (_cache[11] = createTextVNode(" 关闭其他 ", -1))
+                createTextVNode(" 关闭其他 ")
               ]),
               _: 1
             }, 8, ["disabled"])
@@ -349,7 +355,7 @@ return (_ctx, _cache) => {
         })
       ]),
       default: withCtx(() => [
-        _cache[12] || (_cache[12] = createElementVNode("div", { style: {"position":"absolute","width":"0","height":"0"} }, null, -1))
+        _hoisted_5
       ]),
       _: 1
     }, 8, ["open", "overlay-style"])

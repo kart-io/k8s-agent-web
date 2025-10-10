@@ -1,8 +1,10 @@
-import { ref, resolveComponent, openBlock, createElementBlock, createElementVNode, renderSlot, createTextVNode, toDisplayString, createCommentVNode, createBlock, withCtx, unref, createVNode, Fragment, renderList, resolveDynamicComponent } from 'vue';
+import { ref, resolveComponent, createElementBlock, openBlock, createElementVNode, createCommentVNode, createBlock, renderSlot, createTextVNode, toDisplayString, withCtx, unref, createVNode, Fragment, renderList, resolveDynamicComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import { MenuFoldOutlined, MenuUnfoldOutlined, SearchOutlined, FullscreenExitOutlined, FullscreenOutlined, BellOutlined, UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons-vue';
+import '../../utils/storage.js';
 import { getIconComponent } from '../../utils/icons.js';
-/* empty css                   */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css                  */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "layout-header" };
 const _hoisted_2 = { class: "header-left" };
@@ -62,11 +64,13 @@ const _sfc_main = {
   }
 },
   emits: ['update:collapsed', 'user-menu-click', 'breadcrumb-click'],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const router = useRouter();
 const isFullscreen = ref(false);
@@ -232,14 +236,14 @@ return (_ctx, _cache) => {
                 createVNode(_component_a_menu_item, { key: "profile" }, {
                   default: withCtx(() => [
                     createVNode(unref(UserOutlined)),
-                    _cache[0] || (_cache[0] = createTextVNode(" 个人中心 ", -1))
+                    createTextVNode(" 个人中心 ")
                   ]),
                   _: 1
                 }),
                 createVNode(_component_a_menu_item, { key: "settings" }, {
                   default: withCtx(() => [
                     createVNode(unref(SettingOutlined)),
-                    _cache[1] || (_cache[1] = createTextVNode(" 系统设置 ", -1))
+                    createTextVNode(" 系统设置 ")
                   ]),
                   _: 1
                 }),
@@ -247,7 +251,7 @@ return (_ctx, _cache) => {
                 createVNode(_component_a_menu_item, { key: "logout" }, {
                   default: withCtx(() => [
                     createVNode(unref(LogoutOutlined)),
-                    _cache[2] || (_cache[2] = createTextVNode(" 退出登录 ", -1))
+                    createTextVNode(" 退出登录 ")
                   ]),
                   _: 1
                 })

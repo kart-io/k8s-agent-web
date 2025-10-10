@@ -1,6 +1,7 @@
-import { computed, resolveComponent, openBlock, createBlock, normalizeClass, createSlots, withCtx, renderSlot, createTextVNode, toDisplayString, resolveDynamicComponent } from 'vue';
-import { CheckCircleOutlined, SyncOutlined, CloseCircleOutlined, ExclamationCircleOutlined, ClockCircleOutlined, MinusCircleOutlined } from '@ant-design/icons-vue';
-/* empty css                */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+import { computed, resolveComponent, createBlock, openBlock, normalizeClass, createSlots, withCtx, renderSlot, createTextVNode, toDisplayString, resolveDynamicComponent } from 'vue';
+import { MinusCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined, SyncOutlined } from '@ant-design/icons-vue';
+/* empty css               */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _sfc_main = {
   __name: 'StatusTag',
@@ -65,6 +66,8 @@ const _sfc_main = {
   setup(__props) {
 
 const props = __props;
+
+
 
 // 标签颜色
 const tagColor = computed(() => {

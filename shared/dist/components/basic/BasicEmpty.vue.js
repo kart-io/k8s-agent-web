@@ -1,4 +1,4 @@
-import { computed, resolveComponent, openBlock, createBlock, withCtx, renderSlot, createTextVNode, toDisplayString, createCommentVNode } from 'vue';
+import { computed, resolveComponent, createBlock, openBlock, withCtx, renderSlot, createCommentVNode, createTextVNode, toDisplayString } from 'vue';
 
 const _sfc_main = {
   __name: 'BasicEmpty',
@@ -25,11 +25,13 @@ const _sfc_main = {
   }
 },
   emits: ['button-click'],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const imageUrl = computed(() => {
   if (props.image === 'simple') {

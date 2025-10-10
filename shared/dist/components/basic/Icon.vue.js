@@ -1,6 +1,8 @@
-import { computed, openBlock, createBlock, resolveDynamicComponent, normalizeClass, normalizeStyle, createCommentVNode } from 'vue';
+import { computed, createBlock, createCommentVNode, openBlock, resolveDynamicComponent, normalizeStyle, normalizeClass } from 'vue';
+import '../../utils/storage.js';
 import { getIconComponent } from '../../utils/icons.js';
-/* empty css           */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css          */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _sfc_main = {
   __name: 'Icon',
@@ -27,6 +29,8 @@ const _sfc_main = {
   setup(__props) {
 
 const props = __props;
+
+
 
 const iconComponent = computed(() => {
   return getIconComponent(props.icon)

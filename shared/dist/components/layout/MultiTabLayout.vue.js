@@ -1,7 +1,8 @@
-import { ref, computed, watch, resolveComponent, openBlock, createElementBlock, createVNode, withCtx, Fragment, renderList, createBlock, createTextVNode, toDisplayString, createCommentVNode, createElementVNode, unref, renderSlot } from 'vue';
+import { ref, computed, watch, resolveComponent, createElementBlock, openBlock, createCommentVNode, createElementVNode, createVNode, withCtx, Fragment, renderList, createBlock, createTextVNode, toDisplayString, unref, renderSlot } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ReloadOutlined, CloseOutlined, ColumnWidthOutlined, MinusOutlined, DownOutlined } from '@ant-design/icons-vue';
-/* empty css                     */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+import { DownOutlined, ReloadOutlined, CloseOutlined, ColumnWidthOutlined, MinusOutlined } from '@ant-design/icons-vue';
+/* empty css                    */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "multi-tab-layout" };
 const _hoisted_2 = {
@@ -22,9 +23,11 @@ const _sfc_main = {
   }
 },
   emits: ['tab-change', 'tab-close', 'tab-refresh'],
-  setup(__props, { expose: __expose, emit: __emit }) {
+  setup(__props, { expose: __expose, emit }) {
 
-const emit = __emit;
+
+
+
 
 const router = useRouter();
 const route = useRoute();
@@ -204,7 +207,7 @@ return (_ctx, _cache) => {
                 createVNode(_component_a_menu_item, { key: "refresh" }, {
                   default: withCtx(() => [
                     createVNode(unref(ReloadOutlined)),
-                    _cache[1] || (_cache[1] = createTextVNode(" 刷新当前 ", -1))
+                    createTextVNode(" 刷新当前 ")
                   ]),
                   _: 1
                 }),
@@ -212,21 +215,21 @@ return (_ctx, _cache) => {
                 createVNode(_component_a_menu_item, { key: "close" }, {
                   default: withCtx(() => [
                     createVNode(unref(CloseOutlined)),
-                    _cache[2] || (_cache[2] = createTextVNode(" 关闭当前 ", -1))
+                    createTextVNode(" 关闭当前 ")
                   ]),
                   _: 1
                 }),
                 createVNode(_component_a_menu_item, { key: "close-other" }, {
                   default: withCtx(() => [
                     createVNode(unref(ColumnWidthOutlined)),
-                    _cache[3] || (_cache[3] = createTextVNode(" 关闭其他 ", -1))
+                    createTextVNode(" 关闭其他 ")
                   ]),
                   _: 1
                 }),
                 createVNode(_component_a_menu_item, { key: "close-all" }, {
                   default: withCtx(() => [
                     createVNode(unref(MinusOutlined)),
-                    _cache[4] || (_cache[4] = createTextVNode(" 关闭全部 ", -1))
+                    createTextVNode(" 关闭全部 ")
                   ]),
                   _: 1
                 })

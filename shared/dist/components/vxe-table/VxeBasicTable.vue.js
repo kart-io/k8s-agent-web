@@ -1,5 +1,6 @@
-import { ref, computed, watch, onMounted, nextTick, onActivated, resolveComponent, openBlock, createElementBlock, normalizeClass, createElementVNode, renderSlot, toDisplayString, createCommentVNode, createVNode, mergeProps, withCtx, Fragment, renderList, createBlock, createSlots } from 'vue';
-/* empty css                    */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+import { ref, computed, watch, onMounted, nextTick, onActivated, resolveComponent, createElementBlock, openBlock, normalizeClass, createCommentVNode, createElementVNode, renderSlot, toDisplayString, createVNode, mergeProps, withCtx, Fragment, renderList, createBlock, createSlots, normalizeProps, guardReactiveProps } from 'vue';
+/* empty css                   */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = {
   key: 0,
@@ -104,11 +105,13 @@ const _sfc_main = {
   'load-success',
   'load-error'
 ],
-  setup(__props, { expose: __expose, emit: __emit }) {
+  setup(__props, { expose: __expose, emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const isFullScreen = ref(false);
 const gridContainer = ref(null);
@@ -316,12 +319,12 @@ return (_ctx, _cache) => {
       }), {
         default: withCtx(() => [
           (openBlock(true), createElementBlock(Fragment, null, renderList(columns.value, (col, index) => {
-            return (openBlock(), createBlock(_component_vxe_column, mergeProps({ key: index }, { ref_for: true }, col), createSlots({ _: 2 }, [
+            return (openBlock(), createBlock(_component_vxe_column, mergeProps({ key: index }, col), createSlots({ _: 2 }, [
               (col.slots?.default)
                 ? {
                     name: "default",
                     fn: withCtx((scope) => [
-                      renderSlot(_ctx.$slots, col.slots.default, mergeProps({ ref_for: true }, scope), undefined, true)
+                      renderSlot(_ctx.$slots, col.slots.default, normalizeProps(guardReactiveProps(scope)), undefined, true)
                     ]),
                     key: "0"
                   }

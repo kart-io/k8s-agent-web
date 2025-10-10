@@ -181,7 +181,27 @@ export function getMicroAppUrl(appName, env) {
   }
 
   try {
-    return getEntryUrl(config.entry, env)
+    // Explicitly determine environment from consuming app's runtime environment
+    // This is crucial because config-loader is pre-built and can't access runtime env
+    let targetEnv = env
+
+    if (!targetEnv) {
+      // Use consuming app's runtime environment
+      if (import.meta.env.DEV) {
+        targetEnv = 'development'
+      } else if (import.meta.env.PROD) {
+        targetEnv = 'production'
+      } else if (import.meta.env.MODE) {
+        targetEnv = import.meta.env.MODE
+      } else {
+        targetEnv = 'development'
+      }
+    }
+
+    console.log(`[CONFIG] Resolving URL for ${appName} in environment: ${targetEnv}`)
+
+    // Pass explicit environment to config-loader
+    return getEntryUrl(config.entry, targetEnv)
   } catch (error) {
     console.error(`[CONFIG] Error getting URL for ${appName}:`, error)
     // Fallback to development URL on error

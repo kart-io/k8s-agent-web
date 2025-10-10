@@ -1,4 +1,4 @@
-import { resolveComponent, openBlock, createBlock, createSlots, withCtx, renderSlot, createCommentVNode } from 'vue';
+import { resolveComponent, createBlock, openBlock, createSlots, withCtx, renderSlot, createCommentVNode } from 'vue';
 
 const _sfc_main = {
   __name: 'BasicResult',

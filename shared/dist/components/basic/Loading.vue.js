@@ -1,5 +1,6 @@
-import { resolveComponent, openBlock, createElementBlock, normalizeClass, createVNode, renderSlot, createCommentVNode } from 'vue';
-/* empty css              */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+import { resolveComponent, createElementBlock, createCommentVNode, openBlock, normalizeClass, createVNode, renderSlot } from 'vue';
+/* empty css             */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { key: 1 };
 

@@ -1,11 +1,11 @@
 import Description from './Description.vue.js';
 import StatusTag from './StatusTag.vue.js';
-import _sfc_main from './TimeFormat.vue.js';
-import _sfc_main$1 from './BasicButton.vue.js';
+import _sfc_main$3 from './TimeFormat.vue.js';
+import _sfc_main$2 from './BasicButton.vue.js';
 import BasicCard from './BasicCard.vue.js';
 import BasicBreadcrumb from './BasicBreadcrumb.vue.js';
-import _sfc_main$2 from './BasicDropdown.vue.js';
-import _sfc_main$3 from './BasicEmpty.vue.js';
+import _sfc_main$1 from './BasicDropdown.vue.js';
+import _sfc_main from './BasicEmpty.vue.js';
 import Icon from './Icon.vue.js';
 import Loading from './Loading.vue.js';
 import ScrollContainer from './ScrollContainer.vue.js';
@@ -19,12 +19,12 @@ import JsonPreview from './JsonPreview.vue.js';
 const index = {
   Description,
   StatusTag,
-  TimeFormat: _sfc_main,
-  BasicButton: _sfc_main$1,
+  TimeFormat: _sfc_main$3,
+  BasicButton: _sfc_main$2,
   BasicCard,
   BasicBreadcrumb,
-  BasicDropdown: _sfc_main$2,
-  BasicEmpty: _sfc_main$3,
+  BasicDropdown: _sfc_main$1,
+  BasicEmpty: _sfc_main,
   Icon,
   Loading,
   ScrollContainer,
@@ -36,5 +36,5 @@ const index = {
   JsonPreview
 };
 
-export { BasicBreadcrumb, _sfc_main$1 as BasicButton, BasicCard, _sfc_main$2 as BasicDropdown, _sfc_main$3 as BasicEmpty, CodeEditor, CountDown, CountTo, Description, Icon, JsonPreview, Loading, QrCode, ScrollContainer, StatusTag, StrengthMeter, _sfc_main as TimeFormat, index as default };
+export { BasicBreadcrumb, _sfc_main$2 as BasicButton, BasicCard, _sfc_main$1 as BasicDropdown, _sfc_main as BasicEmpty, CodeEditor, CountDown, CountTo, Description, Icon, JsonPreview, Loading, QrCode, ScrollContainer, StatusTag, StrengthMeter, _sfc_main$3 as TimeFormat, index as default };
 //# sourceMappingURL=index.js.map

@@ -1,4 +1,4 @@
-import { ref, watch, resolveComponent, openBlock, createElementBlock, Fragment, createVNode, withCtx, renderSlot, createBlock, unref, createTextVNode, toDisplayString, createElementVNode } from 'vue';
+import { ref, watch, resolveComponent, createElementBlock, openBlock, Fragment, createVNode, withCtx, renderSlot, createBlock, createTextVNode, toDisplayString, unref, createElementVNode } from 'vue';
 import { message } from 'ant-design-vue';
 import { UploadOutlined, PlusOutlined } from '@ant-design/icons-vue';
 
@@ -60,11 +60,13 @@ const _sfc_main = {
   }
 },
   emits: ['update:modelValue', 'change', 'preview', 'remove'],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const fileList = ref([]);
 const previewVisible = ref(false);

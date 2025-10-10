@@ -1,6 +1,7 @@
-import { ref, onMounted, onBeforeUnmount, watch, openBlock, createElementBlock, normalizeStyle, createElementVNode } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, createElementBlock, openBlock, normalizeStyle, createElementVNode } from 'vue';
 import { message } from 'ant-design-vue';
-/* empty css                 */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css                */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = ["value"];
 
@@ -36,11 +37,13 @@ const _sfc_main = {
   }
 },
   emits: ['update:modelValue', 'change'],
-  setup(__props, { expose: __expose, emit: __emit }) {
+  setup(__props, { expose: __expose, emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const editorRef = ref(null);
 

@@ -1,5 +1,6 @@
-import { ref, onMounted, onUnmounted, watch, openBlock, createElementBlock, toDisplayString } from 'vue';
-/* empty css              */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+import { ref, onMounted, onUnmounted, watch, createElementBlock, openBlock, toDisplayString } from 'vue';
+/* empty css             */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "count-to" };
 
@@ -45,11 +46,13 @@ const _sfc_main = {
   }
 },
   emits: ['finished'],
-  setup(__props, { expose: __expose, emit: __emit }) {
+  setup(__props, { expose: __expose, emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const displayValue = ref('');
 let animationFrameId = null;

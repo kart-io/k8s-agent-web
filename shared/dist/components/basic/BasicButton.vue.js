@@ -1,4 +1,5 @@
-import { computed, resolveComponent, openBlock, createBlock, withCtx, renderSlot } from 'vue';
+import { computed, resolveComponent, createBlock, openBlock, withCtx, renderSlot } from 'vue';
+import '../../utils/storage.js';
 import { getIconComponent } from '../../utils/icons.js';
 
 const _sfc_main = {
@@ -43,11 +44,13 @@ const _sfc_main = {
   }
 },
   emits: ['click'],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const iconComponent = computed(() => {
   if (!props.icon) return undefined

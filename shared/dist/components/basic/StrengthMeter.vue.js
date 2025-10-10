@@ -1,5 +1,6 @@
-import { ref, watch, computed, resolveComponent, openBlock, createElementBlock, createVNode, createElementVNode, normalizeClass, createCommentVNode, createTextVNode, toDisplayString } from 'vue';
-/* empty css                    */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+import { ref, watch, computed, resolveComponent, createElementBlock, openBlock, createVNode, createCommentVNode, createElementVNode, normalizeClass, createTextVNode, toDisplayString } from 'vue';
+/* empty css                   */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "strength-meter" };
 const _hoisted_2 = {
@@ -33,11 +34,13 @@ const _sfc_main = {
   }
 },
   emits: ['update:modelValue', 'change', 'strength-change'],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const passwordValue = ref(props.modelValue);
 
@@ -115,7 +118,7 @@ return (_ctx, _cache) => {
       : createCommentVNode("", true),
     (__props.showStrength)
       ? (openBlock(), createElementBlock("div", _hoisted_3, [
-          _cache[1] || (_cache[1] = createTextVNode(" 强度：", -1)),
+          createTextVNode(" 强度："),
           createElementVNode("span", {
             class: normalizeClass(`strength-text-${strength.value}`)
           }, toDisplayString(strengthText.value), 3)

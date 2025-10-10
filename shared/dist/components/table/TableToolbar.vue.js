@@ -1,6 +1,7 @@
-import { ref, resolveComponent, openBlock, createElementBlock, createElementVNode, renderSlot, createVNode, withCtx, createBlock, unref, createCommentVNode } from 'vue';
+import { ref, resolveComponent, createElementBlock, openBlock, createElementVNode, renderSlot, createVNode, withCtx, createBlock, createCommentVNode, unref } from 'vue';
 import { ReloadOutlined, SettingOutlined, FullscreenExitOutlined, FullscreenOutlined } from '@ant-design/icons-vue';
-/* empty css                   */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+/* empty css                  */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "table-toolbar" };
 const _hoisted_2 = { class: "table-toolbar-left" };
@@ -24,11 +25,11 @@ const _sfc_main = {
   }
 },
   emits: ['refresh', 'column-setting', 'fullscreen'],
-  setup(__props, { expose: __expose, emit: __emit }) {
+  setup(__props, { expose: __expose, emit }) {
 
 
 
-const emit = __emit;
+
 
 const isFullscreen = ref(false);
 

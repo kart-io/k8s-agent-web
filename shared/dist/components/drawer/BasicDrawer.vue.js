@@ -1,5 +1,6 @@
-import { ref, watch, resolveComponent, openBlock, createBlock, createSlots, withCtx, createElementVNode, renderSlot, createVNode, createTextVNode, toDisplayString } from 'vue';
-/* empty css                  */import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
+import { ref, watch, resolveComponent, createBlock, openBlock, createSlots, withCtx, createElementVNode, renderSlot, createVNode, createTextVNode, toDisplayString } from 'vue';
+/* empty css                 */
+import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
 const _hoisted_1 = { class: "drawer-content" };
 const _hoisted_2 = { class: "drawer-footer" };
@@ -67,11 +68,13 @@ const _sfc_main = {
   }
 },
   emits: ['update:open', 'ok', 'cancel', 'close'],
-  setup(__props, { emit: __emit }) {
+  setup(__props, { emit }) {
 
 const props = __props;
 
-const emit = __emit;
+
+
+
 
 const visible = ref(props.open);
 
