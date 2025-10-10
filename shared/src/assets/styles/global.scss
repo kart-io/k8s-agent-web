@@ -1,0 +1,326 @@
+/**
+ * Global Styles
+ * Feature 003: Project Structure Optimization
+ *
+ * This file provides global styles and CSS resets used across all micro-apps.
+ *
+ * @module @k8s-agent/shared/assets/styles/global
+ */
+
+@import './variables.scss';
+@import './mixins.scss';
+
+// ==================== CSS Reset ====================
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  color: $text-color;
+  background-color: $background-color-base;
+  overflow-x: hidden;
+}
+
+// ==================== Typography Reset ====================
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
+  font-weight: $font-weight-medium;
+  color: $heading-color;
+}
+
+h1 {
+  font-size: $heading-1-size;
+}
+h2 {
+  font-size: $heading-2-size;
+}
+h3 {
+  font-size: $heading-3-size;
+}
+h4 {
+  font-size: $heading-4-size;
+}
+h5 {
+  font-size: $heading-5-size;
+}
+h6 {
+  font-size: $heading-6-size;
+}
+
+p {
+  margin: 0 0 $margin-md 0;
+}
+
+a {
+  color: $primary-color;
+  text-decoration: none;
+  @include transition(color);
+
+  &:hover {
+    color: $primary-color-hover;
+  }
+
+  &:active {
+    color: $primary-color-active;
+  }
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: $font-family-code;
+}
+
+// ==================== Utility Classes ====================
+
+// Spacing utilities
+.mt-0 {
+  margin-top: 0;
+}
+.mt-xs {
+  margin-top: $margin-xs;
+}
+.mt-sm {
+  margin-top: $margin-sm;
+}
+.mt-md {
+  margin-top: $margin-md;
+}
+.mt-lg {
+  margin-top: $margin-lg;
+}
+.mt-xl {
+  margin-top: $margin-xl;
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+.mb-xs {
+  margin-bottom: $margin-xs;
+}
+.mb-sm {
+  margin-bottom: $margin-sm;
+}
+.mb-md {
+  margin-bottom: $margin-md;
+}
+.mb-lg {
+  margin-bottom: $margin-lg;
+}
+.mb-xl {
+  margin-bottom: $margin-xl;
+}
+
+.pt-0 {
+  padding-top: 0;
+}
+.pt-xs {
+  padding-top: $padding-xs;
+}
+.pt-sm {
+  padding-top: $padding-sm;
+}
+.pt-md {
+  padding-top: $padding-md;
+}
+.pt-lg {
+  padding-top: $padding-lg;
+}
+.pt-xl {
+  padding-top: $padding-xl;
+}
+
+.pb-0 {
+  padding-bottom: 0;
+}
+.pb-xs {
+  padding-bottom: $padding-xs;
+}
+.pb-sm {
+  padding-bottom: $padding-sm;
+}
+.pb-md {
+  padding-bottom: $padding-md;
+}
+.pb-lg {
+  padding-bottom: $padding-lg;
+}
+.pb-xl {
+  padding-bottom: $padding-xl;
+}
+
+// Text utilities
+.text-left {
+  text-align: left;
+}
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
+
+.text-ellipsis {
+  @include ellipsis;
+}
+
+.text-primary {
+  color: $primary-color;
+}
+.text-success {
+  color: $success-color;
+}
+.text-warning {
+  color: $warning-color;
+}
+.text-error {
+  color: $error-color;
+}
+.text-secondary {
+  color: $text-color-secondary;
+}
+
+// Display utilities
+.d-none {
+  display: none;
+}
+.d-block {
+  display: block;
+}
+.d-inline-block {
+  display: inline-block;
+}
+.d-flex {
+  display: flex;
+}
+.d-inline-flex {
+  display: inline-flex;
+}
+
+// Flex utilities
+.flex-center {
+  @include flex-center;
+}
+.flex-column {
+  @include flex-column;
+}
+.flex-1 {
+  @include flex-1;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-end {
+  justify-content: flex-end;
+}
+.justify-between {
+  justify-content: space-between;
+}
+
+.align-start {
+  align-items: flex-start;
+}
+.align-center {
+  align-items: center;
+}
+.align-end {
+  align-items: flex-end;
+}
+
+// ==================== Common Components ====================
+
+.page-container {
+  padding: $padding-lg;
+  background: $component-background;
+  min-height: calc(100vh - #{$header-height});
+}
+
+.card {
+  @include card;
+}
+
+.section-title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-medium;
+  color: $heading-color;
+  margin-bottom: $margin-lg;
+  padding-bottom: $padding-sm;
+  border-bottom: 2px solid $border-color-split;
+}
+
+.btn-group {
+  display: inline-flex;
+  gap: $spacing-sm;
+}
+
+// ==================== Scrollbar Styling ====================
+
+.custom-scrollbar {
+  @include scrollbar(8px, #f1f1f1, #888);
+}
+
+// ==================== Loading States ====================
+
+.loading-spinner {
+  @include flex-center;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+// ==================== Shadow Utilities ====================
+
+.shadow-sm {
+  @include shadow(sm);
+}
+.shadow-md {
+  @include shadow(md);
+}
+.shadow-lg {
+  @include shadow(lg);
+}
+.shadow-xl {
+  @include shadow(xl);
+}
+
+// ==================== Responsive Utilities ====================
+
+@include respond-below(md) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@include respond-above(md) {
+  .hide-on-desktop {
+    display: none !important;
+  }
+}

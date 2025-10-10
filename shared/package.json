@@ -37,7 +37,15 @@
     "./config/vxeTable": {
       "import": "./dist/config/vxeTable.js",
       "types": "./src/config/vxeTable.js"
-    }
+    },
+    "./config": {
+      "import": "./dist/config/index.js",
+      "types": "./src/config/index.js"
+    },
+    "./assets/styles": "./src/assets/styles/index.scss",
+    "./assets/styles/variables.scss": "./src/assets/styles/variables.scss",
+    "./assets/styles/mixins.scss": "./src/assets/styles/mixins.scss",
+    "./assets/styles/global.scss": "./src/assets/styles/global.scss"
   },
   "files": [
     "dist",

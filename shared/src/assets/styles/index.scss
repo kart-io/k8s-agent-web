@@ -1,0 +1,15 @@
+/**
+ * Shared Styles Entry Point
+ * Feature 003: Project Structure Optimization
+ *
+ * Import this file in your application's main.js to use global styles.
+ * Variables and mixins are auto-imported via Vite configuration.
+ *
+ * @example
+ * // In main.js
+ * import '@k8s-agent/shared/assets/styles'
+ */
+
+@import './variables.scss';
+@import './mixins.scss';
+@import './global.scss';
