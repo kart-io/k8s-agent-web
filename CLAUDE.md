@@ -10,7 +10,7 @@ K8s Agent Web - A micro-frontend application built with **Wujie** for Kubernetes
 
 **Tech Stack**: Vue 3 + **Wujie** (micro-frontend) + Vite 4/5 + Ant Design Vue 4 + Pinia + Vue Router 4
 
-**Important**: This project was migrated from qiankun to Wujie on 2025-10-08. See `WUJIE_MIGRATION_COMPLETE.md` for details.
+**Important**: This project was migrated from qiankun to Wujie on 2025-10-08. See `docs/architecture/WUJIE_MIGRATION_COMPLETE.md` for details.
 
 ## Development Commands
 
@@ -817,28 +817,50 @@ After starting services (`make dev`):
 - ✅ No bootstrap timeouts
 - ✅ Simpler architecture
 
-See `WUJIE_MIGRATION_COMPLETE.md` for detailed migration documentation.
+See `docs/architecture/WUJIE_MIGRATION_COMPLETE.md` for detailed migration documentation.
 
 ## Important Files
 
-- `WUJIE_MIGRATION_COMPLETE.md` - Wujie migration details and architecture
-- `MIGRATION_TO_WUJIE.md` - Step-by-step migration guide
-- `ROOT_CAUSE_ANALYSIS.md` - Analysis of previous qiankun issues
-- `MAKEFILE_GUIDE.md` - Makefile command reference
 - `Makefile` - Development task automation
 - `dev.sh` - Development startup script with proxy handling
 - `package.json` - Root workspace configuration
 - `pnpm-workspace.yaml` - pnpm workspace definition
+- `.npmrc` - pnpm dependency hoisting configuration
 
-## Additional Documentation
+## Documentation
 
-The repository contains extensive documentation in markdown files:
+**📚 All documentation has been reorganized into the `docs/` directory. See `docs/README.md` for the complete index.**
 
-- **Setup & Usage**: `QUICK_START.md`, `START_GUIDE.md`, `MAKEFILE_GUIDE.md`
-- **Components**: `COMPONENTS_GUIDE.md`, `SHARED_COMPONENTS_MIGRATION.md`
-- **Architecture**: `DYNAMIC_MENU_GUIDE.md`, `SUBMENU_GUIDE.md`
-- **Mock Data**: `MOCK_GUIDE.md`, `SUB_APPS_MOCK_GUIDE.md`
-- **Troubleshooting**: `TROUBLESHOOTING.md`, `PROXY_ISSUE_FIX.md`
-- **Migration**: `WUJIE_MIGRATION_COMPLETE.md`, `MIGRATION_TO_WUJIE.md`
+### Quick Links
 
-Use these documents for detailed information about specific aspects of the project.
+**Getting Started:**
+
+- [QUICK_START.md](QUICK_START.md) - Quick start guide
+- [START_GUIDE.md](START_GUIDE.md) - Detailed startup guide
+- [MAKEFILE_GUIDE.md](MAKEFILE_GUIDE.md) - Makefile command reference
+
+**Architecture:**
+
+- [docs/architecture/WUJIE_MIGRATION_COMPLETE.md](docs/architecture/WUJIE_MIGRATION_COMPLETE.md) - Wujie architecture
+- [docs/architecture/DYNAMIC_MENU_GUIDE.md](docs/architecture/DYNAMIC_MENU_GUIDE.md) - Dynamic routing system
+- [docs/architecture/SHARED_COMPONENTS_MIGRATION.md](docs/architecture/SHARED_COMPONENTS_MIGRATION.md) - Shared components
+
+**Components:**
+
+- [docs/components/VXE_TABLE.md](docs/components/VXE_TABLE.md) - VXE Table complete guide
+- [docs/components/COMPONENTS_GUIDE.md](docs/components/COMPONENTS_GUIDE.md) - Component usage
+- [docs/components/SUB_APPS_USAGE_GUIDE.md](docs/components/SUB_APPS_USAGE_GUIDE.md) - Micro-app integration
+
+**Troubleshooting:**
+
+- [docs/troubleshooting/TROUBLESHOOTING.md](docs/troubleshooting/TROUBLESHOOTING.md) - General troubleshooting
+- [docs/troubleshooting/PROXY_ISSUE_FIX.md](docs/troubleshooting/PROXY_ISSUE_FIX.md) - Proxy issues
+- [docs/troubleshooting/QUICK_FIX_GUIDE.md](docs/troubleshooting/QUICK_FIX_GUIDE.md) - Quick fixes
+
+**Feature Specifications:**
+
+- `specs/001-/` - Feature 001 specifications
+- `specs/002-/` - Feature 002 specifications (Communication & State Management)
+- `specs/003-/` - Feature 003 specifications (Project Structure Optimization)
+
+For a complete documentation index with all available guides, see [docs/README.md](docs/README.md).

@@ -1,43 +1,57 @@
-# VXE Table 使用指南
+# VXE Table 完整指南
 
 ## 📦 概述
 
-VXE Table 是一个基于 [vxe-table](https://vxetable.cn/) 的企业级表格组件，提供了强大的数据展示和编辑功能。本项目参考 vue-vben-admin 实现，提供了完整的表格解决方案。
+VXE Table 是一个基于 [vxe-table](https://vxetable.cn/) 的企业级表格组件,提供了强大的数据展示和编辑功能。本项目参考 vue-vben-admin 实现,提供了完整的表格解决方案。
 
 ### 特性
 
 - ✅ **功能丰富** - 支持排序、筛选、分页、树形、编辑等
-- ✅ **高性能** - 虚拟滚动，支持大数据量
+- ✅ **高性能** - 虚拟滚动,支持大数据量
 - ✅ **易扩展** - 丰富的插槽和配置项
 - ✅ **类型安全** - 完整的 TypeScript 类型支持
 - ✅ **响应式** - 自动适配容器大小
 - ✅ **主题定制** - 支持 Ant Design 主题
 
+## ⚠️ 重要提示
+
+VXE Table 是一个**可选的高级表格组件**,需要额外安装和配置。如果你只需要基础表格功能,请使用 `BasicTable` 组件。
+
 ## 🚀 快速开始
 
 ### 1. 安装依赖
 
+在需要使用 VXE Table 的应用中安装依赖:
+
 ```bash
+cd your-app
 pnpm add vxe-table vxe-table-plugin-antd xe-utils
 ```
 
 ### 2. 全局配置
 
-在应用入口文件中初始化 VXE Table：
+在应用的 `main.js` 中初始化 VXE Table:
 
 ```javascript
 // main.js
+import { createApp } from 'vue'
+import App from './App.vue'
 import { initVxeTable } from '@k8s-agent/shared/config/vxeTable'
 
-// 初始化 VXE Table
+const app = createApp(App)
+
+// 初始化 VXE Table(必须在 app.mount 之前)
 initVxeTable({
   size: 'medium',
   zIndex: 999,
   table: {
     border: false,
-    stripe: false
+    stripe: false,
+    highlightHoverRow: true
   }
 })
+
+app.mount('#app')
 ```
 
 ### 3. 基础使用
@@ -76,7 +90,7 @@ const gridOptions = {
 
 ### 1. API 数据加载
 
-使用 API 自动加载数据，支持分页、排序、筛选：
+使用 API 自动加载数据,支持分页、排序、筛选:
 
 ```vue
 <template>
@@ -133,7 +147,7 @@ const handleLoadSuccess = ({ list, total }) => {
 
 ### 2. 可编辑表格
 
-支持单元格编辑、行编辑等多种编辑模式：
+支持单元格编辑、行编辑等多种编辑模式:
 
 ```vue
 <template>
@@ -206,7 +220,7 @@ const handleSave = () => {
 
 ### 3. 树形表格
 
-支持树形结构数据展示：
+支持树形结构数据展示:
 
 ```vue
 <template>
@@ -279,36 +293,7 @@ const handleCollapseAll = () => {
 </script>
 ```
 
-### 4. 固定列
-
-支持左右固定列：
-
-```vue
-<template>
-  <VxeBasicTable
-    title="固定列表格"
-    :grid-options="fixedGridOptions"
-    :data-source="dataSource"
-  />
-</template>
-
-<script setup>
-const fixedGridOptions = {
-  border: true,
-  height: 400,
-  columns: [
-    { type: 'seq', width: 60, title: '序号', fixed: 'left' },
-    { field: 'col1', title: '列1', width: 150, fixed: 'left' },
-    { field: 'col2', title: '列2', width: 150 },
-    { field: 'col3', title: '列3', width: 150 },
-    { field: 'col4', title: '列4', width: 150 },
-    { field: 'col5', title: '列5', width: 150, fixed: 'right' }
-  ]
-}
-</script>
-```
-
-### 5. 复选框选择
+### 4. 复选框选择
 
 ```vue
 <template>
@@ -367,112 +352,6 @@ const handleCheckboxAll = ({ records }) => {
 </script>
 ```
 
-### 6. 排序和筛选
-
-```vue
-<template>
-  <VxeBasicTable
-    title="排序筛选表格"
-    :grid-options="gridOptions"
-    :data-source="dataSource"
-    @sort-change="handleSortChange"
-    @filter-change="handleFilterChange"
-  />
-</template>
-
-<script setup>
-const gridOptions = {
-  columns: [
-    { field: 'id', title: 'ID', width: 80 },
-    { field: 'name', title: '姓名', width: 120, sortable: true },
-    {
-      field: 'age',
-      title: '年龄',
-      width: 100,
-      sortable: true,
-      filters: [
-        { label: '18-25', value: '18-25' },
-        { label: '26-35', value: '26-35' },
-        { label: '36+', value: '36+' }
-      ]
-    },
-    { field: 'email', title: '邮箱', minWidth: 200 }
-  ]
-}
-
-const handleSortChange = ({ property, order }) => {
-  console.log('排序变化:', { property, order })
-}
-
-const handleFilterChange = ({ property, values }) => {
-  console.log('筛选变化:', { property, values })
-}
-</script>
-```
-
-### 7. 自定义渲染
-
-```vue
-<template>
-  <VxeBasicTable
-    title="自定义渲染"
-    :grid-options="gridOptions"
-    :data-source="dataSource"
-  />
-</template>
-
-<script setup>
-const gridOptions = {
-  columns: [
-    { field: 'id', title: 'ID', width: 80 },
-    { field: 'name', title: '姓名', width: 120 },
-    {
-      field: 'status',
-      title: '状态',
-      width: 100,
-      cellRender: {
-        name: 'ATag',
-        props: (params) => {
-          return {
-            color: params.row.status === '在职' ? 'success' : 'default'
-          }
-        }
-      }
-    },
-    {
-      title: '操作',
-      width: 150,
-      cellRender: {
-        name: 'ASpace',
-        children: [
-          {
-            name: 'AButton',
-            props: { type: 'link', size: 'small' },
-            content: '编辑',
-            events: {
-              click: (params) => {
-                console.log('编辑', params.row)
-              }
-            }
-          },
-          {
-            name: 'AButton',
-            props: { type: 'link', danger: true, size: 'small' },
-            content: '删除',
-            events: {
-              click: (params) => {
-                console.log('删除', params.row)
-              }
-            }
-          }
-        ]
-      }
-    }
-  ]
-}
-</script>
-```
-
 ## 🎯 API 文档
 
 ### VxeBasicTable Props
@@ -526,14 +405,6 @@ const gridOptions = {
 const [gridRef, gridApi, mergedGridOptions] = useVxeTable(options)
 ```
 
-**返回值:**
-
-| 名称 | 说明 | 类型 |
-|------|------|------|
-| gridRef | 表格引用 | Ref |
-| gridApi | 表格 API | Object |
-| mergedGridOptions | 合并后的配置 | ComputedRef |
-
 **gridApi 方法:**
 
 | 方法名 | 说明 | 参数 | 返回值 |
@@ -567,10 +438,10 @@ const [gridRef, gridApi, mergedGridOptions] = useVxeTable(options)
 ### 1. 使用 API 自动加载
 
 ```javascript
-// 推荐：使用 api 属性自动加载数据
+// 推荐:使用 api 属性自动加载数据
 <VxeBasicTable :api="fetchData" :params="params" />
 
-// 不推荐：手动管理数据加载
+// 不推荐:手动管理数据加载
 const data = ref([])
 const loading = ref(false)
 const loadData = async () => {
@@ -583,7 +454,7 @@ const loadData = async () => {
 ### 2. 使用 gridApi 操作表格
 
 ```javascript
-// 推荐：通过 register 事件获取 API
+// 推荐:通过 register 事件获取 API
 let tableApi = null
 const onTableRegister = (api) => {
   tableApi = api
@@ -591,25 +462,17 @@ const onTableRegister = (api) => {
 const handleRefresh = () => {
   tableApi?.reload()
 }
-
-// 不推荐：直接操作 ref
-const tableRef = ref(null)
-const handleRefresh = () => {
-  tableRef.value?.reload()
-}
 ```
 
 ### 3. 合理使用插槽
 
 ```vue
-<!-- 推荐：使用具名插槽 -->
+<!-- 推荐:使用具名插槽 -->
 <VxeBasicTable>
   <template #toolbar>
     <a-button>添加</a-button>
   </template>
 </VxeBasicTable>
-
-<!-- 不推荐：在 gridOptions 中配置复杂内容 -->
 ```
 
 ### 4. 性能优化
@@ -634,20 +497,68 @@ const columns = [
 
 ## 🐛 常见问题
 
-### Q: 表格高度不正确？
-A: 检查父容器是否有明确的高度，或使用 `autoHeight` 属性。
+### Q: 表格高度不正确?
 
-### Q: 数据不更新？
-A: 确保数据是响应式的，使用 `ref` 或 `reactive` 包装。
+A: 检查父容器是否有明确的高度,或使用 `autoHeight` 属性。
 
-### Q: 分页不生效？
-A: 确保设置了 `showPager` 属性，并正确返回 `total`。
+### Q: 数据不更新?
 
-### Q: 编辑后数据丢失？
-A: 编辑后需要手动保存数据，或使用 `v-model` 双向绑定。
+A: 确保数据是响应式的,使用 `ref` 或 `reactive` 包装。
+
+### Q: 分页不生效?
+
+A: 确保设置了 `showPager` 属性,并正确返回 `total`。
+
+### Q: 编辑后数据丢失?
+
+A: 编辑后需要手动保存数据,或使用 `v-model` 双向绑定。
+
+## 🎯 架构设计说明
+
+### 为什么使用 peerDependencies?
+
+```
+┌─────────────────────────────────────┐
+│  Application (main-app, agent-app)  │
+│  - 安装 vxe-table                   │
+│  - 创建 VxeBasicTable 组件          │
+│  - 使用 useVxeTable hook            │
+└─────────────────────────────────────┘
+                 ↓ 导入
+┌─────────────────────────────────────┐
+│  Shared Package                     │
+│  - 提供 useVxeTable hook            │
+│  - 提供配置函数                     │
+│  - vxe-table 作为 peerDependency    │
+└─────────────────────────────────────┘
+```
+
+**优点:**
+
+- ✅ 按需安装,不使用就不安装
+- ✅ 减小 shared 包体积
+- ✅ 避免依赖冲突
+- ✅ 更灵活的版本管理
+
+## 💡 推荐使用场景
+
+**使用 BasicTable(推荐):**
+
+- ✅ 普通数据展示
+- ✅ 简单的 CRUD 操作
+- ✅ 标准的表格功能
+
+**使用 VXE Table:**
+
+- ✅ 可编辑表格
+- ✅ 树形表格
+- ✅ 大数据量虚拟滚动
+- ✅ 复杂的单元格渲染
+- ✅ 需要导出、打印等高级功能
 
 ---
 
-更多详情请参考：
+更多详情请参考:
+
 - [VXE Table 官方文档](https://vxetable.cn/)
 - [vue-vben-admin](https://github.com/vbenjs/vue-vben-admin)
