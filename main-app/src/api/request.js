@@ -1,40 +1,37 @@
-import axios from 'axios'
+/**
+ * Main App API Request Configuration
+ * Uses unified API configuration from @k8s-agent/shared
+ * Feature 003: Project Structure Optimization
+ */
+
 import { message } from 'ant-design-vue'
+import {
+  createApiInstance,
+  defaultResponseErrorHandler
+} from '@k8s-agent/shared/config'
 
-const request = axios.create({
-  baseURL: '/api/v1',
-  timeout: 30000
-})
-
-// 请求拦截器
-request.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
+/**
+ * Create API instance with Ant Design Vue message integration
+ */
+const request = createApiInstance(
+  {
+    // Custom configuration for main-app
+    baseURL: '/api/v1',
+    timeout: 30000
   },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
-
-// 响应拦截器
-request.interceptors.response.use(
-  (response) => {
-    const res = response.data
-    return res
-  },
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      window.location.href = '/login'
-      message.error('登录已过期，请重新登录')
-    } else {
-      message.error(error.response?.data?.error || error.message || 'Request failed')
-    }
-    return Promise.reject(error)
+  {
+    // Custom response error handler with Ant Design Vue message
+    responseErrorHandler: (error) =>
+      defaultResponseErrorHandler(error, {
+        showMessage: (msg, type) => message[type](msg),
+        onUnauthorized: () => {
+          // Custom unauthorized handling for main app
+          localStorage.removeItem('token')
+          localStorage.removeItem('userInfo')
+          window.location.href = '/login'
+          message.error('Login expired, please login again')
+        }
+      })
   }
 )
 
