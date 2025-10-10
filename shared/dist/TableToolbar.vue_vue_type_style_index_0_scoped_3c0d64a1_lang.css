@@ -1,0 +1,11 @@
+.table-toolbar[data-v-3c0d64a1] {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  margin-bottom: 16px;
+}
+.table-toolbar-left[data-v-3c0d64a1], .table-toolbar-right[data-v-3c0d64a1] {
+  display: flex;
+  align-items: center;
+}

@@ -1,0 +1,11 @@
+.basic-breadcrumb[data-v-aa9931e4] .anticon {
+  margin-right: 4px;
+}
+.basic-breadcrumb a[data-v-aa9931e4] {
+  color: #1890ff;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.basic-breadcrumb a[data-v-aa9931e4]:hover {
+  color: #40a9ff;
+}

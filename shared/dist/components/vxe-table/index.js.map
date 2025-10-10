@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sources":["../../../src/components/vxe-table/index.js"],"sourcesContent":["/**\n * VXE Table 组件导出\n */\nimport VxeBasicTable from './VxeBasicTable.vue'\n\nexport { VxeBasicTable }\n\nexport default VxeBasicTable\n"],"names":[],"mappings":";;AAAA;AACA;AACA;;;;"}

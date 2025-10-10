@@ -1,17 +1,51 @@
-import { computed } from 'vue'
-import { useUserStore } from '@/store/user'
+import { computed, ref } from 'vue'
 
 /**
  * 权限钩子
  * 用于判断用户是否有某个权限
+ *
+ * @param {Object} options - 配置选项
+ * @param {Array|Function} options.permissions - 权限列表或返回权限列表的函数
+ * @param {Object|Function} options.userInfo - 用户信息或返回用户信息的函数
+ * @returns {Object} 权限检查方法
+ *
+ * @example
+ * // 在micro-app中使用（从userStore获取）
+ * import { useUserStore } from '@/store/user'
+ * const userStore = useUserStore()
+ * const { hasPermission, hasRole } = usePermission({
+ *   permissions: () => userStore.permissions,
+ *   userInfo: () => userStore.userInfo
+ * })
+ *
+ * @example
+ * // 直接传入数据
+ * const { hasPermission } = usePermission({
+ *   permissions: ['user:read', 'user:write']
+ * })
  */
-export function usePermission() {
-  const userStore = useUserStore()
+export function usePermission(options = {}) {
+  const { permissions: permissionsInput, userInfo: userInfoInput } = options
 
   /**
    * 获取用户权限列表
    */
-  const permissions = computed(() => userStore.permissions || [])
+  const permissions = computed(() => {
+    if (typeof permissionsInput === 'function') {
+      return permissionsInput() || []
+    }
+    return permissionsInput || []
+  })
+
+  /**
+   * 获取用户信息
+   */
+  const userInfo = computed(() => {
+    if (typeof userInfoInput === 'function') {
+      return userInfoInput() || {}
+    }
+    return userInfoInput || {}
+  })
 
   /**
    * 检查是否有权限
@@ -52,7 +86,7 @@ export function usePermission() {
    * @returns {Boolean}
    */
   const hasRole = (role, mode = 'some') => {
-    const userRoles = userStore.userInfo?.roles || []
+    const userRoles = userInfo.value?.roles || []
 
     if (!role) {
       return true
@@ -80,3 +114,4 @@ export function usePermission() {
     hasRole
   }
 }
+

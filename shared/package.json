@@ -3,33 +3,53 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Shared components, composables, hooks and utils for k8s-agent micro-frontend apps",
-  "main": "./src/index.js",
-  "module": "./src/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
-      "import": "./src/index.js"
+      "import": "./dist/index.js",
+      "types": "./src/index.js"
     },
     "./components": {
-      "import": "./src/components/index.js"
+      "import": "./dist/components.js",
+      "types": "./src/components/index.js"
     },
     "./composables": {
-      "import": "./src/composables/index.js"
+      "import": "./dist/composables.js",
+      "types": "./src/composables/index.js"
     },
     "./hooks": {
-      "import": "./src/hooks/index.js"
+      "import": "./dist/hooks.js",
+      "types": "./src/hooks/index.js"
     },
     "./utils": {
-      "import": "./src/utils/index.js"
+      "import": "./dist/utils.js",
+      "types": "./src/utils/index.js"
+    },
+    "./utils/config-loader.js": {
+      "import": "./dist/utils/config-loader.js",
+      "types": "./src/utils/config-loader.js"
+    },
+    "./core/route-sync.js": {
+      "import": "./dist/core/route-sync.js",
+      "types": "./src/core/route-sync.js"
     },
     "./config/vxeTable": {
-      "import": "./src/config/vxeTable.js"
+      "import": "./dist/config/vxeTable.js",
+      "types": "./src/config/vxeTable.js"
     }
   },
   "files": [
+    "dist",
     "src"
   ],
   "scripts": {
-    "lint": "eslint src"
+    "build": "vite build",
+    "build:verify": "vite build && node -e \"const fs = require('fs'); const required = ['index.js', 'components.js', 'composables.js', 'hooks.js', 'utils.js']; const missing = required.filter(f => !fs.existsSync('dist/' + f)); if (missing.length) { console.error('Missing builds:', missing); process.exit(1); } console.log('Build verification passed!');\"",
+    "dev": "vite build --watch",
+    "lint": "eslint src",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "keywords": [
     "vue3",
@@ -40,12 +60,20 @@
   "peerDependencies": {
     "vue": "^3.3.0",
     "ant-design-vue": "^3.2.0",
+    "@ant-design/icons-vue": "^7.0.0",
     "dayjs": "^1.11.0",
     "vxe-table": "^4.6.0",
     "vxe-table-plugin-antd": "^4.0.0",
-    "xe-utils": "^3.5.0"
+    "xe-utils": "^3.5.0",
+    "vue-router": "^4.0.0",
+    "pinia": "^2.0.0",
+    "axios": "^1.0.0"
   },
   "devDependencies": {
-    "eslint": "^8.0.0"
+    "@vitejs/plugin-vue": "^4.0.0",
+    "@vitest/ui": "^1.0.4",
+    "eslint": "^8.0.0",
+    "vite": "^4.5.0",
+    "vitest": "^1.0.4"
   }
 }

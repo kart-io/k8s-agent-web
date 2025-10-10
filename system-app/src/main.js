@@ -39,17 +39,30 @@ if (isWujie) {
   console.log('[System App] window.$wujie.bus:', window.$wujie?.bus)
 
   if (window.$wujie?.bus) {
-    console.log('[System App] Setting up route listener for: system-app-route-change')
-    window.$wujie.bus.$on('system-app-route-change', (subPath) => {
-      console.log('[System App] ✅ Received route change from main app:', subPath)
-      console.log('[System App] Current route path:', router.currentRoute.value.path)
-      if (router.currentRoute.value.path !== subPath) {
-        console.log('[System App] Pushing to new route:', subPath)
-        router.push(subPath)
-      } else {
-        console.log('[System App] Already on route:', subPath)
-      }
-    })
+    // Check if standardized route sync is enabled
+    const useStandardRouteSync = import.meta.env.VITE_FEATURE_STANDARD_ROUTE_SYNC === 'true'
+
+    if (useStandardRouteSync) {
+      console.log('[System App] Using standardized RouteSync protocol')
+
+      // Import RouteSync class
+      import('@k8s-agent/shared/core/route-sync.js').then(({ RouteSync }) => {
+        const routeSync = new RouteSync('system-app', window.$wujie.bus, router)
+        routeSync.setupListener()
+
+        console.log('[System App] ✅ RouteSync listener set up')
+
+        // Store routeSync instance globally for potential cleanup
+        window.__ROUTE_SYNC__ = routeSync
+      }).catch(error => {
+        console.error('[System App] Failed to load RouteSync:', error)
+        // Fallback to legacy sync
+        setupLegacyRouteSync()
+      })
+    } else {
+      console.log('[System App] Using legacy route sync')
+      setupLegacyRouteSync()
+    }
 
     // 监听子应用路由变化，通知主应用更新页面信息
     router.afterEach((to) => {
@@ -72,6 +85,24 @@ if (isWujie) {
   }
 } else {
   console.log('[System App] Running in standalone mode')
+}
+
+/**
+ * Legacy route sync setup (fallback)
+ * Used when VITE_FEATURE_STANDARD_ROUTE_SYNC is false
+ */
+function setupLegacyRouteSync() {
+  console.log('[System App] Setting up legacy route listener for: system-app-route-change')
+  window.$wujie.bus.$on('system-app-route-change', (subPath) => {
+    console.log('[System App] ✅ Received route change from main app:', subPath)
+    console.log('[System App] Current route path:', router.currentRoute.value.path)
+    if (router.currentRoute.value.path !== subPath) {
+      console.log('[System App] Pushing to new route:', subPath)
+      router.push(subPath)
+    } else {
+      console.log('[System App] Already on route:', subPath)
+    }
+  })
 }
 
 // 根据路由获取页面标题

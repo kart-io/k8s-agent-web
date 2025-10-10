@@ -45,4 +45,29 @@ app.use(createPinia())
 app.use(Antd)
 app.use(VXETable)
 
+// 在 Wujie 环境中监听主应用的路由变化
+if (isWujie && window.$wujie) {
+  const useStandardRouteSync = import.meta.env.VITE_FEATURE_STANDARD_ROUTE_SYNC === 'true'
+
+  if (useStandardRouteSync) {
+    import('@k8s-agent/shared/core/route-sync.js').then(({ RouteSync }) => {
+      const routeSync = new RouteSync('image-build-app', window.$wujie.bus, router)
+      routeSync.setupListener()
+      window.__ROUTE_SYNC__ = routeSync
+      console.log('[Image Build App] ✅ RouteSync listener set up')
+    }).catch(() => {
+      window.$wujie.bus.$on('image-build-app-route-change', (subPath) => {
+        if (router.currentRoute.value.path !== subPath) router.push(subPath)
+      })
+    })
+  } else {
+    window.$wujie.bus.$on('image-build-app-route-change', (subPath) => {
+      console.log('[Image Build App] Received route change from main app:', subPath)
+      if (router.currentRoute.value.path !== subPath) {
+        router.push(subPath)
+      }
+    })
+  }
+}
+
 app.mount('#app')

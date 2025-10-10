@@ -1,0 +1,170 @@
+.vxe-basic-table[data-v-353298b6] {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 2px;
+}
+.vxe-basic-table.is-full-screen[data-v-353298b6] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: #fff;
+  padding: 16px;
+}
+.vxe-basic-table .vxe-table-title[data-v-353298b6] {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+.vxe-basic-table .vxe-table-title .title-left[data-v-353298b6] {
+  flex: 1;
+}
+.vxe-basic-table .vxe-table-title .title-left .title-text[data-v-353298b6] {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+.vxe-basic-table .vxe-table-title .title-right[data-v-353298b6] {
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+.vxe-basic-table .vxe-grid-container[data-v-353298b6] {
+  flex: 1;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 16px;
+}
+.vxe-basic-table .vxe-table-main[data-v-353298b6] {
+  flex: 1;
+  min-height: 0;
+}
+.vxe-basic-table .vxe-table-placeholder[data-v-353298b6] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 4px;
+}
+.vxe-basic-table .vxe-custom-pager[data-v-353298b6] {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 0 0 0;
+  flex-shrink: 0;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table {
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--header-wrapper {
+  background: #fafafa;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--header-wrapper .vxe-header--row .vxe-header--column {
+  background: #fafafa !important;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--header-wrapper .vxe-header--row .vxe-header--column .vxe-cell {
+  padding: 14px 16px;
+  line-height: 1.5715;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--body-wrapper {
+  background: #fff;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--body-wrapper .vxe-body--row {
+  background: #fff !important;
+  transition: background-color 0.2s ease;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--body-wrapper .vxe-body--row:hover {
+  background-color: #fafafa !important;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--body-wrapper .vxe-body--row.row--stripe {
+  background-color: #fff !important;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--body-wrapper .vxe-body--row.row--stripe:hover {
+  background-color: #fafafa !important;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--body-wrapper .vxe-body--row .vxe-body--column {
+  background: #fff !important;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--body-wrapper .vxe-body--row .vxe-body--column .vxe-cell {
+  padding: 14px 16px;
+  line-height: 1.5715;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--body-wrapper .vxe-body--row .vxe-body--column.col--seq .vxe-cell {
+  color: rgba(0, 0, 0, 0.45);
+  font-weight: normal;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--body-wrapper .vxe-body--row:last-child .vxe-body--column {
+  border-bottom: none;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner, .vxe-basic-table[data-v-353298b6] .vxe-table.border--default {
+  border: 1px solid #f0f0f0;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--header-wrapper .vxe-header--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--header-wrapper .vxe-body--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--header-wrapper .vxe-footer--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--body-wrapper .vxe-header--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--body-wrapper .vxe-body--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--body-wrapper .vxe-footer--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--footer-wrapper .vxe-header--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--footer-wrapper .vxe-body--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--footer-wrapper .vxe-footer--column, .vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--header-wrapper .vxe-header--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--header-wrapper .vxe-body--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--header-wrapper .vxe-footer--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--body-wrapper .vxe-header--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--body-wrapper .vxe-body--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--body-wrapper .vxe-footer--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--footer-wrapper .vxe-header--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--footer-wrapper .vxe-body--column,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--footer-wrapper .vxe-footer--column {
+  border-right: 1px solid #f0f0f0;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--header-wrapper .vxe-header--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--header-wrapper .vxe-body--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--header-wrapper .vxe-footer--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--body-wrapper .vxe-header--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--body-wrapper .vxe-body--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--body-wrapper .vxe-footer--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--footer-wrapper .vxe-header--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--footer-wrapper .vxe-body--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--inner .vxe-table--footer-wrapper .vxe-footer--column:last-child, .vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--header-wrapper .vxe-header--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--header-wrapper .vxe-body--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--header-wrapper .vxe-footer--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--body-wrapper .vxe-header--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--body-wrapper .vxe-body--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--body-wrapper .vxe-footer--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--footer-wrapper .vxe-header--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--footer-wrapper .vxe-body--column:last-child,
+.vxe-basic-table[data-v-353298b6] .vxe-table.border--default .vxe-table--footer-wrapper .vxe-footer--column:last-child {
+  border-right: none;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--empty-block {
+  padding: 80px 0;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--empty-block .vxe-table--empty-content {
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 14px;
+}
+.vxe-basic-table[data-v-353298b6] .vxe-table .vxe-table--loading .vxe-table--spinner {
+  background: rgba(255, 255, 255, 0.9);
+}

@@ -1,0 +1,108 @@
+.layout-tab-bar[data-v-4d4cf7c4] {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  z-index: 9;
+}
+.tab-bar-content[data-v-4d4cf7c4] {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 8px;
+  gap: 4px;
+}
+.tabs-container[data-v-4d4cf7c4] {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 4px;
+}
+.tabs-container[data-v-4d4cf7c4]::-webkit-scrollbar {
+  height: 0;
+}
+.tabs-container[data-v-4d4cf7c4] {
+  scrollbar-width: none;
+}
+.tab-item[data-v-4d4cf7c4] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 2px;
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+.tab-item[data-v-4d4cf7c4]:hover {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+  color: #1890ff;
+}
+.tab-item:hover .tab-close[data-v-4d4cf7c4] {
+  opacity: 1;
+}
+.tab-item.tab-active[data-v-4d4cf7c4] {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: #fff;
+}
+.tab-item.tab-active .tab-close[data-v-4d4cf7c4] {
+  opacity: 1;
+  color: #fff;
+}
+.tab-item.tab-active .tab-close[data-v-4d4cf7c4]:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+}
+.tab-icon[data-v-4d4cf7c4] {
+  font-size: 14px;
+}
+.tab-label[data-v-4d4cf7c4] {
+  font-size: 13px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tab-close[data-v-4d4cf7c4] {
+  font-size: 10px;
+  padding: 2px;
+  border-radius: 2px;
+  opacity: 0;
+  transition: all 0.3s;
+}
+.tab-close[data-v-4d4cf7c4]:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #ff4d4f;
+}
+.tab-action-btn[data-v-4d4cf7c4] {
+  height: 28px;
+  width: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.tab-action-btn[data-v-4d4cf7c4]:hover {
+  background: #f0f0f0;
+}
+.rotating[data-v-4d4cf7c4] {
+  animation: rotate-4d4cf7c4 1s linear infinite;
+}
+@keyframes rotate-4d4cf7c4 {
+from {
+    transform: rotate(0deg);
+}
+to {
+    transform: rotate(360deg);
+}
+}

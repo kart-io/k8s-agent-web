@@ -33,13 +33,47 @@ app.use(VXETable)
 
 // 在 Wujie 环境中监听主应用的路由变化
 if (isWujie && window.$wujie) {
+  const useStandardRouteSync = import.meta.env.VITE_FEATURE_STANDARD_ROUTE_SYNC === 'true'
+
+  if (useStandardRouteSync) {
+    import('@k8s-agent/shared/core/route-sync.js').then(({ RouteSync }) => {
+      const routeSync = new RouteSync('cluster-app', window.$wujie.bus, router)
+      routeSync.setupListener()
+      window.__ROUTE_SYNC__ = routeSync
+      console.log('[Cluster App] ✅ RouteSync listener set up')
+    }).catch(() => {
+      setupLegacyRouteSync()
+    })
+  } else {
+    setupLegacyRouteSync()
+  }
+
+  // 监听子应用路由变化，通知主应用更新页面信息
+  router.afterEach((to) => {
+    console.log('[Cluster App] Route changed, notifying main app:', to.path, to.name)
+
+    const pageInfo = {
+      path: `/clusters${to.path}`,
+      subPath: to.path,
+      name: to.name,
+      title: getRouteTitle(to),
+      fullPath: `/clusters${to.fullPath}`
+    }
+
+    console.log('[Cluster App] Emitting sub-app-page-change:', pageInfo)
+    window.$wujie.bus.$emit('sub-app-page-change', pageInfo)
+  })
+} else {
+  console.log('[Cluster App] Running in standalone mode')
+}
+
+function setupLegacyRouteSync() {
   let isReceivingFromMain = false
   let isInitialLoad = true
 
   window.$wujie.bus.$on('cluster-app-route-change', (subPath) => {
     console.log('[Cluster App] Received route change from main app:', subPath)
 
-    // 接收到主应用的路由同步，标记初始加载已完成
     if (isInitialLoad) {
       isInitialLoad = false
     }
@@ -53,39 +87,6 @@ if (isWujie && window.$wujie) {
       })
     }
   })
-
-  // 监听子应用路由变化，通知主应用更新页面信息
-  router.afterEach((to, from) => {
-    // 如果是从主应用接收的路由变化，不再通知回主应用
-    if (isReceivingFromMain) {
-      console.log('[Cluster App] Route changed from main app, skipping notification')
-      return
-    }
-
-    // 如果是初始加载且路由是根路径，等待主应用同步正确的路由
-    if (isInitialLoad && to.path === '/') {
-      console.log('[Cluster App] Initial load on root path, waiting for main app sync')
-      isInitialLoad = false
-      return
-    }
-    isInitialLoad = false
-
-    console.log('[Cluster App] Route changed, notifying main app:', to.path, to.name)
-
-    // 子应用路由不包含 /clusters，需要添加前缀以匹配主应用路由
-    const pageInfo = {
-      path: `/clusters${to.path}`,   // 完整路径，添加 /clusters 前缀
-      subPath: to.path,              // 子应用内部路径
-      name: to.name,                 // 路由名称
-      title: getRouteTitle(to),      // 页面标题
-      fullPath: `/clusters${to.fullPath}`
-    }
-
-    console.log('[Cluster App] Emitting sub-app-page-change:', pageInfo)
-    window.$wujie.bus.$emit('sub-app-page-change', pageInfo)
-  })
-} else {
-  console.log('[Cluster App] Running in standalone mode')
 }
 
 // 根据路由获取页面标题

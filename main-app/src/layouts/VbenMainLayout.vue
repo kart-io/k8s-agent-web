@@ -14,7 +14,12 @@
   >
     <!-- 微前端容器 -->
     <router-view v-slot="{ Component, route }">
-      <component :is="Component" v-if="Component" :key="route.fullPath" />
+      <!-- 使用 microApp 作为 key,相同微应用使用相同 key,避免不必要的组件销毁 -->
+      <component
+        :is="Component"
+        v-if="Component"
+        :key="route.meta.microApp || route.name"
+      />
       <div v-else class="no-component-warning" style="padding: 20px; color: red;">
         No component matched for route: {{ route.fullPath }}
         <br>Route name: {{ route.name }}

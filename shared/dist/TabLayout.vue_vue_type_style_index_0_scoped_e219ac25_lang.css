@@ -1,0 +1,22 @@
+
+.tab-layout[data-v-e219ac25] {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.tab-content[data-v-e219ac25] {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+[data-v-e219ac25] .ant-tabs {
+  margin-bottom: 0;
+}
+[data-v-e219ac25] .ant-tabs-nav {
+  margin-bottom: 0;
+  padding: 0 16px;
+  background: #fff;
+}
+[data-v-e219ac25] .ant-tabs-content-holder {
+  display: none;
+}
