@@ -14,6 +14,43 @@ import WujieVue from 'wujie-vue3'
 import './assets/styles/main.scss'
 
 /**
+ * CRITICAL: Suppress Wujie benign errors BEFORE any other code runs
+ * This must be at the very top to catch errors during Wujie initialization
+ */
+;(() => {
+  // Store originals
+  const originalConsoleError = console.error
+  const originalErrorHandler = window.onerror
+
+  // Override console.error
+  console.error = function(...args) {
+    const msg = String(args[0]?.message || args[0] || '')
+    if (msg.includes('此报错可以忽略') || msg.includes('iframe主动中断') || msg.includes('stopMainAppRun')) {
+      return
+    }
+    originalConsoleError.apply(console, args)
+  }
+
+  // Override window.onerror
+  window.onerror = function(message, source, lineno, colno, error) {
+    const msg = String(message || '')
+    if (msg.includes('此报错可以忽略') || msg.includes('iframe主动中断') || msg.includes('stopMainAppRun')) {
+      return true
+    }
+    return originalErrorHandler ? originalErrorHandler(message, source, lineno, colno, error) : false
+  }
+
+  // Capture phase error listener
+  window.addEventListener('error', (e) => {
+    const msg = String(e.message || e.error?.message || '')
+    if (msg.includes('此报错可以忽略') || msg.includes('iframe主动中断') || msg.includes('stopMainAppRun')) {
+      e.stopImmediatePropagation()
+      e.preventDefault()
+    }
+  }, true)
+})()
+
+/**
  * Validate micro-apps configuration on startup
  * This ensures configuration errors are caught early before runtime
  */

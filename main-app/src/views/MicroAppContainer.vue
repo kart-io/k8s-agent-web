@@ -12,6 +12,9 @@
         :sync="false"
         :alive="true"
         :props="appProps"
+        @beforeLoad="handleBeforeLoad"
+        @afterMount="handleAfterMount"
+        @loadError="handleLoadError"
         @activated="handleActivated"
         @deactivated="handleDeactivated"
       />
@@ -20,7 +23,7 @@
 </template>
 
 <script setup>
-import { computed, watch, ref, onUnmounted, onMounted } from 'vue'
+import { computed, watch, ref, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import WujieVue from 'wujie-vue3'
@@ -157,16 +160,81 @@ const legacySyncRouteToSubApp = (path) => {
 }
 
 // Watch for route changes and sync to micro-app
-watch(() => route.path, (newPath) => {
-  console.log('[MicroAppContainer] Route changed to:', newPath)
-  syncRouteToSubApp(newPath)
-}, { immediate: false })
+watch(() => route.path, (newPath, oldPath) => {
+  console.log('[MicroAppContainer] Route watcher triggered')
+  console.log('[MicroAppContainer] Old path:', oldPath)
+  console.log('[MicroAppContainer] New path:', newPath)
+  console.log('[MicroAppContainer] microAppName:', microAppName.value)
+
+  // Only sync if the route changed and we have an app name
+  if (newPath !== oldPath && microAppName.value) {
+    syncRouteToSubApp(newPath)
+  } else {
+    console.log('[MicroAppContainer] Skipping sync - same route or no app name')
+  }
+}, { immediate: false, flush: 'post' })
+
+/**
+ * Handle micro-app before load
+ * Reset loading state and start timeout
+ */
+const handleBeforeLoad = () => {
+  console.log('[MicroAppContainer] App before load:', microAppName.value)
+  isLoading.value = true
+  startLoadTimeout()
+}
+
+/**
+ * Handle micro-app after mount (successfully loaded)
+ * This is the critical event to clear the timeout
+ */
+const handleAfterMount = () => {
+  console.log('[MicroAppContainer] App mounted successfully:', microAppName.value)
+
+  // Clear timeout - app loaded successfully
+  clearLoadTimeout()
+  isLoading.value = false
+
+  // Sync route after successful mount
+  syncRouteToSubApp(route.path)
+}
+
+/**
+ * Handle micro-app load error
+ * Wujie emits this when the micro-app fails to load
+ */
+const handleLoadError = (error) => {
+  console.error('[MicroAppContainer] App load error:', microAppName.value, error)
+
+  // Clear timeout
+  clearLoadTimeout()
+  isLoading.value = false
+
+  // Report error to monitoring
+  if (microAppName.value && error) {
+    reportMicroAppLoadError(
+      microAppName.value,
+      error,
+      {
+        url: microAppUrl.value,
+        route: route.path,
+        errorType: 'wujie-load-error'
+      }
+    )
+  }
+}
 
 // Handle micro-app activation
 const handleActivated = () => {
   console.log('[MicroAppContainer] App activated:', microAppName.value)
+  console.log('[MicroAppContainer] Current route path:', route.path)
+
   // Sync route when micro-app is activated (keep-alive mode)
-  syncRouteToSubApp(route.path)
+  // Use nextTick to ensure DOM is ready
+  setTimeout(() => {
+    console.log('[MicroAppContainer] Syncing route after activation')
+    syncRouteToSubApp(route.path)
+  }, 100)
 }
 
 // Handle micro-app deactivation
@@ -254,18 +322,6 @@ const clearLoadTimeout = () => {
     timeoutTimer.value = null
   }
 }
-
-// Start timeout on mount
-onMounted(() => {
-  console.log('[MicroAppContainer] Component mounted, starting load timeout')
-  startLoadTimeout()
-})
-
-// Watch for micro-app changes and restart timeout
-watch([microAppName, microAppUrl], () => {
-  console.log('[MicroAppContainer] Micro-app or URL changed, restarting timeout')
-  startLoadTimeout()
-})
 
 // Cleanup RouteSync instance and timeout on component unmount
 onUnmounted(() => {

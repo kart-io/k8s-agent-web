@@ -92,6 +92,28 @@ export class ErrorContext {
 }
 
 /**
+ * Check if an error should be ignored (benign errors)
+ *
+ * @param {string} message - Error message
+ * @returns {boolean} - True if error should be ignored
+ */
+function shouldIgnoreError(message) {
+  if (!message) return false
+
+  const ignoredPatterns = [
+    // ResizeObserver errors - known browser issue, non-critical
+    /ResizeObserver loop/i,
+    // Wujie internal errors that are intentional
+    /此报错可以忽略/,
+    /iframe主动中断主应用代码/,
+    // Non-critical UI warnings
+    /Failed to execute 'observe' on 'IntersectionObserver'/i
+  ]
+
+  return ignoredPatterns.some(pattern => pattern.test(message))
+}
+
+/**
  * Report an error with structured logging
  *
  * @param {ErrorContext|Object} context - Error context or options to create ErrorContext
@@ -101,6 +123,15 @@ export function reportError(context) {
   const errorContext = context instanceof ErrorContext
     ? context
     : new ErrorContext(context)
+
+  // Filter out benign errors
+  if (shouldIgnoreError(errorContext.message)) {
+    // Optionally log at debug level in development
+    if (import.meta.env.DEV) {
+      console.debug('[ERROR REPORTER] Ignored benign error:', errorContext.message)
+    }
+    return null
+  }
 
   // Structured console logging (development fallback)
   const logData = errorContext.toJSON()
@@ -256,10 +287,18 @@ export function reportNetworkError(url, error, metadata = {}) {
 export function setupGlobalErrorHandler() {
   // Capture uncaught errors
   window.addEventListener('error', (event) => {
+    const message = event.message || 'Uncaught error'
+
+    // Prevent default behavior for benign errors to suppress console output
+    if (shouldIgnoreError(message)) {
+      event.preventDefault()
+      return
+    }
+
     reportError({
       errorType: ErrorType.GENERIC,
       severity: ErrorSeverity.ERROR,
-      message: event.message || 'Uncaught error',
+      message,
       error: event.error,
       stack: event.error?.stack,
       metadata: {
