@@ -45,6 +45,7 @@
   ],
   "scripts": {
     "build": "vite build",
+    "build:verify": "vite build && node -e \"const fs = require('fs'); const required = ['index.js', 'components.js', 'composables.js', 'hooks.js', 'utils.js']; const missing = required.filter(f => !fs.existsSync('dist/' + f)); if (missing.length) { console.error('Missing builds:', missing); process.exit(1); } console.log('Build verification passed!');\"",
     "dev": "vite build --watch",
     "lint": "eslint src",
     "test": "vitest",

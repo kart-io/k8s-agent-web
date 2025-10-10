@@ -204,7 +204,320 @@ See `main-app/DYNAMIC_ROUTES.md` for detailed documentation.
 
 ### Key Architecture Patterns
 
-#### 1. Micro-App Registration
+#### 1. Centralized Configuration Management (Feature 002- Optimization)
+
+**✨ NEW (2025-10-10)**: Centralized micro-app configuration system
+
+**File**: `main-app/src/config/micro-apps.config.js`
+
+All micro-app configurations are now centralized in a single file with environment support:
+
+```javascript
+export const MICRO_APPS = {
+  'dashboard-app': {
+    name: 'dashboard-app',
+    port: 3001,
+    basePath: '/dashboard',
+    entry: {
+      development: '//localhost:3001',
+      test: '//test-server:3001',
+      production: '/micro-apps/dashboard/'
+    },
+    metadata: {
+      version: '1.0.0',
+      owner: 'team-platform',
+      description: 'Dashboard micro-application'
+    },
+    wujie: {
+      exec: true,
+      alive: true,
+      sync: true
+    }
+  }
+  // ... other 5 apps
+}
+
+// Helper function to get environment-aware URL
+export function getMicroAppUrl(appName, env = import.meta.env.MODE) {
+  const app = MICRO_APPS[appName]
+  if (!app) {
+    console.error(`[Config] App not found: ${appName}`)
+    return null
+  }
+  return app.entry[env] || app.entry.development
+}
+
+export function getMicroAppConfig(appName) {
+  return MICRO_APPS[appName]
+}
+```
+
+**Benefits**:
+- ✅ Single source of truth for all 6 micro-apps
+- ✅ Environment-aware URL resolution (dev/test/prod)
+- ✅ Centralized metadata (version, owner, description)
+- ✅ Easier to add new micro-apps (just add one config object)
+
+**Migration from old system**:
+```javascript
+// Before (hardcoded in wujie-config.js)
+const wujieConfig = {
+  apps: [
+    { name: 'dashboard-app', url: '//localhost:3001', ... }
+  ]
+}
+
+// After (uses centralized config)
+import { MICRO_APPS, getMicroAppUrl } from '@/config/micro-apps.config'
+
+const wujieConfig = {
+  apps: Object.values(MICRO_APPS).map(app => ({
+    name: app.name,
+    url: getMicroAppUrl(app.name),  // Auto-detects environment
+    exec: app.wujie.exec,
+    alive: app.wujie.alive,
+    sync: app.wujie.sync
+  }))
+}
+```
+
+**Usage in MicroAppContainer**:
+```vue
+<script setup>
+import { getMicroAppUrl } from '@/config/micro-apps.config'
+
+const microAppUrl = computed(() => getMicroAppUrl(route.meta.microApp))
+</script>
+```
+
+**See Also**: `specs/002-/quickstart.md` for detailed usage examples
+
+---
+
+#### 2. Standardized Route Synchronization (Feature 002- Optimization)
+
+**✨ NEW (2025-10-10)**: RouteSync class replaces old setTimeout-based route sync
+
+**File**: `shared/src/core/route-sync.js`
+
+The new `RouteSync` class provides reliable, debounced route synchronization:
+
+```javascript
+import { RouteSync } from '@k8s-agent/shared/core/route-sync.js'
+
+// In main app (MicroAppContainer.vue)
+const routeSync = new RouteSync(router)
+
+watch(() => route.path, (newPath) => {
+  const appName = route.meta.microApp
+  const basePath = newPath.split('/')[1]
+  const subPath = newPath.replace(`/${basePath}`, '') || '/'
+
+  routeSync.notifyMicroApp(appName, subPath, { title: route.meta.title })
+})
+
+// In micro-app (main.js)
+if (window.$wujie?.bus) {
+  const routeSync = new RouteSync('system-app', router, window.$wujie.bus)
+  routeSync.setupListener()
+}
+```
+
+**Key Features**:
+- ✅ **Debouncing**: 50ms debounce prevents event storms during rapid navigation
+- ✅ **Error handling**: Emits `route:error` events on navigation failures
+- ✅ **Duplicate prevention**: Tracks last synced path to avoid loops
+- ✅ **Type-safe events**: Standardized event payload format
+
+**Event Protocol**:
+```javascript
+{
+  type: 'sync' | 'report' | 'error',
+  sourceApp: String,
+  targetApp: String,
+  path: String,
+  fullPath: String,
+  meta: Object,
+  timestamp: Number
+}
+```
+
+**Benefits over old system**:
+- ❌ **Before**: `setTimeout(..., 100)` + manual path tracking flags
+- ✅ **After**: Centralized RouteSync class with built-in debounce and error handling
+- ✅ Direct navigation (e.g., `/system/users`) now works immediately without delays
+
+**See Also**: `specs/002-/contracts/route-events.md` for complete protocol specification
+
+---
+
+#### 3. Shared State Management (Feature 002- Optimization)
+
+**✨ NEW (2025-10-10)**: Cross-app reactive state synchronization
+
+**File**: `main-app/src/store/shared-state.js`
+
+The `SharedStateManager` enables bidirectional state sharing across all micro-apps:
+
+```javascript
+import { SharedStateManager } from '@/store/shared-state'
+
+// Initialize in main app (main.js)
+const sharedStateManager = new SharedStateManager()
+app.provide('sharedState', sharedStateManager)
+
+// Use in micro-apps via composable
+import { useSharedState } from '@k8s-agent/shared/composables'
+
+// Example: User avatar sync across apps
+const { state: userInfo, setState: setUserInfo } = useSharedState('user', 'info', {})
+
+// Update in one app
+async function updateAvatar(newAvatar) {
+  const updated = { ...userInfo.value, avatar: newAvatar }
+  setUserInfo(updated)  // Automatically syncs to all apps!
+}
+
+// Example: Notification count
+const { state: unreadCount } = useSharedState('notification', 'unreadCount', 0)
+
+// Display in any app
+<a-badge :count="unreadCount">
+  <BellOutlined />
+</a-badge>
+```
+
+**Standard Namespaces**:
+- `user`: User profile, preferences, auth status
+- `notification`: Unread counts, alerts
+- `permission`: Role changes, access control updates
+- `system`: Global app settings, feature flags
+
+**Key Features**:
+- ✅ **Reactive**: Vue's `reactive()` system - updates trigger re-renders automatically
+- ✅ **Bidirectional**: Any micro-app can read AND update shared state
+- ✅ **Namespace isolation**: Prevents key collisions across apps
+- ✅ **Optional persistence**: Supports localStorage for `user` and `system` namespaces
+- ✅ **Memory management**: Automatic cleanup on component unmount
+
+**Event Protocol**:
+```javascript
+// Emit when state changes
+bus.$emit('state:update', {
+  namespace: 'user',
+  key: 'info',
+  value: { id: 123, avatar: '/avatar.png' },
+  timestamp: Date.now()
+})
+```
+
+**See Also**: `specs/002-/contracts/state-events.md` for complete state sync protocol
+
+---
+
+#### 4. Error Boundaries (Feature 002- Optimization)
+
+**✨ NEW (2025-10-10)**: Graceful error handling with friendly UI
+
+**File**: `main-app/src/views/ErrorBoundary.vue`
+
+All micro-apps are now wrapped with error boundaries to prevent white screens:
+
+```vue
+<template>
+  <ErrorBoundary>
+    <WujieVue :name="microAppName" :url="microAppUrl" />
+  </ErrorBoundary>
+</template>
+```
+
+**Error Boundary Features**:
+- ✅ **User-friendly fallback UI**: Shows error message + retry button instead of blank page
+- ✅ **Error reporting**: Logs to console (upgradable to Sentry/DataDog)
+- ✅ **Retry mechanism**: Reload button lets users recover from temporary failures
+- ✅ **Timeout detection**: 5-second loading timeout for micro-app load failures
+- ✅ **Error isolation**: One micro-app failure doesn't crash the entire app
+
+**Error Reporter Integration**:
+```javascript
+import { reportError } from '@/utils/error-reporter'
+
+// Automatically called by ErrorBoundary
+reportError({
+  appName: 'system-app',
+  errorType: 'load' | 'runtime' | 'navigation',
+  message: 'Failed to fetch micro-app resource',
+  stack: err.stack,
+  timestamp: Date.now()
+})
+```
+
+**See Also**: `specs/002-/TEST_RESULTS.md` for error boundary test results
+
+---
+
+#### 5. Optimized Shared Library Build (Feature 002- Optimization)
+
+**✨ NEW (2025-10-10)**: Pre-built ESM library for faster micro-app builds
+
+**File**: `shared/vite.config.js`
+
+The shared library is now pre-built to ESM format, eliminating redundant compilation:
+
+```javascript
+// shared/vite.config.js
+export default defineConfig({
+  build: {
+    lib: {
+      entry: {
+        index: './src/index.js',
+        components: './src/components/index.js',
+        composables: './src/composables/index.js',
+        hooks: './src/hooks/index.js',
+        utils: './src/utils/index.js',
+        'core/route-sync': './src/core/route-sync.js'
+      },
+      formats: ['es']  // ESM only
+    },
+    rollupOptions: {
+      external: ['vue', 'vue-router', 'pinia', 'ant-design-vue', 'vxe-table'],
+      output: {
+        preserveModules: true,  // Better tree-shaking
+        preserveModulesRoot: 'src'
+      }
+    },
+    cssCodeSplit: true
+  }
+})
+```
+
+**Build Performance**:
+- ⚡ Shared library builds in **519ms**
+- ⚡ Micro-app builds ~30% faster (using pre-built dist instead of compiling source)
+- ⚡ Better tree-shaking (only imports what you use)
+
+**Usage** (no changes needed in micro-apps):
+```javascript
+// Automatically imports from dist/ via package.json exports field
+import { VbenLayout } from '@k8s-agent/shared/components'
+import { useTable } from '@k8s-agent/shared/composables'
+import { RouteSync } from '@k8s-agent/shared/core/route-sync.js'
+```
+
+**Development Workflow**:
+```bash
+# Build shared library once
+cd shared && pnpm build
+
+# Or watch mode for development
+cd shared && pnpm dev  # Rebuilds on changes
+```
+
+**See Also**: `specs/002-/BUILD_METRICS.md` for detailed performance analysis
+
+---
+
+#### 6. Legacy: Micro-App Registration
 
 **File**: `main-app/src/micro/wujie-config.js`
 
@@ -222,6 +535,8 @@ export const wujieConfig = {
   ]
 }
 ```
+
+**⚠️ Now uses centralized config** (see section 1 above)
 
 #### 2. Micro-App Routing
 

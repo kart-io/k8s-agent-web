@@ -1,0 +1,47 @@
+.strength-meter[data-v-ab25a7d2] {
+  width: 100%;
+}
+.strength-bar[data-v-ab25a7d2] {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.strength-bar-item[data-v-ab25a7d2] {
+  flex: 1;
+  height: 4px;
+  background-color: #e8e8e8;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+.strength-bar-item.active.strength-1[data-v-ab25a7d2] {
+  background-color: #ff4d4f;
+}
+.strength-bar-item.active.strength-2[data-v-ab25a7d2] {
+  background-color: #faad14;
+}
+.strength-bar-item.active.strength-3[data-v-ab25a7d2] {
+  background-color: #52c41a;
+}
+.strength-bar-item.active.strength-4[data-v-ab25a7d2] {
+  background-color: #1890ff;
+}
+.strength-text[data-v-ab25a7d2] {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+}
+.strength-text span[data-v-ab25a7d2] {
+  font-weight: 500;
+}
+.strength-text span.strength-text-1[data-v-ab25a7d2] {
+  color: #ff4d4f;
+}
+.strength-text span.strength-text-2[data-v-ab25a7d2] {
+  color: #faad14;
+}
+.strength-text span.strength-text-3[data-v-ab25a7d2] {
+  color: #52c41a;
+}
+.strength-text span.strength-text-4[data-v-ab25a7d2] {
+  color: #1890ff;
+}

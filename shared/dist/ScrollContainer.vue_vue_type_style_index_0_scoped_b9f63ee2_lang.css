@@ -1,0 +1,24 @@
+.scroll-container[data-v-b9f63ee2] {
+  overflow: auto;
+}
+.scroll-container[data-v-b9f63ee2]:not(.show-scrollbar) {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.scroll-container[data-v-b9f63ee2]:not(.show-scrollbar)::-webkit-scrollbar {
+  display: none; /* Chrome Safari */
+}
+.scroll-container.show-scrollbar[data-v-b9f63ee2]::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-container.show-scrollbar[data-v-b9f63ee2]::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+.scroll-container.show-scrollbar[data-v-b9f63ee2]::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.scroll-container.show-scrollbar[data-v-b9f63ee2]::-webkit-scrollbar-track {
+  background-color: transparent;
+}

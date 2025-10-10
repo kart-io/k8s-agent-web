@@ -1,0 +1,22 @@
+
+.basic-table[data-v-80a25e43] {
+  background: #fff;
+  border-radius: 2px;
+}
+.table-toolbar[data-v-80a25e43] {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.toolbar-left[data-v-80a25e43] {
+  flex: 1;
+}
+.toolbar-right[data-v-80a25e43] {
+  flex-shrink: 0;
+}
+.table-title[data-v-80a25e43] {
+  font-size: 16px;
+  font-weight: 500;
+}

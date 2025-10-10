@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sources":["../../../src/components/table/index.js"],"sourcesContent":["import BasicTable from './BasicTable.vue'\nimport TableToolbar from './TableToolbar.vue'\n\nexport { BasicTable, TableToolbar }\n\nexport default {\n  BasicTable,\n  TableToolbar\n}\n"],"names":[],"mappings":";;;AAKA,cAAe;AACf,EAAE,UAAU;AACZ,EAAE,YAAY;AACd;;;;"}

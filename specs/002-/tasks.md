@@ -185,25 +185,25 @@
 
 ### Tests for User Story 5
 
-- [ ] T074 [P] [US5] Build smoke test in `shared/package.json` scripts
-- [ ] T075 [P] [US5] Import verification test in `tests/e2e/shared-lib.spec.js`
-- [ ] T076 [P] [US5] Build time benchmark test (before/after comparison)
+- [X] T074 [P] [US5] Build smoke test in `shared/package.json` scripts
+- [X] T075 [P] [US5] Import verification test in `tests/e2e/shared-lib.spec.js`
+- [X] T076 [P] [US5] Build time benchmark test (before/after comparison)
 
 ### Implementation for User Story 5
 
-- [ ] T077 [US5] Create `vite.config.js` in `shared/` directory with library mode configuration
-- [ ] T078 [US5] Configure library entry points: index, components, composables, utils
-- [ ] T079 [US5] Configure `rollupOptions` to externalize peer dependencies (vue, vue-router, pinia, ant-design-vue, vxe-table)
-- [ ] T080 [US5] Set output format to ESM only (`formats: ['es']`)
-- [ ] T081 [US5] Enable CSS code splitting (`cssCodeSplit: true`)
-- [ ] T082 [US5] Update `shared/package.json` exports field to point to `dist/` directory
-- [ ] T083 [US5] Add `"type": "module"` to `shared/package.json`
-- [ ] T084 [US5] Add `"build": "vite build"` script to `shared/package.json`
-- [ ] T085 [US5] Add `"dev": "vite build --watch"` script for development HMR
-- [ ] T086 [US5] Run initial build: `cd shared && pnpm build`
-- [ ] T087 [US5] Update `.gitignore` to include `shared/dist/`
-- [ ] T088 [US5] Verify micro-apps import from pre-built dist (no code changes needed, automatic via exports field)
-- [ ] T089 [US5] Measure and document build time improvements in `specs/002-/BUILD_METRICS.md`
+- [X] T077 [US5] Create `vite.config.js` in `shared/` directory with library mode configuration
+- [X] T078 [US5] Configure library entry points: index, components, composables, utils
+- [X] T079 [US5] Configure `rollupOptions` to externalize peer dependencies (vue, vue-router, pinia, ant-design-vue, vxe-table)
+- [X] T080 [US5] Set output format to ESM only (`formats: ['es']`)
+- [X] T081 [US5] Enable CSS code splitting (`cssCodeSplit: true`)
+- [X] T082 [US5] Update `shared/package.json` exports field to point to `dist/` directory
+- [X] T083 [US5] Add `"type": "module"` to `shared/package.json`
+- [X] T084 [US5] Add `"build": "vite build"` script to `shared/package.json`
+- [X] T085 [US5] Add `"dev": "vite build --watch"` script for development HMR
+- [X] T086 [US5] Run initial build: `cd shared && pnpm build`
+- [X] T087 [US5] Update `.gitignore` to include `shared/dist/`
+- [X] T088 [US5] Verify micro-apps import from pre-built dist (no code changes needed, automatic via exports field)
+- [X] T089 [US5] Measure and document build time improvements in `specs/002-/BUILD_METRICS.md`
 
 **Checkpoint**: Shared library optimized - builds 30%+ faster, tree-shaking enabled, ESM output
 
@@ -213,10 +213,10 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T090 [P] Update `CLAUDE.md` with new configuration system documentation
-- [ ] T091 [P] Update `CLAUDE.md` with route sync best practices
-- [ ] T092 [P] Update `CLAUDE.md` with shared state usage examples
-- [ ] T093 [P] Create migration guide at `specs/002-/MIGRATION.md` for teams upgrading existing code
+- [X] T090 [P] Update `CLAUDE.md` with new configuration system documentation
+- [X] T091 [P] Update `CLAUDE.md` with route sync best practices
+- [X] T092 [P] Update `CLAUDE.md` with shared state usage examples
+- [X] T093 [P] Create migration guide at `specs/002-/MIGRATION.md` for teams upgrading existing code
 - [ ] T094 [P] Add inline code comments explaining architecture decisions in key files
 - [ ] T095 [P] Add JSDoc documentation to all public functions in config, route-sync, and shared-state modules
 - [ ] T096 Run full E2E test suite with all features enabled

@@ -1,0 +1,96 @@
+.vben-layout[data-v-4aa40eb3] {
+  height: 100vh;
+  overflow: hidden;
+}
+.layout-sider[data-v-4aa40eb3] {
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 10;
+}
+.layout-sider.sider-dark[data-v-4aa40eb3] {
+  background: #001529;
+}
+.layout-sider.sider-light[data-v-4aa40eb3] {
+  background: #fff;
+  border-right: 1px solid #f0f0f0;
+}
+.sider-logo[data-v-4aa40eb3] {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.logo-content[data-v-4aa40eb3] {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+.logo-img[data-v-4aa40eb3] {
+  height: 32px;
+  width: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.logo-text[data-v-4aa40eb3] {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sider-light .logo-text[data-v-4aa40eb3] {
+  color: #1890ff;
+}
+.sider-menu[data-v-4aa40eb3] {
+  border-right: none;
+  height: calc(100vh - 48px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.sider-menu[data-v-4aa40eb3]::-webkit-scrollbar {
+  width: 6px;
+}
+.sider-menu[data-v-4aa40eb3]::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+.sider-menu[data-v-4aa40eb3] .ant-menu-item-selected {
+  background-color: transparent !important;
+  color: #1890ff !important;
+}
+.sider-menu[data-v-4aa40eb3] .ant-menu-item-selected::after {
+  opacity: 1;
+  border-right: 3px solid #1890ff;
+}
+.sider-menu[data-v-4aa40eb3] .ant-menu-item {
+  margin: 4px 8px;
+  border-radius: 4px;
+}
+.sider-menu[data-v-4aa40eb3] .ant-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.sider-menu[data-v-4aa40eb3] .ant-menu-submenu-title {
+  margin: 4px 8px;
+  border-radius: 4px;
+}
+.sider-menu[data-v-4aa40eb3] .ant-menu-submenu-title:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.layout-main[data-v-4aa40eb3] {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.layout-content[data-v-4aa40eb3] {
+  flex: 1;
+  overflow: auto;
+  background: #f0f2f5;
+  padding: 16px;
+  min-height: 0;
+}
