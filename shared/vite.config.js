@@ -18,7 +18,8 @@ export default defineConfig({
         'core/route-sync': resolve(__dirname, 'src/core/route-sync.js'),
         'utils/config-loader': resolve(__dirname, 'src/utils/config-loader.js'),
         'config/index': resolve(__dirname, 'src/config/index.js'),
-        'config/vxeTable': resolve(__dirname, 'src/config/vxeTable.js')
+        'config/vxeTable': resolve(__dirname, 'src/config/vxeTable.js'),
+        styles: resolve(__dirname, 'src/styles.js')
       },
       // Output format: ESM only (T080)
       formats: ['es'],

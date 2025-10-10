@@ -498,12 +498,14 @@ defineExpose({
 .vben-layout {
   height: 100vh;
   overflow: hidden;
+  background: #f0f2f5;
 }
 
 .layout-sider {
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 2px 0 6px rgba(0, 21, 41, 0.08);
   position: relative;
   z-index: 10;
+  transition: all 0.2s;
 
   &.sider-dark {
     background: #001529;
@@ -521,8 +523,9 @@ defineExpose({
   align-items: center;
   justify-content: center;
   padding: 0 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   overflow: hidden;
+  transition: all 0.2s;
 }
 
 .logo-content {
@@ -540,12 +543,13 @@ defineExpose({
 }
 
 .logo-text {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.5px;
 }
 
 .sider-light .logo-text {
@@ -559,41 +563,104 @@ defineExpose({
   overflow-x: hidden;
 
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-  }
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
 
-  // 修复菜单选中样式，使其与其他菜单项保持一致
-  :deep(.ant-menu-item-selected) {
-    background-color: transparent !important;
-    color: #1890ff !important;
-
-    &::after {
-      opacity: 1;
-      border-right: 3px solid #1890ff;
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
     }
   }
 
+  // 菜单选中样式 - Vben风格
+  :deep(.ant-menu-dark.ant-menu-inline .ant-menu-item-selected) {
+    background: linear-gradient(90deg, rgba(24, 144, 255, 0.9) 0%, rgba(24, 144, 255, 0.7) 100%) !important;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background: #1890ff;
+    }
+  }
+
+  :deep(.ant-menu-item-selected) {
+    background: linear-gradient(90deg, rgba(24, 144, 255, 0.9) 0%, rgba(24, 144, 255, 0.7) 100%) !important;
+    color: #fff !important;
+    font-weight: 500;
+
+    &::after {
+      opacity: 0 !important;
+      border-right: none !important;
+    }
+
+    .anticon {
+      color: #fff !important;
+    }
+  }
+
+  :deep(.ant-menu-dark .ant-menu-item-selected) {
+    background: linear-gradient(90deg, rgba(24, 144, 255, 0.9) 0%, rgba(24, 144, 255, 0.7) 100%) !important;
+  }
+
   :deep(.ant-menu-item) {
-    margin: 4px 8px;
-    border-radius: 4px;
+    margin: 4px 8px !important;
+    padding-left: 16px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    border-radius: 4px !important;
+    transition: all 0.2s;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.08);
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.95) !important;
+    }
+
+    .anticon {
+      font-size: 16px;
+      transition: all 0.2s;
     }
   }
 
   :deep(.ant-menu-submenu-title) {
-    margin: 4px 8px;
-    border-radius: 4px;
+    margin: 4px 8px !important;
+    padding-left: 16px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    border-radius: 4px !important;
+    transition: all 0.2s;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.08);
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.95) !important;
     }
+
+    .anticon {
+      font-size: 16px;
+    }
+  }
+
+  // 子菜单项选中样式
+  :deep(.ant-menu-sub .ant-menu-item-selected) {
+    background: linear-gradient(90deg, rgba(24, 144, 255, 0.9) 0%, rgba(24, 144, 255, 0.7) 100%) !important;
+  }
+
+  // 子菜单背景
+  :deep(.ant-menu-sub) {
+    background: rgba(0, 0, 0, 0.2) !important;
+  }
+
+  // 子菜单项样式
+  :deep(.ant-menu-sub .ant-menu-item) {
+    margin: 4px 8px !important;
+    padding-left: 40px !important;
   }
 }
 
@@ -602,13 +669,14 @@ defineExpose({
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background: #f0f2f5;
 }
 
 .layout-content {
   flex: 1;
   overflow: auto;
   background: #f0f2f5;
-  padding: 16px;
-  min-height: 0; // 确保 flex 子元素能正确收缩
+  padding: 12px;
+  min-height: 0;
 }
 </style>

@@ -195,27 +195,33 @@ document.addEventListener('fullscreenchange', () => {
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
   position: relative;
   z-index: 10;
+  transition: all 0.2s;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  padding-left: 16px;
+  padding-left: 0;
 }
 
 .logo {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #1890ff;
   margin-right: 16px;
   white-space: nowrap;
+  padding-left: 16px;
 }
 
 .trigger {
   font-size: 18px;
   padding: 0 12px;
+  height: 48px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     background: rgba(0, 0, 0, 0.025);
@@ -224,7 +230,7 @@ document.addEventListener('fullscreenchange', () => {
 
 .header-breadcrumb {
   flex: 1;
-  padding: 0 16px;
+  padding: 0 12px;
   overflow: hidden;
 
   :deep(.ant-breadcrumb) {
@@ -233,7 +239,7 @@ document.addEventListener('fullscreenchange', () => {
 
   .breadcrumb-link {
     cursor: pointer;
-    transition: color 0.3s;
+    transition: color 0.2s;
 
     &:hover {
       color: #1890ff;
@@ -249,13 +255,18 @@ document.addEventListener('fullscreenchange', () => {
 }
 
 .action-btn {
-  font-size: 16px;
+  font-size: 18px;
   padding: 0 12px;
   height: 48px;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.65);
 
   &:hover {
     background: rgba(0, 0, 0, 0.025);
+    color: #1890ff;
   }
 }
 
@@ -266,7 +277,8 @@ document.addEventListener('fullscreenchange', () => {
   padding: 0 12px;
   height: 48px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  border-radius: 4px;
 
   &:hover {
     background: rgba(0, 0, 0, 0.025);
@@ -278,10 +290,18 @@ document.addEventListener('fullscreenchange', () => {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: rgba(0, 0, 0, 0.85);
+    font-weight: 500;
   }
 }
 
 :deep(.ant-avatar) {
-  background-color: #1890ff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+:deep(.ant-badge) {
+  .ant-badge-count {
+    box-shadow: 0 0 0 1px #fff;
+  }
 }
 </style>

@@ -42,10 +42,15 @@
       "import": "./dist/config/index.js",
       "types": "./src/config/index.js"
     },
+    "./styles": {
+      "import": "./dist/styles.js"
+    },
     "./assets/styles": "./src/assets/styles/index.scss",
     "./assets/styles/variables.scss": "./src/assets/styles/variables.scss",
     "./assets/styles/mixins.scss": "./src/assets/styles/mixins.scss",
-    "./assets/styles/global.scss": "./src/assets/styles/global.scss"
+    "./assets/styles/global.scss": "./src/assets/styles/global.scss",
+    "./dist/*.css": "./dist/*.css",
+    "./dist/components/layout/*.css": "./dist/components/layout/*.css"
   },
   "files": [
     "dist",

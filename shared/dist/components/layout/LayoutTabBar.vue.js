@@ -5,7 +5,7 @@ import { getIconComponent } from '../../utils/icons.js';
 /* empty css                  */
 import _export_sfc from '../../_virtual/_plugin-vue_export-helper.js';
 
-const _withScopeId = n => (pushScopeId("data-v-4d4cf7c4"),n=n(),popScopeId(),n);
+const _withScopeId = n => (pushScopeId("data-v-36abc11c"),n=n(),popScopeId(),n);
 const _hoisted_1 = { class: "layout-tab-bar" };
 const _hoisted_2 = { class: "tab-bar-content" };
 const _hoisted_3 = ["onClick", "onContextmenu"];
@@ -364,7 +364,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const LayoutTabBar = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-4d4cf7c4"]]);
+const LayoutTabBar = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-36abc11c"]]);
 
 export { LayoutTabBar as default };
 //# sourceMappingURL=LayoutTabBar.vue.js.map

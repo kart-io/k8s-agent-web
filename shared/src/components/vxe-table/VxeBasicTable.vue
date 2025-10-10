@@ -326,7 +326,8 @@ defineExpose({
   flex-direction: column;
   overflow: hidden;
   background: #fff;
-  border-radius: 2px;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
 
   &.is-full-screen {
     position: fixed;
@@ -343,8 +344,8 @@ defineExpose({
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    background: #fafafa;
+    padding: 14px 16px;
+    background: #fff;
     border-bottom: 1px solid #f0f0f0;
     flex-shrink: 0;
 
@@ -354,7 +355,7 @@ defineExpose({
       .title-text {
         font-size: 16px;
         font-weight: 600;
-        color: rgba(0, 0, 0, 0.85);
+        color: rgba(0, 0, 0, 0.88);
       }
     }
 
@@ -370,7 +371,7 @@ defineExpose({
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding: 16px;
+    padding: 0;
   }
 
   .vxe-table-main {
@@ -390,65 +391,99 @@ defineExpose({
   .vxe-custom-pager {
     display: flex;
     justify-content: flex-end;
-    padding: 16px 0 0 0;
+    padding: 12px 16px;
     flex-shrink: 0;
+    background: #fff;
+    border-top: 1px solid #f0f0f0;
   }
 
-  // VXE Table 样式优化
+  // VXE Table 样式优化 - Vben风格
   :deep(.vxe-table) {
-    border-radius: 4px;
+    border-radius: 0;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: none;
     background: #fff;
 
-    // 表头样式
+    // 移除VXE Table默认边框
+    &.vxe-table--border {
+      border: none;
+    }
+
+    // 表头样式 - Vben风格
     .vxe-table--header-wrapper {
       background: #fafafa;
 
       .vxe-header--row {
         .vxe-header--column {
           background: #fafafa !important;
-          font-weight: 600;
-          color: rgba(0, 0, 0, 0.85);
+          font-weight: 500;
+          color: rgba(0, 0, 0, 0.88);
           font-size: 14px;
           border-bottom: 1px solid #f0f0f0;
+          border-right: none;
+
+          &:not(:last-child) {
+            border-right: 1px solid #f0f0f0;
+          }
 
           .vxe-cell {
-            padding: 14px 16px;
+            padding: 12px 16px;
             line-height: 1.5715;
+            font-weight: 500;
+          }
+
+          // 排序图标样式
+          .vxe-sort--asc-btn,
+          .vxe-sort--desc-btn {
+            color: rgba(0, 0, 0, 0.45);
+
+            &:hover {
+              color: #1890ff;
+            }
+
+            &.sort--active {
+              color: #1890ff;
+            }
           }
         }
       }
     }
 
-    // 表体样式
+    // 表体样式 - Vben风格
     .vxe-table--body-wrapper {
       background: #fff;
 
       .vxe-body--row {
         background: #fff !important;
-        transition: background-color 0.2s ease;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
         &:hover {
-          background-color: #fafafa !important;
+          background-color: #f5f7fa !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
         }
 
+        // 斑马纹（如果启用）
         &.row--stripe {
-          background-color: #fff !important;
+          background-color: #fafafa !important;
 
           &:hover {
-            background-color: #fafafa !important;
+            background-color: #f5f7fa !important;
           }
         }
 
         .vxe-body--column {
-          background: #fff !important;
+          background: transparent !important;
           color: rgba(0, 0, 0, 0.85);
           font-size: 14px;
           border-bottom: 1px solid #f0f0f0;
+          border-right: none;
+
+          &:not(:last-child) {
+            border-right: 1px solid #f0f0f0;
+          }
 
           .vxe-cell {
-            padding: 14px 16px;
+            padding: 12px 16px;
             line-height: 1.5715;
           }
 
@@ -456,6 +491,24 @@ defineExpose({
           &.col--seq .vxe-cell {
             color: rgba(0, 0, 0, 0.45);
             font-weight: normal;
+          }
+
+          // 操作列按钮样式
+          .vxe-cell {
+            a {
+              color: #1890ff;
+              transition: color 0.2s;
+
+              &:hover {
+                color: #40a9ff;
+              }
+            }
+
+            button {
+              &:not(:last-child) {
+                margin-right: 8px;
+              }
+            }
           }
         }
 
@@ -466,40 +519,77 @@ defineExpose({
       }
     }
 
-    // 边框样式
-    &.border--inner,
-    &.border--default {
-      border: 1px solid #f0f0f0;
+    // 空数据样式
+    .vxe-table--empty-block {
+      padding: 48px 0;
+      color: rgba(0, 0, 0, 0.45);
+      font-size: 14px;
+    }
 
-      .vxe-table--header-wrapper,
-      .vxe-table--body-wrapper,
-      .vxe-table--footer-wrapper {
-        .vxe-header--column,
-        .vxe-body--column,
-        .vxe-footer--column {
-          border-right: 1px solid #f0f0f0;
+    // Loading样式
+    .vxe-table--loading {
+      .vxe-table--spinner {
+        color: #1890ff;
+      }
+    }
 
-          &:last-child {
-            border-right: none;
-          }
+    // 固定列阴影
+    .vxe-fixed-left-wrapper {
+      box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .vxe-fixed-right-wrapper {
+      box-shadow: -2px 0 4px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  // Ant Design Pagination 样式优化
+  :deep(.ant-pagination) {
+    .ant-pagination-item {
+      border-radius: 4px;
+      border-color: #d9d9d9;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: #1890ff;
+
+        a {
+          color: #1890ff;
+        }
+      }
+
+      &.ant-pagination-item-active {
+        border-color: #1890ff;
+        background: #1890ff;
+
+        a {
+          color: #fff;
         }
       }
     }
 
-    // 空数据样式
-    .vxe-table--empty-block {
-      padding: 80px 0;
+    .ant-pagination-prev,
+    .ant-pagination-next {
+      .ant-pagination-item-link {
+        border-radius: 4px;
+        border-color: #d9d9d9;
+        transition: all 0.2s;
 
-      .vxe-table--empty-content {
-        color: rgba(0, 0, 0, 0.25);
-        font-size: 14px;
+        &:hover {
+          border-color: #1890ff;
+          color: #1890ff;
+        }
       }
     }
 
-    // Loading 样式
-    .vxe-table--loading {
-      .vxe-table--spinner {
-        background: rgba(255, 255, 255, 0.9);
+    .ant-pagination-options {
+      .ant-select-selector {
+        border-radius: 4px;
+        transition: all 0.2s;
+
+        &:hover {
+          border-color: #1890ff;
+        }
       }
     }
   }

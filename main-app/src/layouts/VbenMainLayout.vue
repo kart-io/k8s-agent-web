@@ -32,6 +32,10 @@
 <script setup>
 import { useUserStore } from '@/store/user'
 import { VbenLayout } from '@k8s-agent/shared/components'
+// 显式导入 VbenLayout 的样式文件
+import '@k8s-agent/shared/dist/components/layout/VbenLayout.css'
+import '@k8s-agent/shared/dist/components/layout/LayoutHeader.css'
+import '@k8s-agent/shared/dist/components/layout/LayoutTabBar.css'
 import { computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import WujieVue from 'wujie-vue3'

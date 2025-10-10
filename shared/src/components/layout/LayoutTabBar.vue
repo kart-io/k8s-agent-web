@@ -263,12 +263,13 @@ const handleContextMenuClick = ({ key }) => {
   border-bottom: 1px solid #f0f0f0;
   position: relative;
   z-index: 9;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .tab-bar-content {
   display: flex;
   align-items: center;
-  height: 36px;
+  height: 32px;
   padding: 0 8px;
   gap: 4px;
 }
@@ -291,25 +292,27 @@ const handleContextMenuClick = ({ key }) => {
 .tab-item {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  height: 28px;
+  gap: 6px;
+  height: 26px;
   padding: 0 12px;
   border-radius: 2px;
   background: #fafafa;
-  border: 1px solid #e8e8e8;
+  border: 1px solid transparent;
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: all 0.3s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.65);
 
   &:hover {
-    background: #e6f7ff;
-    border-color: #91d5ff;
+    background: #f0f7ff;
     color: #1890ff;
+    border-color: #d6e4ff;
 
     .tab-close {
-      opacity: 1;
+      opacity: 0.7;
     }
   }
 
@@ -317,13 +320,16 @@ const handleContextMenuClick = ({ key }) => {
     background: #1890ff;
     border-color: #1890ff;
     color: #fff;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
 
     .tab-close {
-      opacity: 1;
-      color: #fff;
+      opacity: 0.8;
+      color: rgba(255, 255, 255, 0.85);
 
       &:hover {
         color: #fff;
+        opacity: 1;
         background: rgba(255, 255, 255, 0.2);
       }
     }
@@ -332,6 +338,8 @@ const handleContextMenuClick = ({ key }) => {
 
 .tab-icon {
   font-size: 14px;
+  display: flex;
+  align-items: center;
 }
 
 .tab-label {
@@ -339,24 +347,30 @@ const handleContextMenuClick = ({ key }) => {
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1;
 }
 
 .tab-close {
-  font-size: 10px;
+  font-size: 12px;
   padding: 2px;
-  border-radius: 2px;
+  border-radius: 50%;
   opacity: 0;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
 
   &:hover {
     background: rgba(0, 0, 0, 0.1);
     color: #ff4d4f;
+    opacity: 1 !important;
   }
 }
 
 .tab-action-btn {
-  height: 28px;
-  width: 28px;
+  height: 26px;
+  width: 26px;
   padding: 0;
   display: flex;
   align-items: center;
@@ -364,9 +378,12 @@ const handleContextMenuClick = ({ key }) => {
   font-size: 14px;
   border-radius: 2px;
   flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.65);
+  transition: all 0.2s;
 
   &:hover {
     background: #f0f0f0;
+    color: #1890ff;
   }
 }
 

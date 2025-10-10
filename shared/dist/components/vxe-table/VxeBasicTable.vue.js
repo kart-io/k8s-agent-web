@@ -356,7 +356,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const VxeBasicTable = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-353298b6"]]);
+const VxeBasicTable = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-1aaad317"]]);
 
 export { VxeBasicTable as default };
 //# sourceMappingURL=VxeBasicTable.vue.js.map

@@ -13,6 +13,9 @@ import 'vxe-table/lib/style.css'
 import 'vxe-table-plugin-antd/dist/style.css'
 import { createVxeTableConfig } from '@k8s-agent/shared/config/vxeTable'
 
+// 导入 Shared 组件的样式
+import '@k8s-agent/shared/dist/components/vxe-table/VxeBasicTable.css'
+
 // 使用 Ant Design 插件
 VXETable.use(VXETablePluginAntd)
 
