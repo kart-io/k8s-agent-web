@@ -2,16 +2,27 @@
  * 动态路由工具
  * 根据接口返回的菜单数据动态生成和注册路由
  */
+import { h } from 'vue'
+import { RouterView } from 'vue-router'
 import MicroAppContainer from '@/views/MicroAppContainer.vue'
 import { getMicroAppByBasePath } from '@/config/micro-apps.config.js'
 
 // 微前端占位组件 - 使用真实的 MicroAppContainer 组件
 const MicroAppPlaceholder = MicroAppContainer
 
+// SubMenu 组件 - 用于有子菜单的父路由
+// 使用渲染函数而不是模板字符串，避免需要运行时模板编译
+const SubMenuComponent = {
+  name: 'SubMenu',
+  render() {
+    return h(RouterView)
+  }
+}
+
 // 组件映射表
 const componentMap = {
   MicroAppPlaceholder,
-  SubMenu: null // 有子菜单的不需要组件
+  SubMenu: SubMenuComponent
 }
 
 /**
@@ -66,13 +77,19 @@ export function menusToRoutes(menus, parentPath = '') {
     // 如果有子菜单，递归处理
     if (menu.children && menu.children.length > 0) {
       route.children = menusToRoutes(menu.children, menu.path || menu.key)
-      // 有子菜单的路由不需要组件
-      route.redirect = menu.redirect || route.children[0]?.path
-    } else {
-      // 微前端路由需要匹配所有子路径
-      if (menu.component === 'MicroAppPlaceholder') {
-        route.path = `${route.path}/:pathMatch(.*)*`
+      // 有子菜单的父路由需要一个路由占位组件（router-view）
+      // 使用 SubMenu 组件渲染子路由
+      const component = menu.component || 'SubMenu'
+      route.component = componentMap[component] || SubMenuComponent
+
+      // 只有在 menu.redirect 明确指定时才设置 redirect，避免自动跳转到第一个子路由
+      if (menu.redirect) {
+        route.redirect = menu.redirect
       }
+    } else {
+      // 叶子节点路由
+      // 注意：不要为所有微前端路由添加通配符，否则会导致精确路径匹配失败
+      // 通配符只应该用于顶级微应用路由（在静态路由中已定义）
 
       // 设置组件
       const component = menu.component || 'MicroAppPlaceholder'
@@ -97,7 +114,12 @@ export function registerDynamicRoutes(router, menus, parentName = null) {
   routes.forEach(route => {
     if (parentName) {
       // 添加到父路由的子路由
-      router.addRoute(parentName, route)
+      // 重要：如果路径是绝对路径（以 / 开头），需要转换为相对路径
+      const routeToAdd = { ...route }
+      if (routeToAdd.path && routeToAdd.path.startsWith('/')) {
+        routeToAdd.path = routeToAdd.path.substring(1)
+      }
+      router.addRoute(parentName, routeToAdd)
     } else {
       // 添加为顶级路由
       router.addRoute(route)

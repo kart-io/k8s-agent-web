@@ -100,13 +100,27 @@ export const useUserStore = defineStore('user', {
         this.dynamicRouteNames = []
       }
 
+      // 先移除 NotFound 路由（如果存在）
+      if (router.hasRoute('NotFound')) {
+        router.removeRoute('NotFound')
+      }
+
       // 注册新的动态路由（添加到 MainLayout 的子路由）
       registerDynamicRoutes(router, this.menus, 'MainLayout')
 
       // 保存路由名称，用于后续清理
       this.dynamicRouteNames = extractRouteNames(this.menus)
 
+      // 重新添加 NotFound 路由到最后，确保它在所有动态路由之后
+      router.addRoute({
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        component: () => import('@/layouts/VbenMainLayout.vue'),
+        meta: { requiresAuth: true }
+      })
+
       console.log('[动态路由] 已注册路由:', this.dynamicRouteNames)
+      console.log('[动态路由] NotFound 路由已添加到最后')
     },
 
     // 获取默认菜单（作为 fallback）

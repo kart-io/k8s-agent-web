@@ -16,6 +16,46 @@ docs/
 
 ---
 
+## 🔍 Project Analysis Reports
+
+> **最新更新**: 2025-10-11 - 完成项目结构全面分析
+
+### Quick Reference
+
+- **[STRUCTURE_ANALYSIS_SUMMARY.md](./STRUCTURE_ANALYSIS_SUMMARY.md)** ⭐ - **项目结构分析总结**（推荐阅读）
+  - 综合评分 4.2/5.0
+  - 核心问题与优化建议
+  - 执行路线图与验收指标
+  - 关键统计数据
+
+### Detailed Reports
+
+- **[PROJECT_STRUCTURE_ANALYSIS.md](./architecture/PROJECT_STRUCTURE_ANALYSIS.md)** 📊 - **完整结构分析报告**（10,000+ 字）
+  - 目录结构合理性评估
+  - 架构设计深度分析
+  - 样式体系一致性检查
+  - 依赖与引用关系分析
+  - 可维护性全面评估
+  - 优化方案详细设计
+
+- **[OPTIMIZATION_ACTION_PLAN.md](./features/OPTIMIZATION_ACTION_PLAN.md)** 📋 - **优化行动计划**（可执行）
+  - P1/P2/P3 优先级任务分解
+  - 详细实施步骤（含代码示例）
+  - 工时估算与责任分配
+  - 验收标准与里程碑
+
+### Key Findings
+
+| 发现 | 影响 | 优先级 |
+|------|------|--------|
+| **样式重复导入** | 6 个微应用，冗余 1.2MB | 🔴 P1 |
+| **全局样式冗余** | 每个应用 30+ 行重复代码 | 🔴 P1 |
+| **开发依赖分散** | 配置不一致，版本漂移 | 🟡 P2 |
+| **文档覆盖率低** | 缺少 API 文档、CHANGELOG | 🟢 P3 |
+| **性能可优化** | 首屏可减少 30-50% | 🟢 P3 |
+
+---
+
 ## 🏗️ Architecture
 
 Documentation about system architecture, design decisions, and major migrations.

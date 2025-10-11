@@ -19,7 +19,8 @@ const router = createRouter({
       meta: { requiresAuth: true },
       redirect: '/dashboard',
       children: [
-        // 微应用路由
+        // 微应用静态路由 - 作为 fallback，优先级低于动态路由
+        // 注意：动态路由注册后会覆盖这些静态路由
         {
           path: '/dashboard/:pathMatch(.*)*',
           name: 'Dashboard',
@@ -44,12 +45,8 @@ const router = createRouter({
           component: () => import('@/views/MicroAppContainer.vue'),
           meta: { microApp: 'monitor-app' }
         },
-        {
-          path: '/system/:pathMatch(.*)*',
-          name: 'System',
-          component: () => import('@/views/MicroAppContainer.vue'),
-          meta: { microApp: 'system-app' }
-        },
+        // /system 路由已移除，完全由动态路由接管
+        // 避免静态路由和动态子路由冲突导致的跳转问题
         {
           path: '/image-build/:pathMatch(.*)*',
           name: 'ImageBuild',
@@ -58,7 +55,8 @@ const router = createRouter({
         }
       ]
     },
-    // 404 页面
+    // 404 页面 - 保留作为 fallback
+    // 注意：动态路由注册时会移除并重新添加此路由，确保优先级最低
     {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
@@ -84,6 +82,10 @@ router.beforeEach(async (to, from, next) => {
     if (userStore.isLogin && userStore.menuList === null && to.path !== '/login') {
       try {
         await userStore.fetchMenus()
+        // 菜单加载成功后，需要重新触发路由导航以使用新注册的动态路由
+        // 使用 replace: true 避免在历史记录中留下重复记录
+        next({ ...to, replace: true })
+        return
       } catch (error) {
         console.error('Failed to fetch menus in router guard', error)
         // 即使失败也继续导航，MainLayout 会使用默认菜单

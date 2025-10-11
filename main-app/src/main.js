@@ -139,6 +139,15 @@ setupWujie(app) // 注册 Wujie
 const sharedStateManager = initSharedStateManager(WujieVue.bus)
 app.provide('sharedState', sharedStateManager)
 
+// 重要：如果从 localStorage 恢复了菜单，立即注册动态路由
+// 这样刷新页面后动态路由才能正常工作
+import { useUserStore } from './store/user'
+const userStore = useUserStore()
+if (userStore.menuList && userStore.menuList.length > 0) {
+  console.log('[APP] 从 localStorage 恢复菜单，注册动态路由')
+  userStore.registerRoutes()
+}
+
 // Log configuration status
 if (configValidation.valid) {
   console.log('[APP] 🚀 Application starting with validated configuration')

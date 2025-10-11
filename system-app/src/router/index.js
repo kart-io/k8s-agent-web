@@ -5,10 +5,6 @@ import MenuList from '@/views/MenuList.vue'
 
 const routes = [
   {
-    path: '/',
-    redirect: '/users'
-  },
-  {
     path: '/users',
     name: 'UserList',
     component: UserList
