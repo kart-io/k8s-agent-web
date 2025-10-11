@@ -564,7 +564,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const VbenLayout = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-eeff4709"]]);
+const VbenLayout = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-12e8a3cd"]]);
 
 export { VbenLayout as default };
 //# sourceMappingURL=VbenLayout.vue.js.map

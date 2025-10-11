@@ -71,21 +71,22 @@
     "micro-frontend"
   ],
   "peerDependencies": {
-    "vue": "^3.3.0",
-    "ant-design-vue": "^3.2.0",
     "@ant-design/icons-vue": "^7.0.0",
+    "ant-design-vue": "^3.2.0",
+    "axios": "^1.0.0",
     "dayjs": "^1.11.0",
+    "pinia": "^2.0.0",
+    "vue": "^3.3.0",
+    "vue-router": "^4.0.0",
     "vxe-table": "^4.6.0",
     "vxe-table-plugin-antd": "^4.0.0",
-    "xe-utils": "^3.5.0",
-    "vue-router": "^4.0.0",
-    "pinia": "^2.0.0",
-    "axios": "^1.0.0"
+    "xe-utils": "^3.5.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.37.0",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vitest/ui": "^1.0.4",
-    "eslint": "^8.0.0",
+    "eslint": "^9.37.0",
     "vite": "^5.0.4",
     "vitest": "^1.0.4"
   }

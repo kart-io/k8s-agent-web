@@ -129,9 +129,14 @@ const columns = computed(() => {
   return props.gridOptions?.columns || []
 });
 
-// 表格选项（不包含列）
+// 提取树形配置
+const treeConfig = computed(() => {
+  return props.gridOptions?.treeConfig || null
+});
+
+// 表格选项（不包含列和treeConfig）
 const tableOptions = computed(() => {
-  const { columns: _, ...options } = props.gridOptions || {};
+  const { columns: _, treeConfig: __, ...options } = props.gridOptions || {};
   return {
     border: 'inner',
     round: true,
@@ -315,6 +320,7 @@ return (_ctx, _cache) => {
       }, tableOptions.value, {
         data: tableData.value,
         loading: loading.value,
+        "tree-config": treeConfig.value,
         class: "vxe-table-main"
       }), {
         default: withCtx(() => [
@@ -333,7 +339,7 @@ return (_ctx, _cache) => {
           }), 128))
         ]),
         _: 3
-      }, 16, ["data", "loading"]),
+      }, 16, ["data", "loading", "tree-config"]),
       (__props.showPager)
         ? (openBlock(), createElementBlock("div", _hoisted_5, [
             createVNode(_component_a_pagination, {
@@ -356,7 +362,7 @@ return (_ctx, _cache) => {
 }
 
 };
-const VxeBasicTable = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-1aaad317"]]);
+const VxeBasicTable = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-376ec415"]]);
 
 export { VxeBasicTable as default };
 //# sourceMappingURL=VxeBasicTable.vue.js.map

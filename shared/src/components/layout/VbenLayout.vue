@@ -613,38 +613,74 @@ defineExpose({
   :deep(.ant-menu-item) {
     margin: 4px 8px !important;
     padding-left: 16px !important;
-    height: 36px !important;
-    line-height: 36px !important;
-    border-radius: 4px !important;
-    transition: all 0.2s;
+    height: 40px !important;
+    line-height: 40px !important;
+    border-radius: 6px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex !important;
+    align-items: center !important;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.08) !important;
+      background-color: rgba(255, 255, 255, 0.1) !important;
       color: rgba(255, 255, 255, 0.95) !important;
+      transform: translateX(2px);
     }
 
     .anticon {
-      font-size: 16px;
-      transition: all 0.2s;
+      font-size: 18px !important;
+      margin-right: 12px !important;
+      transition: all 0.3s;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 20px !important;
+      height: 20px !important;
+      color: rgba(255, 255, 255, 0.75) !important;
+    }
+
+    &:hover .anticon {
+      color: #fff !important;
+      transform: scale(1.1);
     }
   }
 
   :deep(.ant-menu-submenu-title) {
     margin: 4px 8px !important;
     padding-left: 16px !important;
-    height: 36px !important;
-    line-height: 36px !important;
-    border-radius: 4px !important;
-    transition: all 0.2s;
+    height: 40px !important;
+    line-height: 40px !important;
+    border-radius: 6px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex !important;
+    align-items: center !important;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.08) !important;
+      background-color: rgba(255, 255, 255, 0.1) !important;
       color: rgba(255, 255, 255, 0.95) !important;
+      transform: translateX(2px);
     }
 
     .anticon {
-      font-size: 16px;
+      font-size: 18px !important;
+      margin-right: 12px !important;
+      transition: all 0.3s;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 20px !important;
+      height: 20px !important;
+      color: rgba(255, 255, 255, 0.75) !important;
     }
+
+    &:hover .anticon {
+      color: #fff !important;
+      transform: scale(1.1);
+    }
+  }
+
+  // 展开的子菜单标题图标颜色
+  :deep(.ant-menu-submenu-open > .ant-menu-submenu-title .anticon) {
+    color: #1890ff !important;
   }
 
   // 子菜单项选中样式

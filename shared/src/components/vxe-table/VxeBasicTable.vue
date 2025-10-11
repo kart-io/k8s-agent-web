@@ -23,6 +23,7 @@
         v-bind="tableOptions"
         :data="tableData"
         :loading="loading"
+        :tree-config="treeConfig"
         class="vxe-table-main"
       >
         <vxe-column
@@ -162,9 +163,14 @@ const columns = computed(() => {
   return props.gridOptions?.columns || []
 })
 
-// 表格选项（不包含列）
+// 提取树形配置
+const treeConfig = computed(() => {
+  return props.gridOptions?.treeConfig || null
+})
+
+// 表格选项（不包含列和treeConfig）
 const tableOptions = computed(() => {
-  const { columns: _, ...options } = props.gridOptions || {}
+  const { columns: _, treeConfig: __, ...options } = props.gridOptions || {}
   return {
     border: 'inner',
     round: true,
