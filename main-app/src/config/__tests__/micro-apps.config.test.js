@@ -7,11 +7,11 @@
  * - Configuration validation works properly
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 describe('Micro-Apps Configuration', () => {
   describe('getMicroAppUrl()', () => {
-    it('should return development URL when env is development', () => {
+    it('should return development URL when env is development', async () => {
       // This test will fail until we implement the function
       const { getMicroAppUrl } = await import('../micro-apps.config.js')
 
@@ -20,7 +20,7 @@ describe('Micro-Apps Configuration', () => {
       expect(url).toBe('//localhost:3001')
     })
 
-    it('should return production URL when env is production', () => {
+    it('should return production URL when env is production', async () => {
       const { getMicroAppUrl } = await import('../micro-apps.config.js')
 
       const url = getMicroAppUrl('dashboard-app', 'production')
@@ -28,7 +28,7 @@ describe('Micro-Apps Configuration', () => {
       expect(url).toMatch(/\/micro-apps\/dashboard\/|\/dashboard\//)
     })
 
-    it('should default to development environment when env is not specified', () => {
+    it('should default to development environment when env is not specified', async () => {
       const { getMicroAppUrl } = await import('../micro-apps.config.js')
 
       // Mock import.meta.env
@@ -43,7 +43,7 @@ describe('Micro-Apps Configuration', () => {
       expect(url).toBe('//localhost:3001')
     })
 
-    it('should return correct URLs for all 6 micro-apps', () => {
+    it('should return correct URLs for all 6 micro-apps', async () => {
       const { getMicroAppUrl } = await import('../micro-apps.config.js')
 
       const apps = [
@@ -61,7 +61,7 @@ describe('Micro-Apps Configuration', () => {
       }
     })
 
-    it('should throw error for non-existent app', () => {
+    it('should throw error for non-existent app', async () => {
       const { getMicroAppUrl } = await import('../micro-apps.config.js')
 
       expect(() => {
@@ -69,7 +69,7 @@ describe('Micro-Apps Configuration', () => {
       }).toThrow()
     })
 
-    it('should fallback to production URL when env not found', () => {
+    it('should fallback to production URL when env not found', async () => {
       const { getMicroAppUrl } = await import('../micro-apps.config.js')
 
       // Request a non-existent environment
@@ -80,7 +80,7 @@ describe('Micro-Apps Configuration', () => {
       expect(typeof url).toBe('string')
     })
 
-    it('should support test environment URLs when configured', () => {
+    it('should support test environment URLs when configured', async () => {
       const { getMicroAppUrl } = await import('../micro-apps.config.js')
 
       // Some apps might have test environment configured
@@ -93,7 +93,7 @@ describe('Micro-Apps Configuration', () => {
   })
 
   describe('getMicroAppConfig()', () => {
-    it('should return complete config object for valid app', () => {
+    it('should return complete config object for valid app', async () => {
       const { getMicroAppConfig } = await import('../micro-apps.config.js')
 
       const config = getMicroAppConfig('dashboard-app')
@@ -107,7 +107,7 @@ describe('Micro-Apps Configuration', () => {
       expect(config.entry).toHaveProperty('production')
     })
 
-    it('should return null for non-existent app', () => {
+    it('should return null for non-existent app', async () => {
       const { getMicroAppConfig } = await import('../micro-apps.config.js')
 
       const config = getMicroAppConfig('non-existent-app')
@@ -115,7 +115,7 @@ describe('Micro-Apps Configuration', () => {
       expect(config).toBeNull()
     })
 
-    it('should return valid config for all 6 micro-apps', () => {
+    it('should return valid config for all 6 micro-apps', async () => {
       const { getMicroAppConfig } = await import('../micro-apps.config.js')
 
       const appNames = [
@@ -138,7 +138,7 @@ describe('Micro-Apps Configuration', () => {
       }
     })
 
-    it('should include Wujie configuration when present', () => {
+    it('should include Wujie configuration when present', async () => {
       const { getMicroAppConfig } = await import('../micro-apps.config.js')
 
       const config = getMicroAppConfig('dashboard-app')
@@ -151,7 +151,7 @@ describe('Micro-Apps Configuration', () => {
       }
     })
 
-    it('should include metadata when present', () => {
+    it('should include metadata when present', async () => {
       const { getMicroAppConfig } = await import('../micro-apps.config.js')
 
       const config = getMicroAppConfig('dashboard-app')
@@ -162,7 +162,7 @@ describe('Micro-Apps Configuration', () => {
       }
     })
 
-    it('should have unique ports for all apps', () => {
+    it('should have unique ports for all apps', async () => {
       const { getMicroAppConfig } = await import('../micro-apps.config.js')
 
       const appNames = [
@@ -185,7 +185,7 @@ describe('Micro-Apps Configuration', () => {
       expect(ports.size).toBe(6)
     })
 
-    it('should have unique basePaths for all apps', () => {
+    it('should have unique basePaths for all apps', async () => {
       const { getMicroAppConfig } = await import('../micro-apps.config.js')
 
       const appNames = [

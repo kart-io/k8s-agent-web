@@ -138,6 +138,20 @@ const mockData = {
                 icon: 'SafetyOutlined',
                 microApp: 'system-app'
               }
+            },
+            {
+              key: '/system/menus',
+              path: '/system/menus',
+              name: 'system-menus',
+              label: '菜单管理',
+              icon: 'MenuOutlined',
+              component: 'MicroAppPlaceholder',
+              meta: {
+                requiresAuth: true,
+                title: '菜单管理',
+                icon: 'MenuOutlined',
+                microApp: 'system-app'
+              }
             }
           ]
         }

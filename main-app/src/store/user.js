@@ -36,33 +36,25 @@ export const useUserStore = defineStore('user', {
   actions: {
     // 用户登录
     async login(username, password) {
-      try {
-        const res = await loginApi(username, password)
-        this.token = res.token
-        this.userInfo = res.user
-        this.permissions = res.permissions || []
+      const res = await loginApi(username, password)
+      this.token = res.token
+      this.userInfo = res.user
+      this.permissions = res.permissions || []
 
-        localStorage.setItem('token', res.token)
+      localStorage.setItem('token', res.token)
 
-        // 登录成功后获取菜单
-        await this.fetchMenus()
+      // 登录成功后获取菜单
+      await this.fetchMenus()
 
-        return res
-      } catch (error) {
-        throw error
-      }
+      return res
     },
 
     // 获取用户信息
     async fetchUserInfo() {
-      try {
-        const userInfo = await getUserInfo()
-        this.userInfo = userInfo
-        this.permissions = userInfo.permissions || []
-        return userInfo
-      } catch (error) {
-        throw error
-      }
+      const userInfo = await getUserInfo()
+      this.userInfo = userInfo
+      this.permissions = userInfo.permissions || []
+      return userInfo
     },
 
     // 获取用户菜单并注册动态路由

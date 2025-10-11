@@ -150,3 +150,53 @@ export function deletePermission(id) {
     method: 'delete'
   })
 }
+
+// 菜单管理
+export function getMenus(params) {
+  if (isMockEnabled()) {
+    console.log('[System API] getMenus called, mockApi:', mockApi)
+    console.log('[System API] mockApi.getMenus:', mockApi.getMenus)
+    return mockApi.getMenus(params)
+  }
+
+  return request({
+    url: '/menus',
+    method: 'get',
+    params
+  })
+}
+
+export function createMenu(data) {
+  if (isMockEnabled()) {
+    return mockApi.createMenu(data)
+  }
+
+  return request({
+    url: '/menus',
+    method: 'post',
+    data
+  })
+}
+
+export function updateMenu(id, data) {
+  if (isMockEnabled()) {
+    return mockApi.updateMenu(id, data)
+  }
+
+  return request({
+    url: `/menus/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+export function deleteMenu(id) {
+  if (isMockEnabled()) {
+    return mockApi.deleteMenu(id)
+  }
+
+  return request({
+    url: `/menus/${id}`,
+    method: 'delete'
+  })
+}

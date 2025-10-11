@@ -16,6 +16,9 @@ import 'vxe-table-plugin-antd/dist/style.css'
 // 导入 Shared 组件的样式
 import '@k8s-agent/shared/dist/components/vxe-table/VxeBasicTable.css'
 
+// 导入 VXE Table 树形图标自定义样式
+import '@/styles/vxe-table-tree-icon.scss'
+
 // 使用 Ant Design 插件
 VXETable.use(VXETablePluginAntd)
 

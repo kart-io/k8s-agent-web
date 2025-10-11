@@ -1,17 +1,24 @@
 <template>
   <a-layout class="main-layout">
     <a-layout-header class="header">
-      <div class="logo">K8s Agent 管理平台</div>
+      <div class="logo">
+        K8s Agent 管理平台
+      </div>
       <div class="user-info">
         <a-dropdown>
-          <a-avatar :src="userStore.avatar">{{ userStore.username?.[0] }}</a-avatar>
+          <a-avatar :src="userStore.avatar">
+            {{ userStore.username?.[0] }}
+          </a-avatar>
           <template #overlay>
             <a-menu>
               <a-menu-item key="profile">
                 <UserOutlined /> 个人信息
               </a-menu-item>
               <a-menu-divider />
-              <a-menu-item key="logout" @click="handleLogout">
+              <a-menu-item
+                key="logout"
+                @click="handleLogout"
+              >
                 <LogoutOutlined /> 退出登录
               </a-menu-item>
             </a-menu>
@@ -21,29 +28,55 @@
     </a-layout-header>
 
     <a-layout>
-      <a-layout-sider v-model:collapsed="collapsed" collapsible>
+      <a-layout-sider
+        v-model:collapsed="collapsed"
+        collapsible
+      >
         <a-menu
-          v-model:selectedKeys="selectedKeys"
-          v-model:openKeys="openKeys"
+          v-model:selected-keys="selectedKeys"
+          v-model:open-keys="openKeys"
           mode="inline"
           theme="dark"
           @click="handleMenuClick"
         >
-          <template v-for="menu in menuList" :key="menu.key">
+          <template
+            v-for="menu in menuList"
+            :key="menu.key"
+          >
             <!-- 一级菜单 -->
-            <a-menu-item v-if="!menu.children" :key="menu.key">
-              <component :is="getMenuIcon(menu.icon)" v-if="menu.icon" />
+            <a-menu-item
+              v-if="!menu.children"
+              :key="menu.key"
+            >
+              <component
+                :is="getMenuIcon(menu.icon)"
+                v-if="menu.icon"
+              />
               <span>{{ menu.label }}</span>
             </a-menu-item>
 
             <!-- 带子菜单的菜单项 -->
-            <a-sub-menu v-else :key="menu.key">
+            <a-sub-menu
+              v-else
+              :key="menu.key"
+            >
               <template #icon>
-                <component :is="getMenuIcon(menu.icon)" v-if="menu.icon" />
+                <component
+                  :is="getMenuIcon(menu.icon)"
+                  v-if="menu.icon"
+                />
               </template>
-              <template #title>{{ menu.label }}</template>
-              <a-menu-item v-for="child in menu.children" :key="child.key">
-                <component :is="getMenuIcon(child.icon)" v-if="child.icon" />
+              <template #title>
+                {{ menu.label }}
+              </template>
+              <a-menu-item
+                v-for="child in menu.children"
+                :key="child.key"
+              >
+                <component
+                  :is="getMenuIcon(child.icon)"
+                  v-if="child.icon"
+                />
                 <span>{{ child.label }}</span>
               </a-menu-item>
             </a-sub-menu>
@@ -62,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { getIconComponent } from '@k8s-agent/shared/utils'

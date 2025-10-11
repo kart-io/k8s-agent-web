@@ -1,6 +1,7 @@
 {
   "name": "agent-app",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "vite --port 3002 --strictPort",
@@ -20,7 +21,10 @@
     "vxe-table-plugin-antd": "^4.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.37.0",
     "@vitejs/plugin-vue": "^4.3.4",
+    "eslint": "^9.37.0",
+    "eslint-plugin-vue": "^9.33.0",
     "sass": "^1.66.1",
     "vite": "^5.0.4"
   }

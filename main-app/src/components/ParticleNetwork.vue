@@ -1,6 +1,13 @@
 <template>
-  <div class="particle-network" ref="containerRef">
-    <canvas ref="canvasRef" :width="canvasWidth" :height="canvasHeight"></canvas>
+  <div
+    ref="containerRef"
+    class="particle-network"
+  >
+    <canvas
+      ref="canvasRef"
+      :width="canvasWidth"
+      :height="canvasHeight"
+    />
     <div class="particles">
       <div
         v-for="(particle, index) in particles"

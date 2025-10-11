@@ -2,7 +2,6 @@
  * 动态路由工具
  * 根据接口返回的菜单数据动态生成和注册路由
  */
-import { h } from 'vue'
 import MicroAppContainer from '@/views/MicroAppContainer.vue'
 import { getMicroAppByBasePath } from '@/config/micro-apps.config.js'
 
@@ -46,11 +45,8 @@ export function menusToRoutes(menus, parentPath = '') {
     let routePath = menu.path || menu.key
     if (parentPath && routePath.startsWith(parentPath + '/')) {
       routePath = routePath.substring(parentPath.length + 1)
-    } else if (parentPath && routePath.startsWith('/')) {
-      // 如果父路径存在但当前路径不是以父路径开头的绝对路径，保持原样
-      // 这种情况下路径可能配置有误，保留原路径
-      routePath = routePath
     }
+    // 其他情况保持原路径
 
     // Infer microApp from path if not explicitly set
     const inferredMicroApp = inferMicroAppFromPath(menu.path || menu.key)

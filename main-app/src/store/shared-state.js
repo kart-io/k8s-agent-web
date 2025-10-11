@@ -187,7 +187,7 @@ export class SharedStateManager {
     }
 
     this.bus.$on('state:update', (payload) => {
-      const { namespace, key, value, timestamp } = payload
+      const { namespace, key, value } = payload
 
       if (!namespace || !key) {
         console.warn('[SharedStateManager] Received invalid state:update payload:', payload)
@@ -284,7 +284,7 @@ export class SharedStateManager {
                 const fullKey = `${namespace}:${key}`
                 this.state[fullKey] = parsedValue
                 console.log(`[SharedStateManager] Loaded persisted state: ${fullKey}`)
-              } catch (parseError) {
+              } catch {
                 console.warn(`[SharedStateManager] Failed to parse persisted state for ${storageKey}`)
               }
             }

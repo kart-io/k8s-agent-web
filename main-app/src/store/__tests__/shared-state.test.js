@@ -5,7 +5,6 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { reactive } from 'vue'
 
 // Mock Wujie bus
 const mockBus = {

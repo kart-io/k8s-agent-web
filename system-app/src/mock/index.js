@@ -141,6 +141,178 @@ const mockData = {
       ip: '192.168.1.102',
       timestamp: Date.now() - 540000
     }
+  ],
+
+  // 菜单列表
+  menus: [
+    {
+      id: 1,
+      parentId: null,
+      name: '仪表盘',
+      path: '/dashboard',
+      component: 'MicroAppPlaceholder',
+      icon: 'DashboardOutlined',
+      type: 'menu',
+      orderNum: 1,
+      status: 'enabled',
+      visible: true,
+      microApp: 'dashboard-app',
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 2,
+      parentId: null,
+      name: 'Agent管理',
+      path: '/agent',
+      component: 'SubMenu',
+      icon: 'CloudServerOutlined',
+      type: 'directory',
+      orderNum: 2,
+      status: 'enabled',
+      visible: true,
+      microApp: null,
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 3,
+      parentId: 2,
+      name: 'Agent列表',
+      path: '/agent/list',
+      component: 'MicroAppPlaceholder',
+      icon: null,
+      type: 'menu',
+      orderNum: 1,
+      status: 'enabled',
+      visible: true,
+      microApp: 'agent-app',
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 4,
+      parentId: 2,
+      name: 'Agent配置',
+      path: '/agent/config',
+      component: 'MicroAppPlaceholder',
+      icon: null,
+      type: 'menu',
+      orderNum: 2,
+      status: 'enabled',
+      visible: true,
+      microApp: 'agent-app',
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 5,
+      parentId: null,
+      name: '集群管理',
+      path: '/cluster',
+      component: 'MicroAppPlaceholder',
+      icon: 'ClusterOutlined',
+      type: 'menu',
+      orderNum: 3,
+      status: 'enabled',
+      visible: true,
+      microApp: 'cluster-app',
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 6,
+      parentId: null,
+      name: '监控中心',
+      path: '/monitor',
+      component: 'MicroAppPlaceholder',
+      icon: 'MonitorOutlined',
+      type: 'menu',
+      orderNum: 4,
+      status: 'enabled',
+      visible: true,
+      microApp: 'monitor-app',
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 7,
+      parentId: null,
+      name: '系统管理',
+      path: '/system',
+      component: 'SubMenu',
+      icon: 'SettingOutlined',
+      type: 'directory',
+      orderNum: 5,
+      status: 'enabled',
+      visible: true,
+      microApp: null,
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 8,
+      parentId: 7,
+      name: '用户管理',
+      path: '/system/users',
+      component: 'MicroAppPlaceholder',
+      icon: null,
+      type: 'menu',
+      orderNum: 1,
+      status: 'enabled',
+      visible: true,
+      microApp: 'system-app',
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 9,
+      parentId: 7,
+      name: '角色管理',
+      path: '/system/roles',
+      component: 'MicroAppPlaceholder',
+      icon: null,
+      type: 'menu',
+      orderNum: 2,
+      status: 'enabled',
+      visible: true,
+      microApp: 'system-app',
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 10,
+      parentId: 7,
+      name: '权限管理',
+      path: '/system/permissions',
+      component: 'MicroAppPlaceholder',
+      icon: null,
+      type: 'menu',
+      orderNum: 3,
+      status: 'enabled',
+      visible: true,
+      microApp: 'system-app',
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 11,
+      parentId: 7,
+      name: '菜单管理',
+      path: '/system/menus',
+      component: 'MicroAppPlaceholder',
+      icon: null,
+      type: 'menu',
+      orderNum: 4,
+      status: 'enabled',
+      visible: true,
+      microApp: 'system-app',
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    },
+    {
+      id: 12,
+      parentId: null,
+      name: '镜像构建',
+      path: '/image-build',
+      component: 'MicroAppPlaceholder',
+      icon: 'ContainerOutlined',
+      type: 'menu',
+      orderNum: 6,
+      status: 'enabled',
+      visible: true,
+      microApp: 'image-build-app',
+      createdAt: Date.now() - 365 * 24 * 3600 * 1000
+    }
   ]
 }
 
@@ -299,6 +471,104 @@ export const systemMockApi = {
       page,
       pageSize
     }
+  },
+
+  /**
+   * 获取菜单列表
+   */
+  async getMenus(params = {}) {
+    await delay(import.meta.env.VITE_MOCK_DELAY || 300)
+
+    let menus = [...mockData.menus]
+
+    // 搜索过滤
+    if (params.search) {
+      const keyword = params.search.toLowerCase()
+      menus = menus.filter(m =>
+        m.name.toLowerCase().includes(keyword) ||
+        (m.path && m.path.toLowerCase().includes(keyword))
+      )
+    }
+
+    // 状态过滤
+    if (params.status) {
+      menus = menus.filter(m => m.status === params.status)
+    }
+
+    // 类型过滤
+    if (params.type) {
+      menus = menus.filter(m => m.type === params.type)
+    }
+
+    console.log('[System Mock] getMenus called, returning:', menus)
+    return {
+      data: menus,
+      total: menus.length
+    }
+  },
+
+  /**
+   * 创建菜单
+   */
+  async createMenu(data) {
+    await delay(import.meta.env.VITE_MOCK_DELAY || 300)
+
+    const newMenu = {
+      id: mockData.menus.length + 1,
+      parentId: data.parentId || null,
+      name: data.name,
+      path: data.path,
+      component: data.component || 'MicroAppPlaceholder',
+      icon: data.icon || null,
+      type: data.type || 'menu',
+      orderNum: data.orderNum || 999,
+      status: data.status || 'enabled',
+      visible: data.visible !== false,
+      microApp: data.microApp || null,
+      createdAt: Date.now()
+    }
+
+    mockData.menus.push(newMenu)
+    console.log('[System Mock] createMenu success:', newMenu)
+    return newMenu
+  },
+
+  /**
+   * 更新菜单
+   */
+  async updateMenu(id, data) {
+    await delay(import.meta.env.VITE_MOCK_DELAY || 300)
+
+    const menu = mockData.menus.find(m => m.id == id)
+    if (!menu) {
+      throw new Error('Menu not found')
+    }
+
+    Object.assign(menu, data)
+    console.log('[System Mock] updateMenu success:', menu)
+    return menu
+  },
+
+  /**
+   * 删除菜单
+   */
+  async deleteMenu(id) {
+    await delay(import.meta.env.VITE_MOCK_DELAY || 300)
+
+    const index = mockData.menus.findIndex(m => m.id == id)
+    if (index === -1) {
+      throw new Error('Menu not found')
+    }
+
+    // 检查是否有子菜单
+    const hasChildren = mockData.menus.some(m => m.parentId == id)
+    if (hasChildren) {
+      throw new Error('Cannot delete menu with children')
+    }
+
+    mockData.menus.splice(index, 1)
+    console.log('[System Mock] deleteMenu success, id:', id)
+    return { message: 'Menu deleted successfully' }
   }
 }
 
@@ -328,6 +598,7 @@ if (isMockEnabled()) {
   console.log('[System] mockApi.getRoles:', mockApi.getRoles)
   console.log('[System] mockApi.getPermissions:', mockApi.getPermissions)
   console.log('[System] mockApi.getUsers:', mockApi.getUsers)
+  console.log('[System] mockApi.getMenus:', mockApi.getMenus)
 } else {
   console.log(
     '%c[System] 使用真实接口',

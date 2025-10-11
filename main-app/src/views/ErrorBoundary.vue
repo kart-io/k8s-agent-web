@@ -1,6 +1,9 @@
 <template>
   <div class="error-boundary">
-    <div v-if="hasError" class="error-boundary__content">
+    <div
+      v-if="hasError"
+      class="error-boundary__content"
+    >
       <a-result
         status="error"
         :title="errorTitle"
@@ -8,7 +11,10 @@
       >
         <template #extra>
           <a-space>
-            <a-button type="primary" @click="handleRetry">
+            <a-button
+              type="primary"
+              @click="handleRetry"
+            >
               重试
             </a-button>
             <a-button @click="handleGoHome">

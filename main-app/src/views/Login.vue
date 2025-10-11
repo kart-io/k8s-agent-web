@@ -13,8 +13,8 @@
       <a-form
         :model="formState"
         :rules="rules"
-        @finish="handleLogin"
         class="login-form"
+        @finish="handleLogin"
       >
         <a-form-item name="username">
           <a-input

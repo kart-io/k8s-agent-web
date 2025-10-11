@@ -13,17 +13,21 @@
     @tab-refresh="handleTabRefresh"
   >
     <!-- 微前端容器 -->
-    <router-view v-slot="{ Component, route }">
+    <router-view v-slot="{ Component, route: currentRoute }">
       <!-- 使用 microApp 作为 key,相同微应用使用相同 key,避免不必要的组件销毁 -->
       <component
         :is="Component"
         v-if="Component"
-        :key="route.meta.microApp || route.name"
+        :key="currentRoute.meta.microApp || currentRoute.name"
       />
-      <div v-else class="no-component-warning" style="padding: 20px; color: red;">
-        No component matched for route: {{ route.fullPath }}
-        <br>Route name: {{ route.name }}
-        <br>Route meta: {{ JSON.stringify(route.meta) }}
+      <div
+        v-else
+        class="no-component-warning"
+        style="padding: 20px; color: red;"
+      >
+        No component matched for route: {{ currentRoute.fullPath }}
+        <br>Route name: {{ currentRoute.name }}
+        <br>Route meta: {{ JSON.stringify(currentRoute.meta) }}
       </div>
     </router-view>
   </VbenLayout>
@@ -37,10 +41,9 @@ import '@k8s-agent/shared/dist/components/layout/VbenLayout.css'
 import '@k8s-agent/shared/dist/components/layout/LayoutHeader.css'
 import '@k8s-agent/shared/dist/components/layout/LayoutTabBar.css'
 import { computed, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import WujieVue from 'wujie-vue3'
 
-const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const { bus: wujieBus } = WujieVue

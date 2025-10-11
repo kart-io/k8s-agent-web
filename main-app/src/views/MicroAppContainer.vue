@@ -12,9 +12,9 @@
         :sync="false"
         :alive="true"
         :props="appProps"
-        @beforeLoad="handleBeforeLoad"
-        @afterMount="handleAfterMount"
-        @loadError="handleLoadError"
+        @before-load="handleBeforeLoad"
+        @after-mount="handleAfterMount"
+        @load-error="handleLoadError"
         @activated="handleActivated"
         @deactivated="handleDeactivated"
       />
@@ -24,7 +24,7 @@
 
 <script setup>
 import { computed, watch, ref, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import WujieVue from 'wujie-vue3'
 import { getMicroAppUrl } from '@/config/micro-apps.config.js'
@@ -33,7 +33,6 @@ import ErrorBoundary from './ErrorBoundary.vue'
 import { reportMicroAppLoadError } from '@/utils/error-reporter'
 
 const route = useRoute()
-const router = useRouter()
 const userStore = useUserStore()
 const { bus } = WujieVue
 
