@@ -9,8 +9,16 @@
       "path": "apps/web-antd",
     },
     {
+      "name": "@vben/web-auth",
+      "path": "apps/web-auth",
+    },
+    {
       "name": "@vben/web-ele",
       "path": "apps/web-ele",
+    },
+    {
+      "name": "@vben/web-k8s",
+      "path": "apps/web-k8s",
     },
     {
       "name": "@vben/web-naive",
