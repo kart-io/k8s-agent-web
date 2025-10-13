@@ -22,6 +22,10 @@ Vue Vben Admin is a free and open source middle and back-end template. Using the
 
 This is the latest version, 5.0, and it is not compatible with previous versions. If you are starting a new project, it is recommended to use the latest version. If you wish to view the old version, please use the [v2 branch](https://github.com/vbenjs/vue-vben-admin/tree/v2).
 
+## Project Architecture
+
+This project follows a **Monorepo** architecture using pnpm workspace, with optimized structure for better maintainability and scalability.
+
 ## Features
 
 - **Latest Technology Stack**: Developed with cutting-edge front-end technologies like Vue 3 and Vite
@@ -29,6 +33,9 @@ This is the latest version, 5.0, and it is not compatible with previous versions
 - **Themes**: Multiple theme colors available with customizable options
 - **Internationalization**: Comprehensive built-in internationalization support
 - **Permissions**: Built-in solution for dynamic route-based permission generation
+- **Monorepo Architecture**: Modern project structure using pnpm workspace
+- **Component Library**: Rich set of business components and UI kits
+- **Development Standards**: Comprehensive coding standards and guidelines
 
 ## Preview
 
@@ -54,6 +61,13 @@ Open the project in Gitpod (free online dev environment for GitHub) and start co
 
 ## Install and Use
 
+### Prerequisites
+
+- Node.js 18.x or higher
+- pnpm 8.x or higher
+
+### Installation
+
 1. Get the project code
 
 ```bash
@@ -68,17 +82,91 @@ npm i -g corepack
 pnpm install
 ```
 
-3. Run
+3. Run development server
 
 ```bash
 pnpm dev
 ```
 
-4. Build
+4. Build for production
 
 ```bash
 pnpm build
 ```
+
+### Project Structure
+
+```
+.
+├── apps/                    # Applications
+│   ├── web-antd/           # Ant Design version
+│   ├── web-ele/            # Element Plus version
+│   ├── web-naive/          # Naive UI version
+│   └── backend-mock/       # Mock API server
+├── docs/                    # Documentation
+├── packages/               # Shared packages
+│   ├── @core/             # Core functionality
+│   │   ├── base/          # Base modules
+│   │   ├── composables/   # Vue composables
+│   │   └── ui-kit/        # UI components
+│   └── @vben/             # Business modules
+├── internal/               # Internal tools
+└── scripts/               # Build scripts
+```
+
+## Available Scripts
+
+### Using Makefile (Recommended)
+
+```bash
+# Quick start
+make help              # Show all available commands
+make install           # Install dependencies
+make dev               # Start dev server
+make build             # Build all packages
+make test              # Run tests
+make lint              # Check code quality
+
+# Shortcuts
+make i                 # make install
+make d                 # make dev
+make b                 # make build
+make t                 # make test
+```
+
+See [Makefile Guide](./docs/src/guide/project/makefile-guide.md) for complete documentation.
+
+### Using pnpm directly
+
+```bash
+# Development
+pnpm dev                # Start dev server for selected app
+pnpm dev:antd          # Start Ant Design version
+pnpm dev:ele           # Start Element Plus version
+pnpm dev:naive         # Start Naive UI version
+pnpm dev:docs          # Start documentation site
+
+# Build
+pnpm build             # Build all packages
+pnpm build:antd        # Build Ant Design version
+pnpm build:docs        # Build documentation
+
+# Testing
+pnpm test              # Run all tests
+pnpm test:unit         # Run unit tests
+pnpm test:e2e          # Run e2e tests
+
+# Code Quality
+pnpm lint              # Lint all files
+pnpm lint:fix          # Lint and fix
+pnpm type-check        # Type checking
+pnpm format            # Format code with prettier
+```
+
+## Development Guidelines
+
+- [Style Specification](./docs/src/guide/project/style-specification.md) - CSS and styling guidelines
+- [Component Development Guide](./docs/src/guide/project/component-development-guide.md) - Component development best practices
 
 ## Change Log
 

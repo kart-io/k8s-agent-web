@@ -1,0 +1,11 @@
+=== 性能基线数据 ===
+构建时间: 50.463s
+任务数: 16
+缓存命中: 0
+
+构建成功的包:
+@vben/web-naive:build: ✨configuration file is build successfully!
+@vben/web-antd:build: ✨configuration file is build successfully!
+@vben/web-ele:build: ✨configuration file is build successfully!
+@vben/playground:build: ✨configuration file is build successfully!
+ Tasks:    16 successful, 16 total

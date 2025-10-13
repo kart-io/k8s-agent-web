@@ -1,0 +1,122 @@
+{
+  "timestamp": "2025-10-13T03:59:03.555Z",
+  "summary": {
+    "total": 7,
+    "found": 7,
+    "notFound": 0,
+    "toMigrate": 1,
+    "toDelete": 4,
+    "toSkip": 2
+  },
+  "results": [
+    {
+      "appDir": "main-app",
+      "exists": true,
+      "hasSrc": false,
+      "hasPackageJson": false,
+      "hasDist": true,
+      "hasNodeModules": true,
+      "size": 4096,
+      "files": 2,
+      "fileList": [
+        "dist",
+        "node_modules"
+      ],
+      "action": "skip",
+      "reason": "仅包含临时文件"
+    },
+    {
+      "appDir": "agent-app",
+      "exists": true,
+      "hasSrc": false,
+      "hasPackageJson": false,
+      "hasDist": false,
+      "hasNodeModules": true,
+      "size": 4096,
+      "files": 1,
+      "fileList": [
+        "node_modules"
+      ],
+      "action": "delete",
+      "reason": "仅包含构建产物或依赖"
+    },
+    {
+      "appDir": "dashboard-app",
+      "exists": true,
+      "hasSrc": false,
+      "hasPackageJson": false,
+      "hasDist": false,
+      "hasNodeModules": true,
+      "size": 4096,
+      "files": 1,
+      "fileList": [
+        "node_modules"
+      ],
+      "action": "delete",
+      "reason": "仅包含构建产物或依赖"
+    },
+    {
+      "appDir": "cluster-app",
+      "exists": true,
+      "hasSrc": false,
+      "hasPackageJson": false,
+      "hasDist": false,
+      "hasNodeModules": true,
+      "size": 4096,
+      "files": 1,
+      "fileList": [
+        "node_modules"
+      ],
+      "action": "delete",
+      "reason": "仅包含构建产物或依赖"
+    },
+    {
+      "appDir": "system-app",
+      "exists": true,
+      "hasSrc": false,
+      "hasPackageJson": false,
+      "hasDist": true,
+      "hasNodeModules": true,
+      "size": 4096,
+      "files": 2,
+      "fileList": [
+        "dist",
+        "node_modules"
+      ],
+      "action": "skip",
+      "reason": "仅包含临时文件"
+    },
+    {
+      "appDir": "image-build-app",
+      "exists": true,
+      "hasSrc": true,
+      "hasPackageJson": false,
+      "hasDist": true,
+      "hasNodeModules": true,
+      "size": 4096,
+      "files": 3,
+      "fileList": [
+        "dist",
+        "node_modules",
+        "src"
+      ],
+      "action": "migrate",
+      "reason": "包含源代码或配置"
+    },
+    {
+      "appDir": "monitor-app",
+      "exists": true,
+      "hasSrc": false,
+      "hasPackageJson": false,
+      "hasDist": false,
+      "hasNodeModules": true,
+      "size": 4096,
+      "files": 1,
+      "fileList": [
+        "node_modules"
+      ],
+      "action": "delete",
+      "reason": "仅包含构建产物或依赖"
+    }
+  ]
+}

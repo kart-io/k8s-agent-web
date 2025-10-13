@@ -2,6 +2,10 @@ node_modules
 .DS_Store
 dist
 dist-ssr
+
+# Legacy directories (removed but may be recreated)
+*-app/
+shared/
 dist.zip
 dist.tar
 dist.war

@@ -1,0 +1,1113 @@
+
+> vben-admin-monorepo@5.5.9 build /home/hellotalk/code/web/k8s-agent-web
+> cross-env NODE_OPTIONS=--max-old-space-size=8192 turbo build
+
+turbo 2.5.4
+
+• Packages in scope: @vben-core/composables, @vben-core/design, @vben-core/form-ui, @vben-core/icons, @vben-core/layout-ui, @vben-core/menu-ui, @vben-core/popup-ui, @vben-core/preferences, @vben-core/shadcn-ui, @vben-core/shared, @vben-core/tabs-ui, @vben-core/typings, @vben/access, @vben/backend-mock, @vben/commitlint-config, @vben/common-ui, @vben/constants, @vben/docs, @vben/eslint-config, @vben/hooks, @vben/icons, @vben/layouts, @vben/locales, @vben/node-utils, @vben/playground, @vben/plugins, @vben/preferences, @vben/prettier-config, @vben/request, @vben/stores, @vben/stylelint-config, @vben/styles, @vben/tailwind-config, @vben/tsconfig, @vben/turbo-run, @vben/types, @vben/utils, @vben/vite-config, @vben/vsh, @vben/web-antd, @vben/web-ele, @vben/web-naive
+• Running build in 42 packages
+• Remote caching disabled
+@vben-core/icons:build: cache miss, executing b52ffeda453a6b1c
+@vben-core/design:build: cache miss, executing 19fafda389d133ed
+@vben/backend-mock:build: cache miss, executing 3d1aaead44584783
+@vben-core/shared:build: cache miss, executing 1cb7190f9f593876
+@vben-core/typings:build: cache miss, executing fe434ded112bcf24
+@vben-core/icons:build: 
+@vben-core/icons:build: > @vben-core/icons@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/packages/@core/base/icons
+@vben-core/icons:build: > pnpm unbuild
+@vben-core/icons:build: 
+@vben/backend-mock:build: 
+@vben/backend-mock:build: > @vben/backend-mock@0.0.1 build /home/hellotalk/code/web/k8s-agent-web/apps/backend-mock
+@vben/backend-mock:build: > nitro build
+@vben/backend-mock:build: 
+@vben-core/design:build: 
+@vben-core/design:build: > @vben-core/design@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/packages/@core/base/design
+@vben-core/design:build: > pnpm vite build
+@vben-core/design:build: 
+@vben-core/shared:build: 
+@vben-core/shared:build: > @vben-core/shared@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/packages/@core/base/shared
+@vben-core/shared:build: > pnpm unbuild
+@vben-core/shared:build: 
+@vben-core/typings:build: 
+@vben-core/typings:build: > @vben-core/typings@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/packages/@core/base/typings
+@vben-core/typings:build: > pnpm unbuild
+@vben-core/typings:build: 
+@vben/backend-mock:build: [nitro] ✔ Generated public .output/public
+@vben/backend-mock:build: [nitro] ℹ Building Nitro Server (preset: node-server, compatibility date: 2025-10-13)
+@vben-core/typings:build: ℹ Building typings
+@vben-core/shared:build: ℹ Building shared
+@vben-core/icons:build: ℹ Building icons
+@vben-core/typings:build: ℹ Cleaning dist directory: ./dist
+@vben-core/shared:build: ℹ Cleaning dist directory: ./dist
+@vben-core/icons:build: ℹ Cleaning dist directory: ./dist
+@vben-core/typings:build: Generated an empty chunk: "index".
+@vben/backend-mock:build: [nitro] ✔ Nitro Server built
+@vben-core/typings:build: ✔ Build succeeded for typings
+@vben-core/typings:build:   dist/index.mjs (total size: 1 B, chunk size: 1 B)
+@vben-core/typings:build: 
+@vben-core/typings:build: Σ Total dist size (byte size): 17.5 kB
+@vben-core/typings:build: 
+@vben-core/icons:build: ✔ Build succeeded for icons
+@vben-core/icons:build:   dist/index.mjs (total size: 1.2 kB, chunk size: 1.2 kB, exports: ArrowDown, ArrowLeft, ArrowLeftToLine, ArrowRightLeft, ArrowRightToLine, ArrowUp, ArrowUpToLine, Bell, BookOpenText, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Circle, CircleAlert, CircleCheckBig, CircleHelp, CircleX, Copy, CornerDownLeft, Ellipsis, Expand, ExternalLink, Eye, EyeOff, FoldHorizontal, Fullscreen, Github, Grip, GripVertical, IconDefault, IconifyIcon, Inbox, Info, InspectionPanel, Languages, LoaderCircle, LockKeyhole, LogOut, MailCheck, Maximize, MdiMenuClose, MdiMenuOpen, Menu, Minimize, Minimize2, MoonStar, Palette, PanelLeft, PanelRight, Pin, PinOff, Plus, RotateCw, Search, SearchX, Settings, Shrink, Square, SquareCheckBig, SquareMinus, Sun, SunMoon, SwatchBook, UserRoundPen, X, addCollection, addIcon, createIconifyIcon, listIcons)
+@vben-core/icons:build: 
+@vben-core/icons:build: Σ Total dist size (byte size): 3.89 kB
+@vben-core/icons:build: 
+@vben/backend-mock:build:   ├─ .output/server/chunks/_/cookie-utils.mjs (700 B) (316 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/_/cookie-utils.mjs.map (622 B) (288 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/_/jwt-utils.mjs (10.3 kB) (2.28 kB gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/_/jwt-utils.mjs.map (9.4 kB) (1.57 kB gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/nitro/nitro.mjs (162 kB) (39.7 kB gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/nitro/nitro.mjs.map (5.2 kB) (970 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/_..._.mjs (674 B) (330 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/_..._.mjs.map (242 B) (162 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/auth/codes.mjs (793 B) (398 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/auth/codes.mjs.map (559 B) (297 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/auth/login.post.mjs (1.42 kB) (581 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/auth/login.post.mjs.map (848 B) (384 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/auth/logout.post.mjs (691 B) (314 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/auth/logout.post.mjs.map (387 B) (236 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/auth/refresh.post.mjs (1.21 kB) (458 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/auth/refresh.post.mjs.map (740 B) (334 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/demo/bigint.mjs (1.21 kB) (497 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/demo/bigint.mjs.map (509 B) (253 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/menu/all.mjs (793 B) (404 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/menu/all.mjs.map (555 B) (294 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/status.mjs (520 B) (272 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/status.mjs.map (359 B) (216 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/dept/_id_.delete.mjs (683 B) (336 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/dept/_id_.delete.mjs.map (393 B) (244 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/dept/_id_.put.mjs (674 B) (334 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/dept/_id_.put.mjs.map (387 B) (241 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/dept/list.mjs (1.95 kB) (811 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/dept/list.mjs.map (1.86 kB) (604 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/menu/list.mjs (661 B) (328 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/menu/list.mjs.map (347 B) (226 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/menu/name-exists.mjs (1.03 kB) (484 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/menu/name-exists.mjs.map (822 B) (380 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/menu/path-exists.mjs (1.03 kB) (490 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/menu/path-exists.mjs.map (847 B) (387 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/role/list.mjs (2.54 kB) (999 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/system/role/list.mjs.map (2.58 kB) (799 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/table/list.mjs (3.65 kB) (1.34 kB gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/table/list.mjs.map (3.88 kB) (1.06 kB gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/test.get.mjs (364 B) (206 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/test.get.mjs.map (180 B) (143 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/test.post.mjs (368 B) (207 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/test.post.mjs.map (182 B) (143 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/upload.mjs (696 B) (356 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/upload.mjs.map (363 B) (232 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/user/info.mjs (622 B) (302 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/chunks/routes/api/user/info.mjs.map (337 B) (219 B gzip)
+@vben/backend-mock:build:   ├─ .output/server/index.mjs (353 B) (204 B gzip)
+@vben/backend-mock:build:   └─ .output/server/package.json (602 B) (312 B gzip)
+@vben/backend-mock:build: Σ Total size: 4.31 MB (1.07 MB gzip)
+@vben/backend-mock:build: [nitro] ✔ You can preview this build using node .output/server/index.mjs
+@vben-core/design:build: vite v7.1.2 building for production...
+@vben-core/design:build: transforming...
+@vben-core/design:build: ✓ 8 modules transformed.
+@vben-core/design:build: rendering chunks...
+@vben-core/design:build: dist/design.css  22.36 kB
+@vben-core/design:build: dist/index.mjs    0.00 kB
+@vben-core/design:build: ✓ built in 38ms
+@vben-core/shared:build: ✔ Build succeeded for shared
+@vben-core/shared:build:   dist/store.mjs (total size: 37 B, chunk size: 37 B, exports: *@tanstack/vue-store)
+@vben-core/shared:build: 
+@vben-core/shared:build:   dist/cache/index.mjs (total size: 2.47 kB, chunk size: 2.47 kB, exports: StorageManager)
+@vben-core/shared:build: 
+@vben-core/shared:build:   dist/global-state.mjs (total size: 473 B, chunk size: 473 B, exports: globalShareState)
+@vben-core/shared:build: 
+@vben-core/shared:build:   dist/constants/index.mjs (total size: 1.1 kB, chunk size: 1.1 kB, exports: CSS_VARIABLE_LAYOUT_CONTENT_HEIGHT, CSS_VARIABLE_LAYOUT_CONTENT_WIDTH, CSS_VARIABLE_LAYOUT_FOOTER_HEIGHT, CSS_VARIABLE_LAYOUT_HEADER_HEIGHT, DEFAULT_NAMESPACE, ELEMENT_ID_MAIN_CONTENT, VBEN_ANT_PREVIEW_URL, VBEN_DOC_URL, VBEN_ELE_PREVIEW_URL, VBEN_GITHUB_URL, VBEN_LOGO_URL, VBEN_NAIVE_PREVIEW_URL, VBEN_PREVIEW_URL)
+@vben-core/shared:build: 
+@vben-core/shared:build:   dist/color/index.mjs (total size: 1.9 kB, chunk size: 1.9 kB, exports: TinyColor, convertToHsl, convertToHslCssVar, convertToRgb, generatorColorVariables, isDarkColor, isLightColor, isValidColor)
+@vben-core/shared:build: 
+@vben-core/shared:build:   dist/utils/index.mjs (total size: 15.1 kB, chunk size: 15.1 kB, exports: StateHandler, arraysEqual, bindMethods, capitalizeFirstLetter, cloneDeep, cn, createMerge, diff, downloadFileFromBase64, downloadFileFromBlob, downloadFileFromBlobPart, downloadFileFromImageUrl, downloadFileFromUrl, filterTree, formatDate, formatDateTime, get, getElementVisibleRect, getFirstNonNullOrUndefined, getNestedValue, getScrollbarWidth, isBoolean, isDate, isDayjsObject, isEmpty, isEqual, isFunction, isHttpUrl, isMacOs, isNumber, isObject, isString, isUndefined, isWindow, isWindowsOs, kebabToCamelCase, loadScript, mapTree, merge, mergeWithArrayOverride, needsScrollbar, openRouteInNewWindow, openWindow, set, startProgress, stopProgress, to, toCamelCase, toLowerCaseFirstLetter, traverseTreeValues, triggerDownload, triggerWindowResize, uniqueByField, updateCSSVariables, urlToBase64)
+@vben-core/shared:build: 
+@vben-core/shared:build: Σ Total dist size (byte size): 38.5 kB
+@vben-core/shared:build: 
+@vben-core/composables:build: cache miss, executing c50011d586cdbfaa
+@vben-core/composables:build: 
+@vben-core/composables:build: > @vben-core/composables@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/packages/@core/composables
+@vben-core/composables:build: > pnpm unbuild
+@vben-core/composables:build: 
+@vben-core/composables:build: ℹ Building composables
+@vben-core/composables:build: ℹ Cleaning dist directory: ./dist
+@vben-core/composables:build: ✔ Build succeeded for composables
+@vben-core/composables:build:   dist/index.mjs (total size: 8.71 kB, chunk size: 8.71 kB, exports: SCROLL_FIXED_CLASS, useEmitAsProps, useForwardExpose, useForwardPriorityValues, useForwardProps, useForwardPropsEmits, useIsMobile, useLayoutContentStyle, useLayoutFooterStyle, useLayoutHeaderStyle, useNamespace, usePriorityValue, usePriorityValues, useScrollLock, useSimpleLocale, useSortable)
+@vben-core/composables:build: 
+@vben-core/composables:build: Σ Total dist size (byte size): 15.7 kB
+@vben-core/composables:build: 
+@vben-core/tabs-ui:build: cache miss, executing 03a2de8fa868550d
+@vben-core/form-ui:build: cache miss, executing 015b06fff47c266d
+@vben-core/menu-ui:build: cache miss, executing 0bba8110da70a9d8
+@vben-core/layout-ui:build: cache miss, executing 61682c905970188d
+@vben-core/popup-ui:build: cache miss, executing 8d3be3eddc8bda15
+@vben-core/form-ui:build: 
+@vben-core/form-ui:build: > @vben-core/form-ui@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/packages/@core/ui-kit/form-ui
+@vben-core/form-ui:build: > pnpm unbuild
+@vben-core/form-ui:build: 
+@vben-core/tabs-ui:build: 
+@vben-core/tabs-ui:build: > @vben-core/tabs-ui@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/packages/@core/ui-kit/tabs-ui
+@vben-core/tabs-ui:build: > pnpm unbuild
+@vben-core/tabs-ui:build: 
+@vben-core/popup-ui:build: 
+@vben-core/popup-ui:build: > @vben-core/popup-ui@5.2.1 build /home/hellotalk/code/web/k8s-agent-web/packages/@core/ui-kit/popup-ui
+@vben-core/popup-ui:build: > pnpm unbuild
+@vben-core/popup-ui:build: 
+@vben-core/layout-ui:build: 
+@vben-core/layout-ui:build: > @vben-core/layout-ui@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/packages/@core/ui-kit/layout-ui
+@vben-core/layout-ui:build: > pnpm unbuild
+@vben-core/layout-ui:build: 
+@vben-core/menu-ui:build: 
+@vben-core/menu-ui:build: > @vben-core/menu-ui@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/packages/@core/ui-kit/menu-ui
+@vben-core/menu-ui:build: > pnpm unbuild
+@vben-core/menu-ui:build: 
+@vben-core/layout-ui:build: ℹ Building layout-ui
+@vben-core/layout-ui:build: ℹ Cleaning dist directory: ./dist
+@vben-core/tabs-ui:build: ℹ Building tabs-ui
+@vben-core/tabs-ui:build: ℹ Cleaning dist directory: ./dist
+@vben-core/form-ui:build: ℹ Building form-ui
+@vben-core/form-ui:build: ℹ Cleaning dist directory: ./dist
+@vben-core/popup-ui:build: ℹ Building popup-ui
+@vben-core/popup-ui:build: ℹ Cleaning dist directory: ./dist
+@vben-core/menu-ui:build: ℹ Building menu-ui
+@vben-core/menu-ui:build: ℹ Cleaning dist directory: ./dist
+@vben-core/layout-ui:build: [mkdist] vue-sfc-transformer is not installed. mkdist will not transform typescript syntax in Vue SFCs.
+@vben-core/tabs-ui:build: [mkdist] vue-sfc-transformer is not installed. mkdist will not transform typescript syntax in Vue SFCs.
+@vben-core/form-ui:build: [mkdist] vue-sfc-transformer is not installed. mkdist will not transform typescript syntax in Vue SFCs.
+@vben-core/popup-ui:build: [mkdist] vue-sfc-transformer is not installed. mkdist will not transform typescript syntax in Vue SFCs.
+@vben-core/menu-ui:build: [mkdist] vue-sfc-transformer is not installed. mkdist will not transform typescript syntax in Vue SFCs.
+@vben-core/layout-ui:build: ✔ Build succeeded for layout-ui
+@vben-core/layout-ui:build:   dist (total size: 28.1 kB)
+@vben-core/layout-ui:build:   └─ dist/components/layout-content.vue (1.46 kB)
+@vben-core/layout-ui:build:   └─ dist/vben-layout.vue (15.5 kB)
+@vben-core/layout-ui:build:   └─ dist/components/layout-footer.vue (803 B)
+@vben-core/layout-ui:build:   └─ dist/components/widgets/sidebar-collapse-button.vue (555 B)
+@vben-core/layout-ui:build:   └─ dist/components/layout-sidebar.vue (7.34 kB)
+@vben-core/layout-ui:build:   └─ dist/components/layout-header.vue (1.36 kB)
+@vben-core/layout-ui:build:   └─ dist/components/layout-tabbar.vue (515 B)
+@vben-core/layout-ui:build:   └─ dist/components/widgets/sidebar-fixed-button.vue (568 B)
+@vben-core/layout-ui:build:   dist (total size: 5.8 kB)
+@vben-core/layout-ui:build:   └─ dist/vben-layout.mjs
+@vben-core/layout-ui:build:   └─ dist/hooks/use-layout.d.ts (508 B)
+@vben-core/layout-ui:build:   └─ dist/index.mjs (64 B)
+@vben-core/layout-ui:build:   └─ dist/index.d.ts (100 B)
+@vben-core/layout-ui:build:   └─ dist/vben-layout.d.ts (3.4 kB)
+@vben-core/layout-ui:build:   └─ dist/components/widgets/index.mjs (158 B)
+@vben-core/layout-ui:build:   └─ dist/components/widgets/index.d.ts (158 B)
+@vben-core/layout-ui:build:   └─ dist/components/index.d.ts (319 B)
+@vben-core/layout-ui:build:   └─ dist/components/index.mjs (319 B)
+@vben-core/layout-ui:build:   └─ dist/hooks/use-layout.mjs (773 B)
+@vben-core/layout-ui:build: Σ Total dist size (byte size): 33.9 kB
+@vben-core/layout-ui:build: 
+@vben-core/tabs-ui:build: ✔ Build succeeded for tabs-ui
+@vben-core/tabs-ui:build:   dist (total size: 15 kB)
+@vben-core/tabs-ui:build:   └─ dist/tabs-view.vue (2.63 kB)
+@vben-core/tabs-ui:build:   └─ dist/components/tabs-chrome/tabs.vue (6.36 kB)
+@vben-core/tabs-ui:build:   └─ dist/components/widgets/tool-screen.vue (515 B)
+@vben-core/tabs-ui:build:   └─ dist/components/tabs/tabs.vue (4.91 kB)
+@vben-core/tabs-ui:build:   └─ dist/components/widgets/tool-more.vue (556 B)
+@vben-core/tabs-ui:build:   dist (total size: 9.49 kB)
+@vben-core/tabs-ui:build:   └─ dist/types.mjs
+@vben-core/tabs-ui:build:   └─ dist/index.mjs (103 B)
+@vben-core/tabs-ui:build:   └─ dist/types.d.ts (1.4 kB)
+@vben-core/tabs-ui:build:   └─ dist/use-tabs-drag.d.ts (171 B)
+@vben-core/tabs-ui:build:   └─ dist/use-tabs-drag.mjs (2.69 kB)
+@vben-core/tabs-ui:build:   └─ dist/use-tabs-view-scroll.d.ts (571 B)
+@vben-core/tabs-ui:build:   └─ dist/index.d.ts (155 B)
+@vben-core/tabs-ui:build:   └─ dist/components/index.d.ts (115 B)
+@vben-core/tabs-ui:build:   └─ dist/use-tabs-view-scroll.mjs (3.92 kB)
+@vben-core/tabs-ui:build:   └─ dist/components/index.mjs (115 B)
+@vben-core/tabs-ui:build:   └─ dist/components/widgets/index.d.ts (122 B)
+@vben-core/tabs-ui:build:   └─ dist/components/widgets/index.mjs (122 B)
+@vben-core/tabs-ui:build: Σ Total dist size (byte size): 24.5 kB
+@vben-core/tabs-ui:build: 
+@vben-core/form-ui:build: ✔ Build succeeded for form-ui
+@vben-core/form-ui:build:   dist (total size: 27.4 kB)
+@vben-core/form-ui:build:   └─ dist/components/form-actions.vue (4.32 kB)
+@vben-core/form-ui:build:   └─ dist/form-render/form-field.vue (10.5 kB)
+@vben-core/form-ui:build:   └─ dist/vben-form.vue (1.97 kB)
+@vben-core/form-ui:build:   └─ dist/vben-use-form.vue (4.51 kB)
+@vben-core/form-ui:build:   └─ dist/form-render/form-label.vue (772 B)
+@vben-core/form-ui:build:   └─ dist/form-render/form.vue (5.27 kB)
+@vben-core/form-ui:build:   dist (total size: 54.2 kB)
+@vben-core/form-ui:build:   └─ dist/types.mjs
+@vben-core/form-ui:build:   └─ dist/config.d.ts (512 B)
+@vben-core/form-ui:build:   └─ dist/config.mjs (1.72 kB)
+@vben-core/form-ui:build:   └─ dist/index.d.ts (218 B)
+@vben-core/form-ui:build:   └─ dist/index.mjs (109 B)
+@vben-core/form-ui:build:   └─ dist/form-api.mjs (13.8 kB)
+@vben-core/form-ui:build:   └─ dist/types.d.ts (10.7 kB)
+@vben-core/form-ui:build:   └─ dist/use-form-context.d.ts (1.24 kB)
+@vben-core/form-ui:build:   └─ dist/use-form-context.mjs (2.72 kB)
+@vben-core/form-ui:build:   └─ dist/use-vben-form.mjs (993 B)
+@vben-core/form-ui:build:   └─ dist/form-render/context.mjs (591 B)
+@vben-core/form-ui:build:   └─ dist/use-vben-form.d.ts (389 B)
+@vben-core/form-ui:build:   └─ dist/form-render/context.d.ts (927 B)
+@vben-core/form-ui:build:   └─ dist/form-render/dependencies.d.ts (10.1 kB)
+@vben-core/form-ui:build:   └─ dist/form-api.d.ts (3.03 kB)
+@vben-core/form-ui:build:   └─ dist/form-render/expandable.d.ts (332 B)
+@vben-core/form-ui:build:   └─ dist/form-render/dependencies.mjs (2.75 kB)
+@vben-core/form-ui:build:   └─ dist/form-render/helper.d.ts (527 B)
+@vben-core/form-ui:build:   └─ dist/form-render/helper.mjs (987 B)
+@vben-core/form-ui:build:   └─ dist/form-render/expandable.mjs (2.28 kB)
+@vben-core/form-ui:build:   └─ dist/form-render/index.mjs (160 B)
+@vben-core/form-ui:build:   └─ dist/form-render/index.d.ts (160 B)
+@vben-core/form-ui:build: Σ Total dist size (byte size): 81.6 kB
+@vben-core/form-ui:build: 
+@vben-core/menu-ui:build: ✔ Build succeeded for menu-ui
+@vben-core/menu-ui:build:   dist (total size: 54.3 kB)
+@vben-core/menu-ui:build:   └─ dist/types.mjs
+@vben-core/menu-ui:build:   └─ dist/hooks/index.d.ts (64 B)
+@vben-core/menu-ui:build:   └─ dist/utils/index.d.ts (668 B)
+@vben-core/menu-ui:build:   └─ dist/components/normal-menu/normal-menu.mjs
+@vben-core/menu-ui:build:   └─ dist/components/normal-menu/index.d.ts (95 B)
+@vben-core/menu-ui:build:   └─ dist/index.mjs (166 B)
+@vben-core/menu-ui:build:   └─ dist/types.d.ts (2.92 kB)
+@vben-core/menu-ui:build:   └─ dist/index.d.ts (186 B)
+@vben-core/menu-ui:build:   └─ dist/components/collapse-transition.vue (2.59 kB)
+@vben-core/menu-ui:build:   └─ dist/components/index.d.ts (211 B)
+@vben-core/menu-ui:build:   └─ dist/components/menu.vue (21.9 kB)
+@vben-core/menu-ui:build:   └─ dist/components/index.mjs (211 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/index.mjs (72 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu-context.d.ts (562 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu-scroll.mjs (848 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu-scroll.d.ts (284 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu.d.ts (376 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu-context.mjs (990 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu.mjs (914 B)
+@vben-core/menu-ui:build:   └─ dist/utils/index.mjs (844 B)
+@vben-core/menu-ui:build:   └─ dist/components/normal-menu/index.mjs (59 B)
+@vben-core/menu-ui:build:   └─ dist/components/normal-menu/normal-menu.d.ts (456 B)
+@vben-core/menu-ui:build:   └─ dist/components/normal-menu/normal-menu.vue (3.48 kB)
+@vben-core/menu-ui:build:   └─ dist/menu.vue (653 B)
+@vben-core/menu-ui:build:   └─ dist/sub-menu.vue (1.61 kB)
+@vben-core/menu-ui:build:   └─ dist/components/menu-badge-dot.vue (597 B)
+@vben-core/menu-ui:build:   └─ dist/components/menu-badge.vue (1.36 kB)
+@vben-core/menu-ui:build:   └─ dist/components/sub-menu-content.vue (2.31 kB)
+@vben-core/menu-ui:build:   └─ dist/components/sub-menu.vue (6.87 kB)
+@vben-core/menu-ui:build:   └─ dist/components/menu-item.vue (3.03 kB)
+@vben-core/menu-ui:build:   dist (total size: 44.4 kB)
+@vben-core/menu-ui:build:   └─ dist/menu.vue (653 B)
+@vben-core/menu-ui:build:   └─ dist/components/menu-badge-dot.vue (597 B)
+@vben-core/menu-ui:build:   └─ dist/components/collapse-transition.vue (2.59 kB)
+@vben-core/menu-ui:build:   └─ dist/components/menu-item.vue (3.03 kB)
+@vben-core/menu-ui:build:   └─ dist/sub-menu.vue (1.61 kB)
+@vben-core/menu-ui:build:   └─ dist/components/menu-badge.vue (1.36 kB)
+@vben-core/menu-ui:build:   └─ dist/components/sub-menu.vue (6.87 kB)
+@vben-core/menu-ui:build:   └─ dist/components/sub-menu-content.vue (2.31 kB)
+@vben-core/menu-ui:build:   └─ dist/components/normal-menu/normal-menu.vue (3.48 kB)
+@vben-core/menu-ui:build:   └─ dist/components/menu.vue (21.9 kB)
+@vben-core/menu-ui:build:   dist (total size: 9.93 kB)
+@vben-core/menu-ui:build:   └─ dist/types.mjs
+@vben-core/menu-ui:build:   └─ dist/components/normal-menu/normal-menu.mjs
+@vben-core/menu-ui:build:   └─ dist/types.d.ts (2.92 kB)
+@vben-core/menu-ui:build:   └─ dist/components/index.mjs (211 B)
+@vben-core/menu-ui:build:   └─ dist/index.d.ts (186 B)
+@vben-core/menu-ui:build:   └─ dist/index.mjs (166 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/index.mjs (72 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu-context.d.ts (562 B)
+@vben-core/menu-ui:build:   └─ dist/components/index.d.ts (211 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/index.d.ts (64 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu-context.mjs (990 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu.d.ts (376 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu-scroll.d.ts (284 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu-scroll.mjs (848 B)
+@vben-core/menu-ui:build:   └─ dist/utils/index.d.ts (668 B)
+@vben-core/menu-ui:build:   └─ dist/hooks/use-menu.mjs (914 B)
+@vben-core/menu-ui:build:   └─ dist/components/normal-menu/index.d.ts (95 B)
+@vben-core/menu-ui:build:   └─ dist/utils/index.mjs (844 B)
+@vben-core/menu-ui:build:   └─ dist/components/normal-menu/normal-menu.d.ts (456 B)
+@vben-core/menu-ui:build:   └─ dist/components/normal-menu/index.mjs (59 B)
+@vben-core/menu-ui:build: Σ Total dist size (byte size): 54.3 kB
+@vben-core/menu-ui:build: 
+@vben-core/popup-ui:build: ✔ Build succeeded for popup-ui
+@vben-core/popup-ui:build:   dist (total size: 23.2 kB)
+@vben-core/popup-ui:build:   └─ dist/alert/alert.vue (5.51 kB)
+@vben-core/popup-ui:build:   └─ dist/drawer/drawer.vue (8.56 kB)
+@vben-core/popup-ui:build:   └─ dist/modal/modal.vue (9.16 kB)
+@vben-core/popup-ui:build:   dist (total size: 44.2 kB)
+@vben-core/popup-ui:build:   └─ dist/drawer/drawer.mjs
+@vben-core/popup-ui:build:   └─ dist/modal/modal.mjs
+@vben-core/popup-ui:build:   └─ dist/modal/__tests__/modal-api.test.d.ts (11 B)
+@vben-core/popup-ui:build:   └─ dist/drawer/__tests__/drawer-api.test.d.ts (11 B)
+@vben-core/popup-ui:build:   └─ dist/index.d.ts (76 B)
+@vben-core/popup-ui:build:   └─ dist/index.mjs (106 B)
+@vben-core/popup-ui:build:   └─ dist/alert/AlertBuilder.d.ts (770 B)
+@vben-core/popup-ui:build:   └─ dist/alert/alert.d.ts (2.67 kB)
+@vben-core/popup-ui:build:   └─ dist/alert/alert.mjs (341 B)
+@vben-core/popup-ui:build:   └─ dist/alert/AlertBuilder.mjs (4.64 kB)
+@vben-core/popup-ui:build:   └─ dist/alert/index.mjs (222 B)
+@vben-core/popup-ui:build:   └─ dist/alert/index.d.ts (292 B)
+@vben-core/popup-ui:build:   └─ dist/drawer/drawer-api.mjs (3.43 kB)
+@vben-core/popup-ui:build:   └─ dist/drawer/drawer-api.d.ts (1.5 kB)
+@vben-core/popup-ui:build:   └─ dist/drawer/drawer.d.ts (3.54 kB)
+@vben-core/popup-ui:build:   └─ dist/drawer/index.d.ts (154 B)
+@vben-core/popup-ui:build:   └─ dist/drawer/use-drawer.mjs (3.06 kB)
+@vben-core/popup-ui:build:   └─ dist/drawer/index.mjs (127 B)
+@vben-core/popup-ui:build:   └─ dist/modal/index.d.ts (148 B)
+@vben-core/popup-ui:build:   └─ dist/drawer/use-drawer.d.ts (419 B)
+@vben-core/popup-ui:build:   └─ dist/modal/index.mjs (122 B)
+@vben-core/popup-ui:build:   └─ dist/modal/modal-api.d.ts (1.5 kB)
+@vben-core/popup-ui:build:   └─ dist/modal/modal-api.mjs (3.59 kB)
+@vben-core/popup-ui:build:   └─ dist/modal/modal.d.ts (3.76 kB)
+@vben-core/popup-ui:build:   └─ dist/modal/use-modal-draggable.d.ts (532 B)
+@vben-core/popup-ui:build:   └─ dist/modal/use-modal-draggable.mjs (3.27 kB)
+@vben-core/popup-ui:build:   └─ dist/modal/use-modal.d.ts (405 B)
+@vben-core/popup-ui:build:   └─ dist/drawer/__tests__/drawer-api.test.mjs (3.22 kB)
+@vben-core/popup-ui:build:   └─ dist/modal/use-modal.mjs (3.13 kB)
+@vben-core/popup-ui:build:   └─ dist/modal/__tests__/modal-api.test.mjs (3.19 kB)
+@vben-core/popup-ui:build: Σ Total dist size (byte size): 67.4 kB
+@vben-core/popup-ui:build: 
+@vben/docs:build: cache miss, executing cf88722c6ab6ea42
+@vben/web-antd:build: cache miss, executing 827b4f2c6a1e7861
+@vben/playground:build: cache miss, executing 56ef6d17be81876c
+@vben/web-naive:build: cache miss, executing 215c6a3f4e3ea52b
+@vben/web-ele:build: cache miss, executing 427884c7e9b6b0b1
+@vben/playground:build: 
+@vben/playground:build: > @vben/playground@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/playground
+@vben/playground:build: > pnpm vite build --mode production
+@vben/playground:build: 
+@vben/web-antd:build: 
+@vben/web-antd:build: > @vben/web-antd@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/apps/web-antd
+@vben/web-antd:build: > pnpm vite build --mode production
+@vben/web-antd:build: 
+@vben/web-ele:build: 
+@vben/web-ele:build: > @vben/web-ele@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/apps/web-ele
+@vben/web-ele:build: > pnpm vite build --mode production
+@vben/web-ele:build: 
+@vben/docs:build: 
+@vben/docs:build: > @vben/docs@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/docs
+@vben/docs:build: > vitepress build
+@vben/docs:build: 
+@vben/web-naive:build: 
+@vben/web-naive:build: > @vben/web-naive@5.5.9 build /home/hellotalk/code/web/k8s-agent-web/apps/web-naive
+@vben/web-naive:build: > pnpm vite build --mode production
+@vben/web-naive:build: 
+@vben/web-ele:build: vite v7.1.2 building for production...
+@vben/docs:build: 
+@vben/docs:build:   vitepress v1.6.3
+@vben/docs:build: 
+@vben/docs:build: - building client + server bundles...
+@vben/playground:build: vite v7.1.2 building for production...
+@vben/web-antd:build: vite v7.1.2 building for production...
+@vben/web-naive:build: vite v7.1.2 building for production...
+@vben/docs:build: ℹ @nolebase/vitepress-plugin-git-changelog: Prepare to gather git logs...
+@vben/docs:build: ℹ @nolebase/vitepress-plugin-git-changelog: Done. (308ms)
+@vben/playground:build: transforming...
+@vben/web-antd:build: transforming...
+@vben/web-naive:build: transforming...
+@vben/web-ele:build: transforming...
+@vben/web-naive:build: ✓ 6230 modules transformed.
+@vben/web-antd:build: ✓ 6616 modules transformed.
+@vben/web-naive:build: rendering chunks...
+@vben/web-naive:build: 
+@vben/web-naive:build:  WARN  [plugin vite:reporter] 
+@vben/web-naive:build: (!) /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/button/index.mjs is dynamically imported by /home/hellotalk/code/web/k8s-agent-web/apps/web-naive/src/adapter/component/index.ts but also statically imported by /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/calendar/src/Calendar.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/color-picker/src/ColorPicker.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/components.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/data-table/src/HeaderButton/FilterMenu.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/date-picker/src/panel/date.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/date-picker/src/panel/daterange.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/date-picker/src/panel/datetime.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/date-picker/src/panel/datetimerange.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/date-picker/src/panel/month.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/date-picker/src/panel/monthrange.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/dialog/src/Dialog.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/dynamic-input/src/DynamicInput.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/dynamic-tags/src/DynamicTags.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/input-number/src/InputNumber.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/legacy-transfer/src/Transfer.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/popconfirm/src/PopconfirmPanel.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/theme-editor/src/ThemeEditor.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/time-picker/src/Panel.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/transfer/src/TransferHeader.mjs, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/naive-ui@2.42.0_vue@3.5.17_typescript@5.8.3_/node_modules/naive-ui/es/upload/src/UploadFile.mjs, dynamic import will not move module into another chunk.
+@vben/web-naive:build: 
+@vben/web-naive:build: 
+@vben/web-naive:build: ✨configuration file is build successfully!
+@vben/web-naive:build: dist/_app.config.js                                                                  0.23 kB
+@vben/web-naive:build: dist/index.html                                                                      2.73 kB
+@vben/web-naive:build: dist/css/authentication-BTOPGJCw.css                                                 0.30 kB
+@vben/web-naive:build: dist/css/login-DgGR-ids.css                                                          0.44 kB
+@vben/web-naive:build: dist/css/theme-toggle-C7o8FryI.css                                                   1.52 kB
+@vben/web-naive:build: dist/css/index-DHgJLVj0.css                                                          6.64 kB
+@vben/web-naive:build: dist/css/layout-s6mttBh2.css                                                        19.70 kB
+@vben/web-naive:build: dist/css/bootstrap-YYqFGroH.css                                                    124.28 kB
+@vben/web-naive:build: dist/js/get-slot-Bk_rJcZu.js                                                         0.09 kB
+@vben/web-naive:build: dist/js/use-merged-state-BNN9v97n.js                                                 0.17 kB
+@vben/web-naive:build: dist/js/circle-check-big-D7diULDZ.js                                                 0.20 kB
+@vben/web-naive:build: dist/js/modal-BA4c-A57.js                                                            0.20 kB
+@vben/web-naive:build: dist/js/rotate-cw-BkIDKLMn.js                                                        0.20 kB
+@vben/web-naive:build: dist/js/analytics-trends-bGWXyGsa.js                                                 0.22 kB
+@vben/web-naive:build: dist/js/analytics-visits-ESkSMN_-.js                                                 0.22 kB
+@vben/web-naive:build: dist/js/analytics-visits-data-DweJQSiA.js                                            0.23 kB
+@vben/web-naive:build: dist/js/analytics-visits-sales-BwFic1TM.js                                           0.23 kB
+@vben/web-naive:build: dist/js/analytics-visits-source-BAE26Z_B.js                                          0.23 kB
+@vben/web-naive:build: dist/js/page-B2keVEix.js                                                             0.26 kB
+@vben/web-naive:build: dist/js/page-BkKdz23R.js                                                             0.26 kB
+@vben/web-naive:build: dist/js/login-VkRgxofL.js                                                            0.27 kB
+@vben/web-naive:build: dist/js/demos-BrZ8qlmQ.js                                                            0.32 kB
+@vben/web-naive:build: dist/js/demos-xvCJyxNv.js                                                            0.32 kB
+@vben/web-naive:build: dist/js/coming-soon-ByVxz8pp.js                                                      0.33 kB
+@vben/web-naive:build: dist/js/forbidden-C6v9Ps2q.js                                                        0.34 kB
+@vben/web-naive:build: dist/js/not-found-DxIcda49.js                                                        0.34 kB
+@vben/web-naive:build: dist/js/internal-error-Bp_NorZh.js                                                   0.35 kB
+@vben/web-naive:build: dist/js/offline-Bd290eNC.js                                                          0.35 kB
+@vben/web-naive:build: dist/js/FocusDetector-p55JGviY.js                                                    0.35 kB
+@vben/web-naive:build: dist/js/Add-BJG8zcGZ.js                                                              0.35 kB
+@vben/web-naive:build: dist/js/use-locale-Bv8t4j27.js                                                       0.42 kB
+@vben/web-naive:build: dist/js/auth-title-DHvlIEXm.js                                                       0.46 kB
+@vben/web-naive:build: dist/js/auth-BlE72B-z.js                                                             0.61 kB
+@vben/web-naive:build: dist/js/Eye-CDmO8obT.js                                                              0.62 kB
+@vben/web-naive:build: dist/js/analytics-visits.vue_vue_type_script_setup_true_lang-CyXdgRCk.js             0.66 kB
+@vben/web-naive:build: dist/js/analytics-visits-sales.vue_vue_type_script_setup_true_lang-CjBE9KaK.js       0.73 kB
+@vben/web-naive:build: dist/js/common-MmHu2jYN.js                                                           0.78 kB
+@vben/web-naive:build: dist/js/common-COUKBsBJ.js                                                           0.81 kB
+@vben/web-naive:build: dist/js/analytics-visits-data.vue_vue_type_script_setup_true_lang-VXmmsrPM.js        0.84 kB
+@vben/web-naive:build: dist/js/analytics-visits-source.vue_vue_type_script_setup_true_lang-Cdoas9pZ.js      0.90 kB
+@vben/web-naive:build: dist/js/analytics-trends.vue_vue_type_script_setup_true_lang-B_4Ere3_.js             1.03 kB
+@vben/web-naive:build: dist/js/Tooltip-DC58B4aj.js                                                          1.07 kB
+@vben/web-naive:build: dist/js/index-G5NmEiUU.js                                                            1.12 kB
+@vben/web-naive:build: dist/js/modal.vue_vue_type_script_setup_true_lang-DxUxvqJl.js                        1.18 kB
+@vben/web-naive:build: dist/js/analysis-chart-card.vue_vue_type_script_setup_true_lang-UV3Hu6bu.js          1.19 kB
+@vben/web-naive:build: dist/js/index-BEGpgZm_.js                                                            1.23 kB
+@vben/web-naive:build: dist/js/use-keyboard-fgQIQaNN.js                                                     1.24 kB
+@vben/web-naive:build: dist/js/TabsList.vue_vue_type_script_setup_true_lang-BS3UEt4B.js                     1.58 kB
+@vben/web-naive:build: dist/js/use-preferences-Bfv1R0IX.js                                                  1.92 kB
+@vben/web-naive:build: dist/js/page.vue_vue_type_script_setup_true_lang-C79qWqoL.js                         2.05 kB
+@vben/web-naive:build: dist/js/avatar.vue_vue_type_script_setup_true_lang-DdYn42AF.js                       2.05 kB
+@vben/web-naive:build: dist/js/forget-password-D-MQ03xP.js                                                  2.21 kB
+@vben/web-naive:build: dist/js/index-XqMWM5dX.js                                                            2.54 kB
+@vben/web-naive:build: dist/js/index-CFN9qE5p.js                                                            2.57 kB
+@vben/web-naive:build: dist/js/code-login-BDu3FxUW.js                                                       2.61 kB
+@vben/web-naive:build: dist/js/index-C17kt7iG.js                                                            2.66 kB
+@vben/web-naive:build: dist/js/Forward-DPUU7C7Q.js                                                          2.72 kB
+@vben/web-naive:build: dist/js/basic-DZl95O_K.js                                                            2.72 kB
+@vben/web-naive:build: dist/js/ui-B6qC1Ubg.js                                                               3.15 kB
+@vben/web-naive:build: dist/js/fallback.vue_vue_type_script_setup_true_lang-CW1vGamd.js                     3.17 kB
+@vben/web-naive:build: dist/js/register-BN2oOmRI.js                                                         3.30 kB
+@vben/web-naive:build: dist/js/authentication-D4Z9hAeb.js                                                   3.41 kB
+@vben/web-naive:build: dist/js/ui-CS49Uv2_.js                                                               3.42 kB
+@vben/web-naive:build: dist/js/authentication-CoE1N7bD.js                                                   3.53 kB
+@vben/web-naive:build: dist/js/index-BiuE5LsW.js                                                            3.75 kB
+@vben/web-naive:build: dist/js/Suffix-CJm5DAAU.js                                                           3.93 kB
+@vben/web-naive:build: dist/js/nprogress-BMwUiaBk.js                                                        4.59 kB
+@vben/web-naive:build: dist/js/index-Dt6KWVwo.js                                                            4.65 kB
+@vben/web-naive:build: dist/js/preferences-WnYBNUUU.js                                                      5.76 kB
+@vben/web-naive:build: dist/js/preferences-DHwL7YE3.js                                                      5.92 kB
+@vben/web-naive:build: dist/js/index-DGIjuoqZ.js                                                            6.16 kB
+@vben/web-naive:build: dist/js/basic-nwLCetky.js                                                            6.33 kB
+@vben/web-naive:build: dist/js/icon-500-B5mCIvWr.js                                                         7.08 kB
+@vben/web-naive:build: dist/js/icon-offline-rlyURnRs.js                                                     8.09 kB
+@vben/web-naive:build: dist/js/VirtualList-DDJoOPUR.js                                                      8.15 kB
+@vben/web-naive:build: dist/js/index-C6XPju2B.js                                                            8.39 kB
+@vben/web-naive:build: dist/js/index-lf72T5-z.js                                                            8.87 kB
+@vben/web-naive:build: dist/js/icon-403-uhpVF6Vg.js                                                         9.39 kB
+@vben/web-naive:build: dist/js/index-h5Y9XH-J.js                                                            9.88 kB
+@vben/web-naive:build: dist/js/index-I8BGt0kD.js                                                           10.44 kB
+@vben/web-naive:build: dist/js/index-CRVI1C8H.js                                                           10.49 kB
+@vben/web-naive:build: dist/js/theme-toggle.vue_vue_type_script_setup_true_lang-BXVPgLDs.js                11.53 kB
+@vben/web-naive:build: dist/js/RadioGroup-KtM-hcn2.js                                                      11.72 kB
+@vben/web-naive:build: dist/js/Follower-CSnQXG6E.js                                                        11.99 kB
+@vben/web-naive:build: dist/js/icon-coming-soon-Be70-owc.js                                                12.89 kB
+@vben/web-naive:build: dist/js/use-modal-CdIQJ37X.js                                                       16.54 kB
+@vben/web-naive:build: dist/js/login.vue_vue_type_script_setup_true_lang-CQQNgBXE.js                       21.49 kB
+@vben/web-naive:build: dist/js/icon-404-CUKTEjvv.js                                                        24.34 kB
+@vben/web-naive:build: dist/js/Popover-D6x6CY4L.js                                                         25.07 kB
+@vben/web-naive:build: dist/js/qrcode-login-uX4vAVyw.js                                                    27.43 kB
+@vben/web-naive:build: dist/js/index-Cm8MQU1u.js                                                           27.46 kB
+@vben/web-naive:build: dist/js/Input-D6eHY8I8.js                                                           28.62 kB
+@vben/web-naive:build: dist/js/index.esm-Ofvdfudw.js                                                       29.34 kB
+@vben/web-naive:build: dist/js/index-DNsjz3ci.js                                                           34.08 kB
+@vben/web-naive:build: dist/js/Selection-ZrmOlpj9.js                                                       39.66 kB
+@vben/web-naive:build: dist/js/index-DQdMrJbN.js                                                           45.42 kB
+@vben/web-naive:build: dist/js/sortable.complete.esm-Crr9kxfy.js                                           45.80 kB
+@vben/web-naive:build: dist/js/index-CkqjQ1kH.js                                                           50.42 kB
+@vben/web-naive:build: dist/js/index-jJNz188k.js                                                           70.50 kB
+@vben/web-naive:build: dist/js/index-WPiKJ_w7.js                                                           73.51 kB
+@vben/web-naive:build: dist/js/index-BpVIqcVQ.js                                                           80.99 kB
+@vben/web-naive:build: dist/js/index-4ghWi0Yv.js                                                          112.92 kB
+@vben/web-naive:build: dist/js/authentication-DARUkDlR.js                                                 118.89 kB
+@vben/web-naive:build: dist/jse/index-index-BeBgL-a4.js                                                   190.98 kB
+@vben/web-naive:build: dist/js/layout.vue_vue_type_script_setup_true_lang-Daa5XZ7J.js                     223.51 kB
+@vben/web-naive:build: dist/js/use-echarts-46Yjzc_k.js                                                    626.11 kB
+@vben/web-naive:build: dist/js/bootstrap-CTFJUkeR.js                                                    1,025.22 kB
+@vben/web-naive:build: ✓ built in 11.60s
+@vben/web-naive:build: ZIP file created: /home/hellotalk/code/web/k8s-agent-web/apps/web-naive/dist.zip (1046093 total bytes)
+@vben/web-naive:build: Folder has been zipped to: /home/hellotalk/code/web/k8s-agent-web/apps/web-naive/dist.zip
+@vben/web-ele:build: ✓ 4941 modules transformed.
+@vben/web-antd:build: rendering chunks...
+@vben/web-antd:build: 
+@vben/web-antd:build:  WARN  [plugin vite:reporter] 
+@vben/web-antd:build: (!) /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/button/index.js is dynamically imported by /home/hellotalk/code/web/k8s-agent-web/apps/web-antd/src/adapter/component/index.ts but also statically imported by /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/_util/ActionButton.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/components.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/date-picker/PickerButton.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/dropdown/dropdown-button.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/input/Search.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/modal/Modal.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/popconfirm/index.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/qrcode/index.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/table/hooks/useFilter/FilterDropdown.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/tour/panelRender.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/transfer/operation.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/upload/UploadList/index.js, dynamic import will not move module into another chunk.
+@vben/web-antd:build: 
+@vben/web-antd:build: 
+@vben/web-antd:build: ✨configuration file is build successfully!
+@vben/web-antd:build: dist/_app.config.js                                                                0.23 kB
+@vben/web-antd:build: dist/index.html                                                                    2.73 kB
+@vben/web-antd:build: dist/css/authentication-BTOPGJCw.css                                               0.30 kB
+@vben/web-antd:build: dist/css/login-DgGR-ids.css                                                        0.44 kB
+@vben/web-antd:build: dist/css/theme-toggle-C7o8FryI.css                                                 1.52 kB
+@vben/web-antd:build: dist/css/index-DHgJLVj0.css                                                        6.64 kB
+@vben/web-antd:build: dist/css/layout-s6mttBh2.css                                                      19.70 kB
+@vben/web-antd:build: dist/css/bootstrap-BdPnAkLM.css                                                  124.93 kB
+@vben/web-antd:build: dist/js/useRefs-Nk2RMgnB.js                                                        0.17 kB
+@vben/web-antd:build: dist/js/rotate-cw-BpyMT2HO.js                                                      0.20 kB
+@vben/web-antd:build: dist/js/analytics-trends-DEYH-CWY.js                                               0.21 kB
+@vben/web-antd:build: dist/js/analytics-visits-Bj9cHX6j.js                                               0.21 kB
+@vben/web-antd:build: dist/js/analytics-visits-data-CTAYZRlb.js                                          0.22 kB
+@vben/web-antd:build: dist/js/analytics-visits-sales-DwKkhMsM.js                                         0.22 kB
+@vben/web-antd:build: dist/js/analytics-visits-source-U-aec9mV.js                                        0.22 kB
+@vben/web-antd:build: dist/js/demos-Bb4SQ2Py.js                                                          0.26 kB
+@vben/web-antd:build: dist/js/page-B2keVEix.js                                                           0.26 kB
+@vben/web-antd:build: dist/js/page-BkKdz23R.js                                                           0.26 kB
+@vben/web-antd:build: dist/js/demos-DL4kfOp3.js                                                          0.27 kB
+@vben/web-antd:build: dist/js/statusUtils-F-23n83m.js                                                    0.30 kB
+@vben/web-antd:build: dist/js/index-HAMAKf-d.js                                                          0.31 kB
+@vben/web-antd:build: dist/js/coming-soon-DmnYbRCf.js                                                    0.34 kB
+@vben/web-antd:build: dist/js/forbidden-DEX465VK.js                                                      0.35 kB
+@vben/web-antd:build: dist/js/not-found-MEUBiTln.js                                                      0.35 kB
+@vben/web-antd:build: dist/js/internal-error-_ImzRnSi.js                                                 0.35 kB
+@vben/web-antd:build: dist/js/offline-DTVN8r6T.js                                                        0.35 kB
+@vben/web-antd:build: dist/js/login-6j-RpZ1b.js                                                          0.39 kB
+@vben/web-antd:build: dist/js/isPlainObject-CCjBnH1c.js                                                  0.40 kB
+@vben/web-antd:build: dist/js/collapse-BbEVqHco.js                                                       0.45 kB
+@vben/web-antd:build: dist/js/auth-title-D5r1VTHQ.js                                                     0.47 kB
+@vben/web-antd:build: dist/js/shallowequal-CHNjB_u6.js                                                   0.49 kB
+@vben/web-antd:build: dist/js/useMergedState-CFplAlKg.js                                                 0.49 kB
+@vben/web-antd:build: dist/js/index-D0otcaxh.js                                                          0.56 kB
+@vben/web-antd:build: dist/js/auth-YjHPK3bl.js                                                           0.58 kB
+@vben/web-antd:build: dist/js/FormItemContext-C_AtcN6A.js                                                0.66 kB
+@vben/web-antd:build: dist/js/analytics-visits.vue_vue_type_script_setup_true_lang-Du11Gh1Y.js           0.67 kB
+@vben/web-antd:build: dist/js/vnode-Cx29WGYS.js                                                          0.70 kB
+@vben/web-antd:build: dist/js/analytics-visits-sales.vue_vue_type_script_setup_true_lang-BFAXTPZo.js     0.74 kB
+@vben/web-antd:build: dist/js/common-MmHu2jYN.js                                                         0.78 kB
+@vben/web-antd:build: dist/js/common-COUKBsBJ.js                                                         0.81 kB
+@vben/web-antd:build: dist/js/analytics-visits-data.vue_vue_type_script_setup_true_lang-euVHO9y5.js      0.85 kB
+@vben/web-antd:build: dist/js/index-B-4baTdO.js                                                          0.90 kB
+@vben/web-antd:build: dist/js/en-BNi3NWsr.js                                                             0.91 kB
+@vben/web-antd:build: dist/js/analytics-visits-source.vue_vue_type_script_setup_true_lang-BV1l8sp8.js    0.91 kB
+@vben/web-antd:build: dist/js/render-content.vue_vue_type_script_lang-CNEOkaJ-.js                        0.98 kB
+@vben/web-antd:build: dist/js/DownOutlined-DQ-AlInC.js                                                   1.01 kB
+@vben/web-antd:build: dist/js/CheckOutlined-DGn6DwaA.js                                                  1.01 kB
+@vben/web-antd:build: dist/js/analytics-trends.vue_vue_type_script_setup_true_lang-CPHeHxKI.js           1.04 kB
+@vben/web-antd:build: dist/js/collapseMotion-BuV5FD03.js                                                 1.04 kB
+@vben/web-antd:build: dist/js/index-DFQABuir.js                                                          1.12 kB
+@vben/web-antd:build: dist/js/analysis-chart-card.vue_vue_type_script_setup_true_lang-Dubbvog5.js        1.20 kB
+@vben/web-antd:build: dist/js/index-CrC5WRJn.js                                                          1.28 kB
+@vben/web-antd:build: dist/js/EyeOutlined-BL8Iw2E7.js                                                    1.30 kB
+@vben/web-antd:build: dist/js/SearchOutlined-CuTFOZ7S.js                                                 1.34 kB
+@vben/web-antd:build: dist/js/colors-D591bOPN.js                                                         1.51 kB
+@vben/web-antd:build: dist/js/TabsList.vue_vue_type_script_setup_true_lang-BN9hdesy.js                   1.60 kB
+@vben/web-antd:build: dist/js/zh-cn-DhpcpZNh.js                                                          1.80 kB
+@vben/web-antd:build: dist/js/slide-Cbzz0Hp2.js                                                          1.89 kB
+@vben/web-antd:build: dist/js/hasIn-CCR7vQ11.js                                                          2.02 kB
+@vben/web-antd:build: dist/js/avatar.vue_vue_type_script_setup_true_lang-CAZxkWVF.js                     2.07 kB
+@vben/web-antd:build: dist/js/page.vue_vue_type_script_setup_true_lang-CrrO-Ln_.js                       2.07 kB
+@vben/web-antd:build: dist/js/move-Dq7UbD7z.js                                                           2.11 kB
+@vben/web-antd:build: dist/js/isMobile-8sZ0LT6r.js                                                       2.12 kB
+@vben/web-antd:build: dist/js/index-DiroTrw5.js                                                          2.22 kB
+@vben/web-antd:build: dist/js/forget-password-BJ7Wo9hH.js                                                2.32 kB
+@vben/web-antd:build: dist/js/Checkbox-DnmLMq4s.js                                                       2.33 kB
+@vben/web-antd:build: dist/js/code-login-D0oI5_Ly.js                                                     2.73 kB
+@vben/web-antd:build: dist/js/index-Cf8BiKfW.js                                                          2.89 kB
+@vben/web-antd:build: dist/js/ui-B6qC1Ubg.js                                                             3.15 kB
+@vben/web-antd:build: dist/js/fallback.vue_vue_type_script_setup_true_lang-45IaWaWC.js                   3.19 kB
+@vben/web-antd:build: dist/js/index-PON-K1ld.js                                                          3.25 kB
+@vben/web-antd:build: dist/js/authentication-D4Z9hAeb.js                                                 3.41 kB
+@vben/web-antd:build: dist/js/ui-CS49Uv2_.js                                                             3.42 kB
+@vben/web-antd:build: dist/js/register-yyoah_ul.js                                                       3.42 kB
+@vben/web-antd:build: dist/js/authentication-CoE1N7bD.js                                                 3.53 kB
+@vben/web-antd:build: dist/js/index-BB0by3pm.js                                                          3.59 kB
+@vben/web-antd:build: dist/js/index-BiuE5LsW.js                                                          3.75 kB
+@vben/web-antd:build: dist/js/index-BlYCsiAX.js                                                          3.82 kB
+@vben/web-antd:build: dist/js/BaseInput-DQwXmkq8.js                                                      3.91 kB
+@vben/web-antd:build: dist/js/nprogress-B-tueyuC.js                                                      4.59 kB
+@vben/web-antd:build: dist/js/index-BFdEt7UI.js                                                          4.83 kB
+@vben/web-antd:build: dist/js/preferences-WnYBNUUU.js                                                    5.76 kB
+@vben/web-antd:build: dist/js/preferences-DHwL7YE3.js                                                    5.92 kB
+@vben/web-antd:build: dist/js/index-DJqUneHL.js                                                          6.20 kB
+@vben/web-antd:build: dist/js/basic-BDBUsGZ9.js                                                          6.44 kB
+@vben/web-antd:build: dist/js/Overflow-BdeYf07S.js                                                       6.75 kB
+@vben/web-antd:build: dist/js/icon-500-ZwJQrk51.js                                                       7.08 kB
+@vben/web-antd:build: dist/js/index-BBQDyntg.js                                                          7.48 kB
+@vben/web-antd:build: dist/js/ResizeObserver.es-CDE7jhPe.js                                              7.82 kB
+@vben/web-antd:build: dist/js/icon-offline-BBH0rOph.js                                                   8.09 kB
+@vben/web-antd:build: dist/js/index-CHRGapE9.js                                                          8.46 kB
+@vben/web-antd:build: dist/js/index-DJJE6mQl.js                                                          8.96 kB
+@vben/web-antd:build: dist/js/icon-403-4E8oT8gZ.js                                                       9.39 kB
+@vben/web-antd:build: dist/js/index-BlN9tTUG.js                                                         10.47 kB
+@vben/web-antd:build: dist/js/index-D19w1XvH.js                                                         10.78 kB
+@vben/web-antd:build: dist/js/theme-toggle.vue_vue_type_script_setup_true_lang-TapOZ-Ya.js              11.52 kB
+@vben/web-antd:build: dist/js/index-D5wWQggh.js                                                         12.84 kB
+@vben/web-antd:build: dist/js/icon-coming-soon-DV13IypB.js                                              12.90 kB
+@vben/web-antd:build: dist/js/index-CgX4dhpV.js                                                         14.46 kB
+@vben/web-antd:build: dist/js/use-modal-BOE1PZB9.js                                                     16.75 kB
+@vben/web-antd:build: dist/js/index-BTxINEGx.js                                                         17.83 kB
+@vben/web-antd:build: dist/js/index-C9eMGlOJ.js                                                         20.95 kB
+@vben/web-antd:build: dist/js/index-iMvm5Zkc.js                                                         21.19 kB
+@vben/web-antd:build: dist/js/login.vue_vue_type_script_setup_true_lang-DJjClV3u.js                     21.54 kB
+@vben/web-antd:build: dist/js/icon-404-CPWSzLhJ.js                                                      24.34 kB
+@vben/web-antd:build: dist/js/index-BZWZzsOt.js                                                         27.09 kB
+@vben/web-antd:build: dist/js/qrcode-login-BGEiQ_oL.js                                                  27.45 kB
+@vben/web-antd:build: dist/js/index.esm-Ofvdfudw.js                                                     29.34 kB
+@vben/web-antd:build: dist/js/index-C7hMoIcc.js                                                         34.08 kB
+@vben/web-antd:build: dist/js/index-B3yBC46R.js                                                         36.10 kB
+@vben/web-antd:build: dist/js/Trigger-BjJPuhaz.js                                                       42.40 kB
+@vben/web-antd:build: dist/js/index-D5U59JIL.js                                                         45.38 kB
+@vben/web-antd:build: dist/js/sortable.complete.esm-Crr9kxfy.js                                         45.80 kB
+@vben/web-antd:build: dist/js/index-CI7N96MD.js                                                         51.48 kB
+@vben/web-antd:build: dist/js/index-A-xaFZP-.js                                                         53.54 kB
+@vben/web-antd:build: dist/js/index-DNWQKFxt.js                                                         59.18 kB
+@vben/web-antd:build: dist/js/index-C5IoGivG.js                                                         68.77 kB
+@vben/web-antd:build: dist/js/use-vben-form-CHjE4KYG.js                                                 92.07 kB
+@vben/web-antd:build: dist/js/index-BKLBR-JW.js                                                        107.45 kB
+@vben/web-antd:build: dist/js/authentication-CK7LU1wh.js                                               118.87 kB
+@vben/web-antd:build: dist/jse/index-index-3xfTaxrf.js                                                 191.04 kB
+@vben/web-antd:build: dist/js/layout.vue_vue_type_script_setup_true_lang-CRW-DZ2B.js                   223.60 kB
+@vben/web-antd:build: dist/js/use-echarts-DI9E9w9n.js                                                  626.11 kB
+@vben/web-antd:build: dist/js/bootstrap-Dt0Xr_u0.js                                                    839.99 kB
+@vben/web-antd:build: ✓ built in 12.05s
+@vben/web-ele:build: rendering chunks...
+@vben/web-antd:build: ZIP file created: /home/hellotalk/code/web/k8s-agent-web/apps/web-antd/dist.zip (1069638 total bytes)
+@vben/web-antd:build: Folder has been zipped to: /home/hellotalk/code/web/k8s-agent-web/apps/web-antd/dist.zip
+@vben/web-ele:build: ✨configuration file is build successfully!
+@vben/web-ele:build: dist/_app.config.js                                                                0.23 kB
+@vben/web-ele:build: dist/index.html                                                                    2.72 kB
+@vben/web-ele:build: dist/css/css-D_6SYB2i.css                                                          0.05 kB
+@vben/web-ele:build: dist/css/css-BzMpJalG.css                                                          0.08 kB
+@vben/web-ele:build: dist/css/css-3oFudasq.css                                                          0.16 kB
+@vben/web-ele:build: dist/css/authentication-BTOPGJCw.css                                               0.30 kB
+@vben/web-ele:build: dist/css/login-DgGR-ids.css                                                        0.44 kB
+@vben/web-ele:build: dist/css/loading-BVezMJ7Z.css                                                      0.56 kB
+@vben/web-ele:build: dist/css/css-BUtF_RGI.css                                                          0.71 kB
+@vben/web-ele:build: dist/css/el-card-R9EZbtDW.css                                                      0.88 kB
+@vben/web-ele:build: dist/css/theme-toggle-C7o8FryI.css                                                 1.52 kB
+@vben/web-ele:build: dist/css/css-DGuevqls.css                                                          2.95 kB
+@vben/web-ele:build: dist/css/css-CdDd3TgI.css                                                          3.22 kB
+@vben/web-ele:build: dist/css/el-popper-De9Ip67w.css                                                    3.51 kB
+@vben/web-ele:build: dist/css/css-pqxnpAn2.css                                                          3.92 kB
+@vben/web-ele:build: dist/css/css-B_DdyheY.css                                                          4.16 kB
+@vben/web-ele:build: dist/css/css-cOUw3yVW.css                                                          4.29 kB
+@vben/web-ele:build: dist/css/el-tag-BamYW-XS.css                                                       5.55 kB
+@vben/web-ele:build: dist/css/css-D2ngy1mo.css                                                          6.46 kB
+@vben/web-ele:build: dist/css/index-DHgJLVj0.css                                                        6.64 kB
+@vben/web-ele:build: dist/css/css-CXoc8c5x.css                                                          8.35 kB
+@vben/web-ele:build: dist/css/css-BefY7kV4.css                                                         10.31 kB
+@vben/web-ele:build: dist/css/css-D9F656Zk.css                                                         13.44 kB
+@vben/web-ele:build: dist/css/css-k9QdW5hF.css                                                         13.97 kB
+@vben/web-ele:build: dist/css/css-DBd38zag.css                                                         15.48 kB
+@vben/web-ele:build: dist/css/css-BiyVZ139.css                                                         15.57 kB
+@vben/web-ele:build: dist/css/layout-s6mttBh2.css                                                      19.70 kB
+@vben/web-ele:build: dist/css/index-BH5TJUgV.css                                                       19.88 kB
+@vben/web-ele:build: dist/css/css-ro1yWcAa.css                                                         25.97 kB
+@vben/web-ele:build: dist/css/bootstrap-Cq7GrynO.css                                                  142.28 kB
+@vben/web-ele:build: dist/js/css-Do48fRgO.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-DkVdvNUX.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-BG35QsYO.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-49BAVi4j.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-BUgfGOpL.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-DGSq8MQ7.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-U_nsOUtB.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-dPRM3nH6.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-DU84LonG.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-DKw8e4WN.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-BKRyJ0iT.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-Bfcx-WBa.js                                                            0.07 kB
+@vben/web-ele:build: dist/js/css-BETaS589.js                                                            0.10 kB
+@vben/web-ele:build: dist/js/_baseFindIndex-D7XfJLKM.js                                                 0.11 kB
+@vben/web-ele:build: dist/js/browser-DPUvJQv4.js                                                        0.12 kB
+@vben/web-ele:build: dist/js/css-B76hiIlR.js                                                            0.13 kB
+@vben/web-ele:build: dist/js/css-BtRn0ZHk.js                                                            0.16 kB
+@vben/web-ele:build: dist/js/css-fTX5QkL8.js                                                            0.16 kB
+@vben/web-ele:build: dist/js/css-DAOtZaos.js                                                            0.16 kB
+@vben/web-ele:build: dist/js/index-BGmEB9V_.js                                                          0.18 kB
+@vben/web-ele:build: dist/js/raf-DpFH4lRp.js                                                            0.18 kB
+@vben/web-ele:build: dist/js/rotate-cw-Bc6t6ok5.js                                                      0.20 kB
+@vben/web-ele:build: dist/js/analytics-trends-C_DlqG8V.js                                               0.21 kB
+@vben/web-ele:build: dist/js/analytics-visits-BGQ2ByzX.js                                               0.21 kB
+@vben/web-ele:build: dist/js/analytics-visits-data-D5kDlYi3.js                                          0.22 kB
+@vben/web-ele:build: dist/js/analytics-visits-sales-Gr6FF-Pm.js                                         0.22 kB
+@vben/web-ele:build: dist/js/analytics-visits-source-XS26UFVG.js                                        0.22 kB
+@vben/web-ele:build: dist/js/isArrayLikeObject-4YsxZrkI.js                                              0.24 kB
+@vben/web-ele:build: dist/js/page-B2keVEix.js                                                           0.26 kB
+@vben/web-ele:build: dist/js/page-BkKdz23R.js                                                           0.26 kB
+@vben/web-ele:build: dist/js/login-CoTk4vli.js                                                          0.26 kB
+@vben/web-ele:build: dist/js/demos-NECQ3i5X.js                                                          0.31 kB
+@vben/web-ele:build: dist/js/demos-rfhZbKed.js                                                          0.31 kB
+@vben/web-ele:build: dist/js/coming-soon-D0BbssI4.js                                                    0.33 kB
+@vben/web-ele:build: dist/js/forbidden-Ck7FhFIV.js                                                      0.34 kB
+@vben/web-ele:build: dist/js/not-found-CZjd_cXh.js                                                      0.34 kB
+@vben/web-ele:build: dist/js/internal-error-B6Bgtnyt.js                                                 0.35 kB
+@vben/web-ele:build: dist/js/offline-CxyLy1CX.js                                                        0.35 kB
+@vben/web-ele:build: dist/js/aria-DGfENwCE.js                                                           0.38 kB
+@vben/web-ele:build: dist/js/index-COxUHNPM.js                                                          0.43 kB
+@vben/web-ele:build: dist/js/auth-title-CdxV8M5x.js                                                     0.47 kB
+@vben/web-ele:build: dist/js/auth-C3K-VWH_.js                                                           0.58 kB
+@vben/web-ele:build: dist/js/error-vTTZBmeg.js                                                          0.63 kB
+@vben/web-ele:build: dist/js/analytics-visits.vue_vue_type_script_setup_true_lang-C-VL52lb.js           0.66 kB
+@vben/web-ele:build: dist/js/use-form-common-props-DxiKIYDB.js                                          0.68 kB
+@vben/web-ele:build: dist/js/analytics-visits-sales.vue_vue_type_script_setup_true_lang-BejYq-dm.js     0.74 kB
+@vben/web-ele:build: dist/js/common-MmHu2jYN.js                                                         0.78 kB
+@vben/web-ele:build: dist/js/common-COUKBsBJ.js                                                         0.81 kB
+@vben/web-ele:build: dist/js/analytics-visits-data.vue_vue_type_script_setup_true_lang-DdLHoLs7.js      0.84 kB
+@vben/web-ele:build: dist/js/_initCloneObject-Bz_ohcqT.js                                               0.89 kB
+@vben/web-ele:build: dist/js/analytics-visits-source.vue_vue_type_script_setup_true_lang-BlZV2B5G.js    0.90 kB
+@vben/web-ele:build: dist/js/en-BRbkcyu5.js                                                             0.91 kB
+@vben/web-ele:build: dist/js/vnode-ByiBzPs6.js                                                          0.91 kB
+@vben/web-ele:build: dist/js/index-Db59UP37.js                                                          0.99 kB
+@vben/web-ele:build: dist/js/analytics-trends.vue_vue_type_script_setup_true_lang-DnjZG4JO.js           1.03 kB
+@vben/web-ele:build: dist/js/use-form-item-kRzaaZfU.js                                                  1.09 kB
+@vben/web-ele:build: dist/js/analysis-chart-card.vue_vue_type_script_setup_true_lang-vMRDm6EY.js        1.19 kB
+@vben/web-ele:build: dist/js/_baseIteratee-Du9JELYY.js                                                  1.21 kB
+@vben/web-ele:build: dist/js/index-BtOK0GlX.js                                                          1.22 kB
+@vben/web-ele:build: dist/js/index-BjY2HdAw.js                                                          1.33 kB
+@vben/web-ele:build: dist/js/loading-FHhC_PSY.js                                                        1.35 kB
+@vben/web-ele:build: dist/js/index-Dpe_ZFZ8.js                                                          1.42 kB
+@vben/web-ele:build: dist/js/el-card-DttPw8er.js                                                        1.51 kB
+@vben/web-ele:build: dist/js/TabsList.vue_vue_type_script_setup_true_lang-D64ppz3j.js                   1.58 kB
+@vben/web-ele:build: dist/js/zh-cn-hq6VL2HC.js                                                          1.80 kB
+@vben/web-ele:build: dist/js/index-Dh8S5b9s.js                                                          1.98 kB
+@vben/web-ele:build: dist/js/avatar.vue_vue_type_script_setup_true_lang-BROGwt69.js                     2.03 kB
+@vben/web-ele:build: dist/js/page.vue_vue_type_script_setup_true_lang-ygs_Kp07.js                       2.06 kB
+@vben/web-ele:build: dist/js/forget-password-CAkx9VMs.js                                                2.21 kB
+@vben/web-ele:build: dist/js/code-login-DeYdY2qs.js                                                     2.61 kB
+@vben/web-ele:build: dist/js/index-BuspO26R.js                                                          2.71 kB
+@vben/web-ele:build: dist/js/index-DuKE55BF.js                                                          2.90 kB
+@vben/web-ele:build: dist/js/ui-B6qC1Ubg.js                                                             3.15 kB
+@vben/web-ele:build: dist/js/fallback.vue_vue_type_script_setup_true_lang-DDABUJ3x.js                   3.17 kB
+@vben/web-ele:build: dist/js/register-CzTWBYy_.js                                                       3.30 kB
+@vben/web-ele:build: dist/js/basic-DjIkMgB7.js                                                          3.34 kB
+@vben/web-ele:build: dist/js/authentication-D4Z9hAeb.js                                                 3.41 kB
+@vben/web-ele:build: dist/js/ui-CS49Uv2_.js                                                             3.42 kB
+@vben/web-ele:build: dist/js/authentication-CoE1N7bD.js                                                 3.53 kB
+@vben/web-ele:build: dist/js/index-BiuE5LsW.js                                                          3.75 kB
+@vben/web-ele:build: dist/js/nprogress-DCryNuPE.js                                                      4.59 kB
+@vben/web-ele:build: dist/js/index-MSjiLAvo.js                                                          5.30 kB
+@vben/web-ele:build: dist/js/index-D7PqTwLK.js                                                          5.69 kB
+@vben/web-ele:build: dist/js/preferences-WnYBNUUU.js                                                    5.76 kB
+@vben/web-ele:build: dist/js/preferences-DHwL7YE3.js                                                    5.92 kB
+@vben/web-ele:build: dist/js/index-Bws8Pke_.js                                                          5.98 kB
+@vben/web-ele:build: dist/js/index-DFEz8YbP.js                                                          6.12 kB
+@vben/web-ele:build: dist/js/basic-B8rcMK_y.js                                                          6.32 kB
+@vben/web-ele:build: dist/js/index-BL9AZELE.js                                                          7.05 kB
+@vben/web-ele:build: dist/js/icon-500-BWf8dHJV.js                                                       7.08 kB
+@vben/web-ele:build: dist/js/index-BtHspAQB.js                                                          7.21 kB
+@vben/web-ele:build: dist/js/isEqual-Cy81Tflc.js                                                        7.34 kB
+@vben/web-ele:build: dist/js/index-BcR7SyNY.js                                                          7.83 kB
+@vben/web-ele:build: dist/js/icon-offline-bD97-rCi.js                                                   8.09 kB
+@vben/web-ele:build: dist/js/index-M2o1kNU0.js                                                          8.88 kB
+@vben/web-ele:build: dist/js/icon-403-BYc6TYa-.js                                                       9.39 kB
+@vben/web-ele:build: dist/js/index-Cz0aEGj0.js                                                         10.46 kB
+@vben/web-ele:build: dist/js/index-CwdIF41c.js                                                         10.88 kB
+@vben/web-ele:build: dist/js/theme-toggle.vue_vue_type_script_setup_true_lang-CiM3iw1h.js              11.49 kB
+@vben/web-ele:build: dist/js/index-D8kJVZ6h.js                                                         12.15 kB
+@vben/web-ele:build: dist/js/icon-coming-soon-v_MWyeVf.js                                              12.89 kB
+@vben/web-ele:build: dist/js/use-drawer-Cx6J1ndw.js                                                    14.63 kB
+@vben/web-ele:build: dist/js/use-modal-CuSQkNyW.js                                                     16.62 kB
+@vben/web-ele:build: dist/js/index-Dr75aq1Y.js                                                         21.34 kB
+@vben/web-ele:build: dist/js/login.vue_vue_type_script_setup_true_lang-C1pFIjLL.js                     21.46 kB
+@vben/web-ele:build: dist/js/icon-404-CWR2Uli7.js                                                      24.34 kB
+@vben/web-ele:build: dist/js/panel-time-pick-DlwoyLZ2.js                                               26.66 kB
+@vben/web-ele:build: dist/js/qrcode-login-B-qUpN_S.js                                                  27.43 kB
+@vben/web-ele:build: dist/js/index.esm-Ofvdfudw.js                                                     29.34 kB
+@vben/web-ele:build: dist/js/index-CN-Sj8Mz.js                                                         34.08 kB
+@vben/web-ele:build: dist/js/index-r_m9ekj_.js                                                         40.45 kB
+@vben/web-ele:build: dist/js/index-ZC420pNF.js                                                         45.38 kB
+@vben/web-ele:build: dist/js/sortable.complete.esm-Crr9kxfy.js                                         45.80 kB
+@vben/web-ele:build: dist/js/index-C-AdQbQf.js                                                         47.74 kB
+@vben/web-ele:build: dist/js/index-DQciOwNm.js                                                         60.76 kB
+@vben/web-ele:build: dist/js/index-Bh6DNp0A.js                                                         62.61 kB
+@vben/web-ele:build: dist/js/index-Bdu7YHWQ.js                                                         81.68 kB
+@vben/web-ele:build: dist/js/authentication-C2acp6Xh.js                                               118.85 kB
+@vben/web-ele:build: dist/jse/index-index-DhoGuhmz.js                                                 191.13 kB
+@vben/web-ele:build: dist/js/layout.vue_vue_type_script_setup_true_lang-Ph6yCqZg.js                   210.01 kB
+@vben/web-ele:build: dist/js/use-echarts-48BfuZfG.js                                                  626.11 kB
+@vben/web-ele:build: dist/js/bootstrap-Dtsg6YIr.js                                                    809.38 kB
+@vben/web-ele:build: ✓ built in 12.40s
+@vben/web-ele:build: ZIP file created: /home/hellotalk/code/web/k8s-agent-web/apps/web-ele/dist.zip (1012369 total bytes)
+@vben/web-ele:build: Folder has been zipped to: /home/hellotalk/code/web/k8s-agent-web/apps/web-ele/dist.zip
+@vben/playground:build: ✓ 7471 modules transformed.
+@vben/playground:build: rendering chunks...
+@vben/playground:build: 
+@vben/playground:build:  WARN  [plugin vite:reporter] 
+@vben/playground:build: (!) /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/button/index.js is dynamically imported by /home/hellotalk/code/web/k8s-agent-web/playground/src/adapter/component/index.ts but also statically imported by /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/_util/ActionButton.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/components.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/date-picker/PickerButton.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/dropdown/dropdown-button.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/input/Search.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/modal/Modal.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/popconfirm/index.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/qrcode/index.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/table/hooks/useFilter/FilterDropdown.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/tour/panelRender.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/transfer/operation.js, /home/hellotalk/code/web/k8s-agent-web/node_modules/.pnpm/ant-design-vue@4.2.6_vue@3.5.17_typescript@5.8.3_/node_modules/ant-design-vue/es/upload/UploadList/index.js, dynamic import will not move module into another chunk.
+@vben/playground:build: 
+@vben/playground:build: 
+@vben/playground:build: ✨configuration file is build successfully!
+@vben/playground:build: dist/_app.config.js                                                                  0.23 kB
+@vben/playground:build: dist/index.html                                                                      2.72 kB
+@vben/playground:build: dist/css/login-Cj5PKODp.css                                                          0.06 kB
+@vben/playground:build: dist/css/index-Crpq0REu.css                                                          0.08 kB
+@vben/playground:build: dist/css/list-C41Gyyk9.css                                                           0.14 kB
+@vben/playground:build: dist/css/index-wFsMgg1G.css                                                          0.15 kB
+@vben/playground:build: dist/css/authentication-jQdcgoYk.css                                                 0.30 kB
+@vben/playground:build: dist/css/index-D_BgWC17.css                                                          0.38 kB
+@vben/playground:build: dist/css/form-Dc_VUH4x.css                                                           0.70 kB
+@vben/playground:build: dist/css/basic-C4bo1W1Q.css                                                          0.91 kB
+@vben/playground:build: dist/css/theme-toggle-9MeQD6Uu.css                                                   1.52 kB
+@vben/playground:build: dist/css/index-DitiDdvz.css                                                          1.68 kB
+@vben/playground:build: dist/css/check-button-group-D1i7QMSn.css                                             2.21 kB
+@vben/playground:build: dist/css/index-DHgJLVj0.css                                                          6.64 kB
+@vben/playground:build: dist/css/layout-Bf7S6wUz.css                                                        17.49 kB
+@vben/playground:build: dist/css/bootstrap-6X4X5C7r.css                                                    124.93 kB
+@vben/playground:build: dist/css/vxe-table-BrvuDhdp.css                                                    287.13 kB
+@vben/playground:build: dist/js/index-CMYMum9c.js                                                            0.09 kB
+@vben/playground:build: dist/js/useQuery-CSkh2XrY.js                                                         0.10 kB
+@vben/playground:build: dist/js/index-Cf9cj5e8.js                                                            0.13 kB
+@vben/playground:build: dist/js/plus-Cxpjzfxj.js                                                             0.15 kB
+@vben/playground:build: dist/js/x-BCjIyvQz.js                                                                0.16 kB
+@vben/playground:build: dist/js/useFlexGapSupport-CBB4VdHj.js                                                0.17 kB
+@vben/playground:build: dist/js/useRefs-CrJKUhjd.js                                                          0.17 kB
+@vben/playground:build: dist/js/doc-button-Av07c3KZ.js                                                       0.17 kB
+@vben/playground:build: dist/js/circle-check-big-DSDNXh4Z.js                                                 0.20 kB
+@vben/playground:build: dist/js/rotate-cw-CHb-apNm.js                                                        0.20 kB
+@vben/playground:build: dist/js/analytics-trends-CuejUisr.js                                                 0.21 kB
+@vben/playground:build: dist/js/analytics-visits-DdsXOcPL.js                                                 0.21 kB
+@vben/playground:build: dist/js/analytics-visits-data-BvUxteGX.js                                            0.22 kB
+@vben/playground:build: dist/js/analytics-visits-sales-DWVUmoJ6.js                                           0.22 kB
+@vben/playground:build: dist/js/analytics-visits-source-C86rbDVZ.js                                          0.22 kB
+@vben/playground:build: dist/js/form-DLpIQh2h.js                                                             0.22 kB
+@vben/playground:build: dist/js/form-Czu6OBGS.js                                                             0.23 kB
+@vben/playground:build: dist/js/base-demo-BXwsEVf4.js                                                        0.23 kB
+@vben/playground:build: dist/js/drag-demo-BiV8_Dvn.js                                                        0.23 kB
+@vben/playground:build: dist/js/base-demo-BC1339cz.js                                                        0.23 kB
+@vben/playground:build: dist/js/dynamic-demo-DwyUO-Pe.js                                                     0.23 kB
+@vben/playground:build: dist/js/dynamic-demo-Ws7rNoel.js                                                     0.23 kB
+@vben/playground:build: dist/js/form-modal-demo-CUTYbxQ7.js                                                  0.24 kB
+@vben/playground:build: dist/js/auto-height-demo-Cu23ysYQ.js                                                 0.24 kB
+@vben/playground:build: dist/js/shared-data-demo-BRgTYKEi.js                                                 0.24 kB
+@vben/playground:build: dist/js/auto-height-demo-CP5Tullj.js                                                 0.24 kB
+@vben/playground:build: dist/js/form-drawer-demo-YcqxxvYb.js                                                 0.24 kB
+@vben/playground:build: dist/js/shared-data-demo-DZAGnHt2.js                                                 0.24 kB
+@vben/playground:build: dist/js/query-retries-COBOD1QM.js                                                    0.24 kB
+@vben/playground:build: dist/js/paginated-queries-K2fG-O0i.js                                                0.25 kB
+@vben/playground:build: dist/js/concurrency-caching-BhusCESN.js                                              0.25 kB
+@vben/playground:build: dist/js/infinite-queries-BAsVGRwH.js                                                 0.25 kB
+@vben/playground:build: dist/js/CardFooter.vue_vue_type_script_setup_true_lang-4r8EZkA4.js                   0.29 kB
+@vben/playground:build: dist/js/bell-BinXwPQA.js                                                             0.29 kB
+@vben/playground:build: dist/js/statusUtils-y1uic9-v.js                                                      0.30 kB
+@vben/playground:build: dist/js/nested-demo-BP_3cRhm.js                                                      0.30 kB
+@vben/playground:build: dist/js/menu-1-DnKrMZuy.js                                                           0.33 kB
+@vben/playground:build: dist/js/menu-2-1-DyUimUwS.js                                                         0.33 kB
+@vben/playground:build: dist/js/menu-3-1-CLIOI8vX.js                                                         0.33 kB
+@vben/playground:build: dist/js/menu-3-2-1-CJx-ovsX.js                                                       0.33 kB
+@vben/playground:build: dist/js/coming-soon-BIENKGKO.js                                                      0.33 kB
+@vben/playground:build: dist/js/page-BeoVt7r-.js                                                             0.34 kB
+@vben/playground:build: dist/js/page-CXb5lnB4.js                                                             0.34 kB
+@vben/playground:build: dist/js/forbidden-Z4VsNEir.js                                                        0.34 kB
+@vben/playground:build: dist/js/not-found-DWFnWhwK.js                                                        0.34 kB
+@vben/playground:build: dist/js/offline-B9omHRfu.js                                                          0.35 kB
+@vben/playground:build: dist/js/internal-error-BS-Y4AyM.js                                                   0.35 kB
+@vben/playground:build: dist/js/table-C3e287wk.js                                                            0.35 kB
+@vben/playground:build: dist/js/index-CXCatQfP.js                                                            0.40 kB
+@vben/playground:build: dist/js/login-7HWAfx6R.js                                                            0.40 kB
+@vben/playground:build: dist/js/index-BLiYFRmZ.js                                                            0.40 kB
+@vben/playground:build: dist/js/index-Ds1LQ6dz.js                                                            0.40 kB
+@vben/playground:build: dist/js/isPlainObject-BIA5V60L.js                                                    0.40 kB
+@vben/playground:build: dist/js/admin-visible-4SAet3Kr.js                                                    0.40 kB
+@vben/playground:build: dist/js/user-visible-LUvFjHOc.js                                                     0.41 kB
+@vben/playground:build: dist/js/super-visible-jPbGr_O-.js                                                    0.41 kB
+@vben/playground:build: dist/js/blur-demo-2yOlry5I.js                                                        0.42 kB
+@vben/playground:build: dist/js/level-detail-DJL7k-67.js                                                     0.42 kB
+@vben/playground:build: dist/js/doc-button.vue_vue_type_script_setup_true_lang-4EBerMVe.js                   0.43 kB
+@vben/playground:build: dist/js/menu-visible-403-DOuOSljd.js                                                 0.43 kB
+@vben/playground:build: dist/js/auth-title-D01cQOG6.js                                                       0.46 kB
+@vben/playground:build: dist/js/drag-demo.vue_vue_type_script_setup_true_lang-xf0b6RWO.js                    0.46 kB
+@vben/playground:build: dist/js/sun-VlHdw1Rr.js                                                              0.47 kB
+@vben/playground:build: dist/js/shallowequal-BY-oZFEJ.js                                                     0.49 kB
+@vben/playground:build: dist/js/useMergedState-BODkzrhD.js                                                   0.49 kB
+@vben/playground:build: dist/js/shared-data-demo.vue_vue_type_script_setup_true_lang-_tnh7E-i.js             0.52 kB
+@vben/playground:build: dist/js/shared-data-demo.vue_vue_type_script_setup_true_lang-DDRjrbMK.js             0.53 kB
+@vben/playground:build: dist/js/analysis-chart-card.vue_vue_type_script_setup_true_lang-CPzACFJ8.js          0.53 kB
+@vben/playground:build: dist/js/css-Dmgy8YJo.js                                                              0.56 kB
+@vben/playground:build: dist/js/blur-demo.vue_vue_type_script_setup_true_lang-Cic8CKb6.js                    0.59 kB
+@vben/playground:build: dist/js/nested-demo.vue_vue_type_script_setup_true_lang-3u9XK_Q5.js                  0.59 kB
+@vben/playground:build: dist/js/in-content-demo-DB4XPml-.js                                                  0.60 kB
+@vben/playground:build: dist/js/in-content-demo-CmBlbyKs.js                                                  0.60 kB
+@vben/playground:build: dist/js/lateral-detail-QZDBH25P.js                                                   0.60 kB
+@vben/playground:build: dist/js/tab-detail-CgdbpvLL.js                                                       0.61 kB
+@vben/playground:build: dist/js/auth-BBgHVDp5.js                                                             0.63 kB
+@vben/playground:build: dist/js/dynamic-demo.vue_vue_type_script_setup_true_lang-DjrUNiKZ.js                 0.65 kB
+@vben/playground:build: dist/js/parent-DsjWzQg0.js                                                           0.65 kB
+@vben/playground:build: dist/js/analytics-visits.vue_vue_type_script_setup_true_lang-C_oPWKGp.js             0.66 kB
+@vben/playground:build: dist/js/lateral-1AV4Oe3D.js                                                          0.66 kB
+@vben/playground:build: dist/js/base-demo.vue_vue_type_script_setup_true_lang-DgzS3zGg.js                    0.73 kB
+@vben/playground:build: dist/js/analytics-visits-sales.vue_vue_type_script_setup_true_lang-IuW4u-B6.js       0.74 kB
+@vben/playground:build: dist/js/children-BhZuRGzr.js                                                         0.74 kB
+@vben/playground:build: dist/js/base-demo.vue_vue_type_script_setup_true_lang-DcqXDa5g.js                    0.74 kB
+@vben/playground:build: dist/js/in-content-demo.vue_vue_type_script_setup_true_lang-E3hOwEBB.js              0.77 kB
+@vben/playground:build: dist/js/collapse-BuqCI_Sc.js                                                         0.77 kB
+@vben/playground:build: dist/js/common-MmHu2jYN.js                                                           0.78 kB
+@vben/playground:build: dist/js/common-COUKBsBJ.js                                                           0.81 kB
+@vben/playground:build: dist/js/analytics-visits-data.vue_vue_type_script_setup_true_lang-DPDxBdDX.js        0.84 kB
+@vben/playground:build: dist/js/CardTitle.vue_vue_type_script_setup_true_lang-F5t_ZFX8.js                    0.84 kB
+@vben/playground:build: dist/js/two-fields-De3Ni6xs.js                                                       0.85 kB
+@vben/playground:build: dist/js/auto-height-demo.vue_vue_type_script_setup_true_lang-nTmfjpAy.js             0.86 kB
+@vben/playground:build: dist/js/index-CqoiqQFI.js                                                            0.90 kB
+@vben/playground:build: dist/js/analytics-visits-source.vue_vue_type_script_setup_true_lang-DRGLd6l4.js      0.90 kB
+@vben/playground:build: dist/js/en-CdCjP3Zg.js                                                               0.91 kB
+@vben/playground:build: dist/js/auto-height-demo.vue_vue_type_script_setup_true_lang-CEzhOtNL.js             0.94 kB
+@vben/playground:build: dist/js/in-content-demo.vue_vue_type_script_setup_true_lang-Y31dSI4q.js              0.99 kB
+@vben/playground:build: dist/js/form-drawer-demo.vue_vue_type_script_setup_true_lang-pemjRP6x.js             1.00 kB
+@vben/playground:build: dist/js/DownOutlined-pieLXvhm.js                                                     1.01 kB
+@vben/playground:build: dist/js/CheckOutlined-qseG2Qyb.js                                                    1.01 kB
+@vben/playground:build: dist/js/analytics-trends.vue_vue_type_script_setup_true_lang-BvuUJ5So.js             1.03 kB
+@vben/playground:build: dist/js/collapseMotion-C084KxdX.js                                                   1.04 kB
+@vben/playground:build: dist/js/query-retries.vue_vue_type_script_setup_true_lang-CBRrQhiB.js                1.05 kB
+@vben/playground:build: dist/js/responsiveObserve-Cv9fJyb0.js                                                1.08 kB
+@vben/playground:build: dist/js/index-Dw4DtcED.js                                                            1.11 kB
+@vben/playground:build: dist/js/FormItemContext-BndwYvFF.js                                                  1.13 kB
+@vben/playground:build: dist/js/virtual-DgWXqVlp.js                                                          1.15 kB
+@vben/playground:build: dist/js/two-fields.vue_vue_type_script_setup_true_lang-DnCjt8mB.js                   1.15 kB
+@vben/playground:build: dist/js/concurrency-caching.vue_vue_type_script_setup_true_lang-DyAuuHSF.js          1.21 kB
+@vben/playground:build: dist/js/menu-badge.vue_vue_type_script_setup_true_lang-WcTRs6cA.js                   1.30 kB
+@vben/playground:build: dist/js/EyeOutlined-RFH0EiQw.js                                                      1.30 kB
+@vben/playground:build: dist/js/dynamic-demo.vue_vue_type_script_setup_true_lang-De4N5eBB.js                 1.32 kB
+@vben/playground:build: dist/js/SearchOutlined-CPgKRGH2.js                                                   1.34 kB
+@vben/playground:build: dist/js/paginated-queries.vue_vue_type_script_setup_true_lang-CYE3tgdw.js            1.44 kB
+@vben/playground:build: dist/js/tree-BgbfbfIo.js                                                             1.45 kB
+@vben/playground:build: dist/js/form-modal-demo.vue_vue_type_script_setup_true_lang-DGfEuXRe.js              1.45 kB
+@vben/playground:build: dist/js/infinite-queries.vue_vue_type_script_setup_true_lang-GVV0Bfp7.js             1.48 kB
+@vben/playground:build: dist/js/system-3JK4FvXa.js                                                           1.48 kB
+@vben/playground:build: dist/js/index-jWrXji9w.js                                                            1.49 kB
+@vben/playground:build: dist/js/system-DA5S0hE3.js                                                           1.49 kB
+@vben/playground:build: dist/js/edit-cell-DF0nK2D4.js                                                        1.51 kB
+@vben/playground:build: dist/js/colors-CeOB4Q3b.js                                                           1.52 kB
+@vben/playground:build: dist/js/use-watermark-D-RWpzbE.js                                                    1.53 kB
+@vben/playground:build: dist/js/demos-CNolh3fH.js                                                            1.54 kB
+@vben/playground:build: dist/js/demos-Clihp_9D.js                                                            1.54 kB
+@vben/playground:build: dist/js/TabsList.vue_vue_type_script_setup_true_lang-Cj_rmy1j.js                     1.59 kB
+@vben/playground:build: dist/js/table-data-D75cgFtg.js                                                       1.64 kB
+@vben/playground:build: dist/js/index-YIvPMFIR.js                                                            1.66 kB
+@vben/playground:build: dist/js/fixed-l2G8R_d1.js                                                            1.66 kB
+@vben/playground:build: dist/js/zh-cn-DudzJHBW.js                                                            1.80 kB
+@vben/playground:build: dist/js/slide-Ce_Tj9ki.js                                                            1.90 kB
+@vben/playground:build: dist/js/examples-Ct6jelZI.js                                                         1.91 kB
+@vben/playground:build: dist/js/examples-CKj6hIyV.js                                                         1.92 kB
+@vben/playground:build: dist/js/index-BQxc1ZJG.js                                                            2.00 kB
+@vben/playground:build: dist/js/page.vue_vue_type_script_setup_true_lang-9uwChj4Z.js                         2.05 kB
+@vben/playground:build: dist/js/avatar.vue_vue_type_script_setup_true_lang-BoLQt5pA.js                       2.05 kB
+@vben/playground:build: dist/js/index-hXoTjZ5l.js                                                            2.08 kB
+@vben/playground:build: dist/js/index-B91fG4i4.js                                                            2.10 kB
+@vben/playground:build: dist/js/move-zMqK6Jx6.js                                                             2.11 kB
+@vben/playground:build: dist/js/remote-D73e8l18.js                                                           2.11 kB
+@vben/playground:build: dist/js/isMobile-8sZ0LT6r.js                                                         2.12 kB
+@vben/playground:build: dist/js/index-fX6EgiP0.js                                                            2.15 kB
+@vben/playground:build: dist/js/index-D_SNoTYc.js                                                            2.19 kB
+@vben/playground:build: dist/js/forget-password-C8dgwDEW.js                                                  2.21 kB
+@vben/playground:build: dist/js/list-C2JsEXxm.js                                                             2.23 kB
+@vben/playground:build: dist/js/basic-CEth7_GE.js                                                            2.26 kB
+@vben/playground:build: dist/js/Checkbox-HhIVaQjh.js                                                         2.33 kB
+@vben/playground:build: dist/js/index-H4hTMKcN.js                                                            2.35 kB
+@vben/playground:build: dist/js/custom-cell-DtSWvkFn.js                                                      2.36 kB
+@vben/playground:build: dist/js/edit-row-C3iw1c0J.js                                                         2.39 kB
+@vben/playground:build: dist/js/custom-layout-R8iZ6Vz0.js                                                    2.40 kB
+@vben/playground:build: dist/js/form-CJDS_0GJ.js                                                             2.61 kB
+@vben/playground:build: dist/js/index-CFBTJVyJ.js                                                            2.73 kB
+@vben/playground:build: dist/js/index-CSvJnuF-.js                                                            2.77 kB
+@vben/playground:build: dist/js/index-nqHovK2b.js                                                            2.78 kB
+@vben/playground:build: dist/js/custom-VlfyNh-r.js                                                           2.84 kB
+@vben/playground:build: dist/js/index-D0DTj158.js                                                            2.89 kB
+@vben/playground:build: dist/js/list-BYcpX1uT.js                                                             3.09 kB
+@vben/playground:build: dist/js/ui-B6qC1Ubg.js                                                               3.15 kB
+@vben/playground:build: dist/js/fallback.vue_vue_type_script_setup_true_lang-BVpZTNh3.js                     3.17 kB
+@vben/playground:build: dist/js/index-BPNU6Vbo.js                                                            3.25 kB
+@vben/playground:build: dist/js/form.vue_vue_type_script_setup_true_lang-7jRzS-ws.js                         3.28 kB
+@vben/playground:build: dist/js/code-login-CIJptmvu.js                                                       3.28 kB
+@vben/playground:build: dist/js/register-CCAmFSyo.js                                                         3.30 kB
+@vben/playground:build: dist/js/index-Dem4xvWv.js                                                            3.36 kB
+@vben/playground:build: dist/js/authentication-D4Z9hAeb.js                                                   3.41 kB
+@vben/playground:build: dist/js/list-SYaGHl4m.js                                                             3.41 kB
+@vben/playground:build: dist/js/ui-CS49Uv2_.js                                                               3.42 kB
+@vben/playground:build: dist/js/hasIn-Dse7SLdt.js                                                            3.46 kB
+@vben/playground:build: dist/js/authentication-CoE1N7bD.js                                                   3.53 kB
+@vben/playground:build: dist/js/useInfiniteQuery-C7vrjjqJ.js                                                 3.54 kB
+@vben/playground:build: dist/js/index-BTWEzhyc.js                                                            3.59 kB
+@vben/playground:build: dist/js/slider-captcha-BoieXPAj.js                                                   3.66 kB
+@vben/playground:build: dist/js/check-button-group-CoTn7egK.js                                               3.70 kB
+@vben/playground:build: dist/js/index-BiuE5LsW.js                                                            3.75 kB
+@vben/playground:build: dist/js/BaseInput-Ac7HnY7c.js                                                        3.81 kB
+@vben/playground:build: dist/js/index-DKIrpOFf.js                                                            3.82 kB
+@vben/playground:build: dist/js/query-Diy0p8hl.js                                                            3.97 kB
+@vben/playground:build: dist/js/index-Cni-97L5.js                                                            4.05 kB
+@vben/playground:build: dist/js/index-DyL-6Zez.js                                                            4.20 kB
+@vben/playground:build: dist/js/rules-B977Vsem.js                                                            4.25 kB
+@vben/playground:build: dist/js/index-maybdxCI.js                                                            4.46 kB
+@vben/playground:build: dist/js/nprogress-CgUg6EZ1.js                                                        4.59 kB
+@vben/playground:build: dist/js/slider-rotate-captcha-O1iwbOYn.js                                            4.61 kB
+@vben/playground:build: dist/js/dynamic-DFiU_9Pu.js                                                          4.64 kB
+@vben/playground:build: dist/js/index-zc-lH8YU.js                                                            4.78 kB
+@vben/playground:build: dist/js/scroll-to-error-test-idRQjWD2.js                                             4.82 kB
+@vben/playground:build: dist/js/index-pn_YnaMM.js                                                            4.83 kB
+@vben/playground:build: dist/js/index-C28_7QMB.js                                                            5.23 kB
+@vben/playground:build: dist/js/index-BxYdQBOn.js                                                            5.29 kB
+@vben/playground:build: dist/js/slider-translate-captcha-D_EoquN7.js                                         5.31 kB
+@vben/playground:build: dist/js/basic-C_qpqa-j.js                                                            5.70 kB
+@vben/playground:build: dist/js/preferences-WnYBNUUU.js                                                      5.76 kB
+@vben/playground:build: dist/js/index-DsoFmv85.js                                                            5.87 kB
+@vben/playground:build: dist/js/api-Dpw8TXK8.js                                                              5.90 kB
+@vben/playground:build: dist/js/preferences-DHwL7YE3.js                                                      5.92 kB
+@vben/playground:build: dist/js/index-ejf6otfc.js                                                            6.09 kB
+@vben/playground:build: dist/js/button-control-qQx2cP7K.js                                                   6.37 kB
+@vben/playground:build: dist/js/index.vue_vue_type_script_setup_true_lang-eEwMPVkE.js                        6.40 kB
+@vben/playground:build: dist/js/index-BjgrZY_e.js                                                            6.50 kB
+@vben/playground:build: dist/js/Overflow-SP5lLY6o.js                                                         6.74 kB
+@vben/playground:build: dist/js/index-CXFLi1Hb.js                                                            6.87 kB
+@vben/playground:build: dist/js/basic-DCfP-Jpo.js                                                            7.03 kB
+@vben/playground:build: dist/js/icon-500-9lEG3bFA.js                                                         7.08 kB
+@vben/playground:build: dist/js/index-BpOZNkLb.js                                                            7.21 kB
+@vben/playground:build: dist/js/index-Befeqt15.js                                                            7.30 kB
+@vben/playground:build: dist/js/index-cbcxNuma.js                                                            7.45 kB
+@vben/playground:build: dist/js/index-8JwZjya8.js                                                            7.50 kB
+@vben/playground:build: dist/js/ResizeObserver.es-CDE7jhPe.js                                                7.82 kB
+@vben/playground:build: dist/js/icon-offline-CAJI67Jz.js                                                     8.09 kB
+@vben/playground:build: dist/js/index-BJ6kziEe.js                                                            8.12 kB
+@vben/playground:build: dist/js/login.vue_vue_type_script_setup_true_lang-CnkioJNy.js                        8.15 kB
+@vben/playground:build: dist/js/index-BQ1Dl2Us.js                                                            8.46 kB
+@vben/playground:build: dist/js/col-page-C7lIoN40.js                                                         8.83 kB
+@vben/playground:build: dist/js/index-DBcTyAKY.js                                                            8.88 kB
+@vben/playground:build: dist/js/use-tabs-CZSjPq-Y.js                                                         9.18 kB
+@vben/playground:build: dist/js/icon-403-wNmJ3g_2.js                                                         9.39 kB
+@vben/playground:build: dist/js/AlertBuilder-Cc7-mWjX.js                                                     9.85 kB
+@vben/playground:build: dist/js/form.vue_vue_type_script_setup_true_lang-C_mDsDeb.js                        10.08 kB
+@vben/playground:build: dist/js/point-selection-captcha-D7PVPxAT.js                                         10.13 kB
+@vben/playground:build: dist/js/index-BexiHuXm.js                                                           10.52 kB
+@vben/playground:build: dist/js/index-bx5FBF06.js                                                           10.78 kB
+@vben/playground:build: dist/js/theme-toggle.vue_vue_type_script_setup_true_lang-DwHk4yBC.js                11.11 kB
+@vben/playground:build: dist/js/basic-BSOahN8N.js                                                           11.92 kB
+@vben/playground:build: dist/js/form-HERKwekD.js                                                            12.59 kB
+@vben/playground:build: dist/js/index-BAGr2guW.js                                                           12.84 kB
+@vben/playground:build: dist/js/icon-coming-soon-sJdlECdT.js                                                12.89 kB
+@vben/playground:build: dist/js/use-drawer-Dmfbq7kB.js                                                      14.63 kB
+@vben/playground:build: dist/js/index-BviDEgNs.js                                                           14.69 kB
+@vben/playground:build: dist/js/index-C3EpquZ3.js                                                           14.86 kB
+@vben/playground:build: dist/js/index-CuqxLWkZ.js                                                           15.39 kB
+@vben/playground:build: dist/js/index-DDWFIHOO.js                                                           15.76 kB
+@vben/playground:build: dist/js/use-modal-Dl-biOj0.js                                                       16.47 kB
+@vben/playground:build: dist/js/index-Jx-20Pp4.js                                                           17.83 kB
+@vben/playground:build: dist/js/index-Sdh6HBqR.js                                                           20.92 kB
+@vben/playground:build: dist/js/icon-404-ZtnK45Vg.js                                                        24.34 kB
+@vben/playground:build: dist/js/useBaseQuery-DnFgKKR2.js                                                    25.12 kB
+@vben/playground:build: dist/js/merge-bTvECTN_.js                                                           25.59 kB
+@vben/playground:build: dist/js/index-De1cZ_Vc.js                                                           27.09 kB
+@vben/playground:build: dist/js/qrcode-login-5uJSVXaQ.js                                                    27.43 kB
+@vben/playground:build: dist/js/index.esm-Ofvdfudw.js                                                       29.34 kB
+@vben/playground:build: dist/js/index-By-O-Jq1.js                                                           29.85 kB
+@vben/playground:build: dist/js/index-BpxzG23U.js                                                           34.43 kB
+@vben/playground:build: dist/js/index-B0mNsr-t.js                                                           34.55 kB
+@vben/playground:build: dist/js/index-Cj2qrZl4.js                                                           35.76 kB
+@vben/playground:build: dist/js/index-C2-SB-3Z.js                                                           37.41 kB
+@vben/playground:build: dist/js/Trigger-E1rijLg2.js                                                         42.44 kB
+@vben/playground:build: dist/js/sortable.complete.esm-Crr9kxfy.js                                           45.80 kB
+@vben/playground:build: dist/js/index-Bva_A3xH.js                                                           49.73 kB
+@vben/playground:build: dist/js/index-C_51PWws.js                                                           51.45 kB
+@vben/playground:build: dist/js/index-dhG4vLMG.js                                                           55.32 kB
+@vben/playground:build: dist/js/index-Ds1_qPrt.js                                                           65.69 kB
+@vben/playground:build: dist/js/index-FH47OJlN.js                                                           68.77 kB
+@vben/playground:build: dist/js/index-DrF22aCa.js                                                          102.86 kB
+@vben/playground:build: dist/js/authentication-BvvZ9PTv.js                                                 118.85 kB
+@vben/playground:build: dist/js/index-Dmwgqceo.js                                                          123.30 kB
+@vben/playground:build: dist/js/layout.vue_vue_type_script_setup_true_lang-DDN_ZWTg.js                     197.71 kB
+@vben/playground:build: dist/jse/index-index-DAoTz6ot.js                                                   219.21 kB
+@vben/playground:build: dist/js/use-echarts-CS6I63wc.js                                                    626.11 kB
+@vben/playground:build: dist/js/vxe-table-B-dWn3rR.js                                                      757.79 kB
+@vben/playground:build: dist/js/bootstrap-BTGQ1Y-v.js                                                    1,049.88 kB
+@vben/playground:build: ✓ built in 15.52s
+@vben/playground:build: ZIP file created: /home/hellotalk/code/web/k8s-agent-web/playground/dist.zip (1697374 total bytes)
+@vben/playground:build: Folder has been zipped to: /home/hellotalk/code/web/k8s-agent-web/playground/dist.zip
+@vben/docs:build: ℹ @nolebase/vitepress-plugin-git-changelog: Prepare to gather git logs...
+@vben/docs:build: ZIP file created: /home/hellotalk/code/web/k8s-agent-web/docs/.vitepress/dist.zip (22 total bytes)
+@vben/docs:build: Folder has been zipped to: /home/hellotalk/code/web/k8s-agent-web/docs/.vitepress/dist.zip
+@vben/docs:build: [32m✓[0m building client + server bundles...
+@vben/docs:build: ZIP file created: /home/hellotalk/code/web/k8s-agent-web/docs/.vitepress/dist.zip (22 total bytes)
+@vben/docs:build: Folder has been zipped to: /home/hellotalk/code/web/k8s-agent-web/docs/.vitepress/dist.zip
+@vben/docs:build: - rendering pages...
+@vben/docs:build: [32m✓[0m rendering pages...
+@vben/docs:build: build complete in 40.86s.
+
+ Tasks:    16 successful, 16 total
+Cached:    0 cached, 16 total
+  Time:    50.463s 
+

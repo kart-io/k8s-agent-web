@@ -1,0 +1,299 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+permissions:
+  contents: write
+  deployments: write
+  packages: write
+
+env:
+  CI: true
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
+
+jobs:
+  build:
+    name: Build Applications
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        app:
+          - web-antd
+          - web-ele
+          - web-naive
+          - docs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build ${{ matrix.app }}
+        run: pnpm build:${{ matrix.app }}
+        env:
+          NODE_OPTIONS: '--max_old_space_size=8192'
+
+      - name: Check build output
+        run: |
+          if [ -d "apps/${{ matrix.app }}/dist" ]; then
+            echo "✅ Build successful for ${{ matrix.app }}"
+            ls -lah apps/${{ matrix.app }}/dist
+          elif [ -d "docs/.vitepress/dist" ] && [ "${{ matrix.app }}" = "docs" ]; then
+            echo "✅ Build successful for docs"
+            ls -lah docs/.vitepress/dist
+          else
+            echo "❌ Build output not found for ${{ matrix.app }}"
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-dist
+          path: |
+            apps/${{ matrix.app }}/dist
+            docs/.vitepress/dist
+          retention-days: 7
+
+      - name: Generate build info
+        run: |
+          echo "Build Information" > build-info.txt
+          echo "================" >> build-info.txt
+          echo "App: ${{ matrix.app }}" >> build-info.txt
+          echo "Commit: ${{ github.sha }}" >> build-info.txt
+          echo "Branch: ${{ github.ref_name }}" >> build-info.txt
+          echo "Build Time: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> build-info.txt
+          echo "Node Version: $(node --version)" >> build-info.txt
+          echo "PNPM Version: $(pnpm --version)" >> build-info.txt
+
+      - name: Upload build info
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-build-info
+          path: build-info.txt
+          retention-days: 30
+
+  analyze-bundle:
+    name: Analyze Bundle Size
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist-artifacts
+
+      - name: Analyze bundle sizes
+        run: |
+          echo "# 📦 Bundle Size Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Application | Total Size | Gzipped Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|------------|--------------|" >> $GITHUB_STEP_SUMMARY
+
+          for app in web-antd web-ele web-naive; do
+            if [ -d "dist-artifacts/${app}-dist/apps/${app}/dist" ]; then
+              TOTAL_SIZE=$(du -sh "dist-artifacts/${app}-dist/apps/${app}/dist" | cut -f1)
+              echo "| ${app} | ${TOTAL_SIZE} | - |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+      - name: Comment PR with bundle size
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            let comment = '## 📦 Bundle Size Report\n\n';
+            comment += '| Application | Total Size |\n';
+            comment += '|-------------|------------|\n';
+
+            const apps = ['web-antd', 'web-ele', 'web-naive'];
+            for (const app of apps) {
+              const distPath = `dist-artifacts/${app}-dist/apps/${app}/dist`;
+              if (fs.existsSync(distPath)) {
+                const { execSync } = require('child_process');
+                const size = execSync(`du -sh ${distPath} | cut -f1`).toString().trim();
+                comment += `| ${app} | ${size} |\n`;
+              }
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  deploy-preview:
+    name: Deploy Preview
+    needs: build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Download web-antd artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-antd-dist
+          path: dist
+
+      - name: Deploy to Netlify (Preview)
+        id: netlify-deploy
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: './dist/apps/web-antd/dist'
+          production-deploy: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: 'Preview deploy for PR #${{ github.event.number }}'
+          enable-pull-request-comment: true
+          enable-commit-comment: false
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deployUrl = '${{ steps.netlify-deploy.outputs.deploy-url }}';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🚀 Preview Deployment\n\n✅ Preview is ready!\n\n[View Preview](${deployUrl})\n\n*This preview will be available for 7 days.*`
+            });
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [build, analyze-bundle]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://your-production-url.com
+
+    steps:
+      - name: Download web-antd artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-antd-dist
+          path: dist
+
+      - name: Deploy to Netlify (Production)
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: './dist/apps/web-antd/dist'
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: 'Production deploy from ${{ github.ref_name }}'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Create deployment status
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment.id,
+              state: 'success',
+              environment_url: 'https://your-production-url.com',
+              description: 'Deployment completed successfully'
+            });
+
+  deploy-docs:
+    name: Deploy Documentation
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download docs artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-dist
+          path: docs-dist
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs-dist/docs/.vitepress/dist
+          cname: docs.your-domain.com
+
+  notification:
+    name: Send Notification
+    needs: [build, deploy-production]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send deployment notification
+        run: |
+          STATUS="${{ needs.deploy-production.result }}"
+          if [ "$STATUS" = "success" ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed or skipped"
+          fi
+
+      - name: Summary
+        run: |
+          echo "## 🎉 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ needs.deploy-production.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY

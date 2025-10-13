@@ -1,0 +1,169 @@
+name: Test Coverage
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  CI: true
+  TZ: Asia/Shanghai
+
+jobs:
+  coverage:
+    name: Test Coverage Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        run: pnpm test:unit --coverage
+        continue-on-error: true
+
+      - name: Generate coverage report
+        if: always()
+        run: |
+          if [ -d "coverage" ]; then
+            echo "Coverage report generated successfully"
+            echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            if [ -f "coverage/coverage-summary.json" ]; then
+              node -e "
+                const fs = require('fs');
+                const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+                const total = summary.total;
+                console.log('| Metric | Coverage |');
+                console.log('|--------|----------|');
+                console.log('| Statements | ' + total.statements.pct + '% |');
+                console.log('| Branches | ' + total.branches.pct + '% |');
+                console.log('| Functions | ' + total.functions.pct + '% |');
+                console.log('| Lines | ' + total.lines.pct + '% |');
+              " >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "No coverage report found"
+          fi
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Comment PR with coverage
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && always()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let coverageComment = '## 📊 Test Coverage Report\n\n';
+
+            if (fs.existsSync('coverage/coverage-summary.json')) {
+              const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+              const total = summary.total;
+
+              coverageComment += '| Metric | Coverage | Status |\n';
+              coverageComment += '|--------|----------|--------|\n';
+              coverageComment += `| Statements | ${total.statements.pct}% | ${total.statements.pct >= 60 ? '✅' : '⚠️'} |\n`;
+              coverageComment += `| Branches | ${total.branches.pct}% | ${total.branches.pct >= 60 ? '✅' : '⚠️'} |\n`;
+              coverageComment += `| Functions | ${total.functions.pct}% | ${total.functions.pct >= 60 ? '✅' : '⚠️'} |\n`;
+              coverageComment += `| Lines | ${total.lines.pct}% | ${total.lines.pct >= 60 ? '✅' : '⚠️'} |\n\n`;
+              coverageComment += '**Note:** Target coverage is 60% for all metrics.\n';
+            } else {
+              coverageComment += '⚠️ Coverage report not available.\n';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: coverageComment
+            });
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+        env:
+          CI: true
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+
+      - name: Upload E2E screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-screenshots
+          path: test-results/screenshots/
+          retention-days: 7
