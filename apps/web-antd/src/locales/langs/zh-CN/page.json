@@ -10,5 +10,23 @@
     "title": "概览",
     "analytics": "分析页",
     "workspace": "工作台"
+  },
+  "k8s": {
+    "title": "Kubernetes 管理",
+    "clusters": "集群管理",
+    "clusterDetail": "集群详情",
+    "pods": "Pod 管理",
+    "podDetail": "Pod 详情",
+    "deployments": "Deployment 管理",
+    "services": "Service 管理",
+    "configmaps": "ConfigMap 管理",
+    "cronjobs": "CronJob 管理",
+    "resources": "其他资源",
+    "namespaces": "Namespace",
+    "nodes": "Node",
+    "secrets": "Secret",
+    "statefulsets": "StatefulSet",
+    "daemonsets": "DaemonSet",
+    "jobs": "Job"
   }
 }

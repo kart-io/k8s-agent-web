@@ -8,13 +8,21 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': join(__dirname, './src'),
+      '@vben-core/shared/cache': join(__dirname, './packages/@core/base/shared/src/cache'),
+      '@vben-core/shared/constants': join(__dirname, './packages/@core/base/shared/src/constants'),
+      '@vben-core/shared/store': join(__dirname, './packages/@core/base/shared/src/store'),
+      '@vben-core/shared/utils': join(__dirname, './packages/@core/base/shared/src/utils'),
+      '@vben-core/shared': join(__dirname, './packages/@core/base/shared/src'),
+      '@vben-core/icons': join(__dirname, './packages/@core/base/icons/src'),
+      '@vben-core/composables': join(__dirname, './packages/@core/composables/src'),
       '@vben-core': join(__dirname, './packages/@core'),
-      '@vben': join(__dirname, './packages/@vben'),
+      '@vben/utils': join(__dirname, './packages/utils/src'),
+      '@vben': join(__dirname, './packages'),
     },
   },
   test: {
     // 测试环境
-    environment: 'happy-dom',
+    environment: 'jsdom',
 
     // 覆盖率配置
     coverage: {

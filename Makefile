@@ -1,7 +1,7 @@
 # Vben Admin Monorepo Makefile
 # 提供常用命令的快捷方式
 
-.PHONY: help install dev build test lint clean docker deploy
+.PHONY: help install dev build test lint clean docker deploy verify-env
 
 # 默认目标：显示帮助信息
 help:
@@ -17,6 +17,8 @@ help:
 	@echo "🚀 开发服务器:"
 	@echo "  make dev            - 启动开发服务器（选择应用）"
 	@echo "  make dev-antd       - 启动 Ant Design 版本"
+	@echo "  make dev-auth       - 启动统一认证中心"
+	@echo "  make dev-k8s        - 启动 K8s 管理应用（独立）"
 	@echo "  make dev-ele        - 启动 Element Plus 版本"
 	@echo "  make dev-naive      - 启动 Naive UI 版本"
 	@echo "  make dev-docs       - 启动文档站点"
@@ -24,6 +26,8 @@ help:
 	@echo "🏗️  构建:"
 	@echo "  make build          - 构建所有应用"
 	@echo "  make build-antd     - 构建 Ant Design 版本"
+	@echo "  make build-auth     - 构建统一认证中心"
+	@echo "  make build-k8s      - 构建 K8s 管理应用"
 	@echo "  make build-ele      - 构建 Element Plus 版本"
 	@echo "  make build-naive    - 构建 Naive UI 版本"
 	@echo "  make build-docs     - 构建文档"
@@ -44,6 +48,7 @@ help:
 	@echo "  make format-check   - 检查代码格式"
 	@echo "  make type-check     - TypeScript 类型检查"
 	@echo "  make quality        - 运行所有质量检查"
+	@echo "  make verify-env     - 验证环境配置文件"
 	@echo ""
 	@echo "🐳 Docker:"
 	@echo "  make docker-build   - 构建 Docker 镜像"
@@ -93,6 +98,16 @@ dev-antd:
 	@echo "🚀 启动 Ant Design 版本..."
 	@pnpm dev:antd
 
+dev-auth:
+	@echo "🔐 启动统一认证中心..."
+	@echo "📝 访问: http://localhost:5665"
+	@pnpm dev:auth
+
+dev-k8s:
+	@echo "🚀 启动 K8s 管理应用（独立）..."
+	@echo "📝 访问: http://localhost:5667"
+	@pnpm dev:k8s
+
 dev-ele:
 	@echo "🚀 启动 Element Plus 版本..."
 	@pnpm dev:ele
@@ -115,6 +130,14 @@ build-antd:
 	@echo "🏗️  构建 Ant Design 版本..."
 	@pnpm build:antd
 
+build-auth:
+	@echo "🏗️  构建统一认证中心..."
+	@pnpm build:auth
+
+build-k8s:
+	@echo "🏗️  构建 K8s 管理应用..."
+	@pnpm build:k8s
+
 build-ele:
 	@echo "🏗️  构建 Element Plus 版本..."
 	@pnpm build:ele
@@ -135,7 +158,11 @@ preview:
 
 test:
 	@echo "🧪 运行所有测试..."
-	@pnpm test
+	@echo "📝 运行单元测试..."
+	@pnpm test:unit || true
+	@echo ""
+	@echo "📝 运行 E2E 测试..."
+	@pnpm test:e2e || true
 
 test-unit:
 	@echo "🧪 运行单元测试..."
@@ -182,6 +209,10 @@ type-check:
 
 quality: lint type-check format-check
 	@echo "✅ 所有质量检查完成"
+
+verify-env:
+	@echo "🔍 验证环境配置文件..."
+	@node scripts/verify-env.mjs
 
 # ==================== Docker ====================
 

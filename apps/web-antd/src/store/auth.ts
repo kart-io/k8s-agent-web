@@ -53,11 +53,20 @@ export const useAuthStore = defineStore('auth', () => {
         if (accessStore.loginExpired) {
           accessStore.setLoginExpired(false);
         } else {
-          onSuccess
-            ? await onSuccess?.()
-            : await router.push(
-                userInfo.homePath || preferences.app.defaultHomePath,
-              );
+          // 检查是否有重定向 URL（从 K8s 应用或其他子应用跳转过来）
+          const redirectUrl = router.currentRoute.value.query.redirect as string;
+
+          if (redirectUrl && redirectUrl.startsWith('http')) {
+            // 如果是外部 URL（子应用），带上 token 重定向
+            window.location.href = `${redirectUrl}${redirectUrl.includes('?') ? '&' : '?'}token=${accessToken}`;
+          } else {
+            // 正常的内部路由跳转
+            onSuccess
+              ? await onSuccess?.()
+              : await router.push(
+                  redirectUrl || userInfo.homePath || preferences.app.defaultHomePath,
+                );
+          }
         }
 
         if (userInfo?.realName) {

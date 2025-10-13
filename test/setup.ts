@@ -18,19 +18,40 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }));
 
-// Mock matchMedia
+// Mock matchMedia - return a proper MediaQueryList object
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
+  value: (query: string): MediaQueryList => {
+    const listeners: Array<(event: MediaQueryListEvent) => void> = [];
+    return {
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn((callback: (event: MediaQueryListEvent) => void) => {
+        listeners.push(callback);
+      }),
+      removeListener: vi.fn((callback: (event: MediaQueryListEvent) => void) => {
+        const index = listeners.indexOf(callback);
+        if (index > -1) {
+          listeners.splice(index, 1);
+        }
+      }),
+      addEventListener: vi.fn((type: string, callback: (event: MediaQueryListEvent) => void) => {
+        if (type === 'change') {
+          listeners.push(callback);
+        }
+      }),
+      removeEventListener: vi.fn((type: string, callback: (event: MediaQueryListEvent) => void) => {
+        if (type === 'change') {
+          const index = listeners.indexOf(callback);
+          if (index > -1) {
+            listeners.splice(index, 1);
+          }
+        }
+      }),
+      dispatchEvent: vi.fn(() => true),
+    } as MediaQueryList;
+  },
 });
 
 // Mock scrollTo
@@ -39,30 +60,39 @@ Object.defineProperty(window, 'scrollTo', {
   value: vi.fn(),
 });
 
-// Mock localStorage
-const localStorageMock: Storage = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-  length: 0,
-  key: vi.fn(),
+// Mock localStorage with real implementation
+const createStorageMock = () => {
+  let store: Record<string, string> = {};
+
+  return {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => {
+      store[key] = value.toString();
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: (index: number) => {
+      const keys = Object.keys(store);
+      return keys[index] || null;
+    },
+  };
 };
+
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
+  value: createStorageMock(),
+  writable: true,
 });
 
-// Mock sessionStorage
-const sessionStorageMock: Storage = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-  length: 0,
-  key: vi.fn(),
-};
 Object.defineProperty(window, 'sessionStorage', {
-  value: sessionStorageMock,
+  value: createStorageMock(),
+  writable: true,
 });
 
 // 设置测试环境变量
@@ -84,4 +114,6 @@ export function sleep(ms: number): Promise<void> {
 // 清理函数
 afterEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
+  sessionStorage.clear();
 });

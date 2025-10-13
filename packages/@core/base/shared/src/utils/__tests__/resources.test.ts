@@ -1,24 +1,58 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { loadScript } from '../resources';
 
-const testJsPath =
-  'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js';
-
 describe('loadScript', () => {
+  let originalCreateElement: typeof document.createElement;
+  let mockScripts: Map<string, HTMLScriptElement>;
+
   beforeEach(() => {
-    // 每个测试前清空 head，保证环境干净
+    // 清空 head
     document.head.innerHTML = '';
+    mockScripts = new Map();
+
+    // Mock document.createElement 来避免 happy-dom 自动加载脚本
+    originalCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName.toLowerCase() === 'script') {
+        const script = originalCreateElement('script');
+        // 保存原始的 src setter
+        const srcDescriptor = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src');
+
+        // 定义一个新的 src 属性,阻止真正的网络请求
+        Object.defineProperty(script, 'src', {
+          get() {
+            return script.getAttribute('src') || '';
+          },
+          set(value: string) {
+            script.setAttribute('src', value);
+            // 存储 mock script
+            mockScripts.set(value, script);
+          },
+          configurable: true,
+        });
+
+        return script;
+      }
+      return originalCreateElement(tagName);
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('should resolve when the script loads successfully', async () => {
+    const testJsPath = '/test-script.js';
     const promise = loadScript(testJsPath);
 
-    // 此时脚本元素已被创建并插入
-    const script = document.querySelector(
-      `script[src="${testJsPath}"]`,
-    ) as HTMLScriptElement;
-    expect(script).toBeTruthy();
+    // 等待脚本元素被创建和插入
+    await vi.waitFor(() => {
+      const script = mockScripts.get(testJsPath);
+      expect(script).toBeTruthy();
+    });
+
+    const script = mockScripts.get(testJsPath)!;
 
     // 模拟加载成功
     script.dispatchEvent(new Event('load'));
@@ -47,10 +81,13 @@ describe('loadScript', () => {
   it('should reject when the script fails to load', async () => {
     const promise = loadScript('error.js');
 
-    const script = document.querySelector(
-      'script[src="error.js"]',
-    ) as HTMLScriptElement;
-    expect(script).toBeTruthy();
+    // 等待脚本元素被创建
+    await vi.waitFor(() => {
+      const script = mockScripts.get('error.js');
+      expect(script).toBeTruthy();
+    });
+
+    const script = mockScripts.get('error.js')!;
 
     // 模拟加载失败
     script.dispatchEvent(new Event('error'));
@@ -59,15 +96,19 @@ describe('loadScript', () => {
   });
 
   it('should handle multiple concurrent calls and only insert one script tag', async () => {
+    const testJsPath = '/test-script.js';
     const p1 = loadScript(testJsPath);
     const p2 = loadScript(testJsPath);
 
-    const script = document.querySelector(
-      `script[src="${testJsPath}"]`,
-    ) as HTMLScriptElement;
-    expect(script).toBeTruthy();
+    // 等待脚本元素被创建
+    await vi.waitFor(() => {
+      const script = mockScripts.get(testJsPath);
+      expect(script).toBeTruthy();
+    });
 
-    // 触发一次 load，两个 promise 都应该 resolve
+    const script = mockScripts.get(testJsPath)!;
+
+    // 触发一次 load,两个 promise 都应该 resolve
     script.dispatchEvent(new Event('load'));
 
     await expect(p1).resolves.toBeUndefined();
