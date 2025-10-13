@@ -9,12 +9,21 @@
     "preview": "vite preview --port 5665",
     "typecheck": "vue-tsc --noEmit --skipLibCheck"
   },
+  "imports": {
+    "#/*": "./src/*"
+  },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
     "@vben/common-ui": "workspace:*",
+    "@vben/constants": "workspace:*",
+    "@vben/hooks": "workspace:*",
+    "@vben/icons": "workspace:*",
+    "@vben/layouts": "workspace:*",
     "@vben/locales": "workspace:*",
+    "@vben/preferences": "workspace:*",
     "@vben/request": "workspace:*",
     "@vben/stores": "workspace:*",
+    "@vben/styles": "workspace:*",
     "@vben/types": "workspace:*",
     "@vben/utils": "workspace:*",
     "@vueuse/core": "catalog:",
@@ -26,6 +35,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@vben/vite-config": "workspace:*",
     "@vitejs/plugin-vue": "catalog:",
     "@vitejs/plugin-vue-jsx": "catalog:",
     "typescript": "catalog:",

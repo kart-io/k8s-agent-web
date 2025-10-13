@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router';
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
+import { AuthPageLayout } from '../layouts';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -9,10 +10,17 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../views/Login.vue'),
-    meta: {
-      title: '登录',
-    },
+    component: AuthPageLayout,
+    children: [
+      {
+        path: '',
+        name: 'LoginForm',
+        component: () => import('../views/Login.vue'),
+        meta: {
+          title: '登录',
+        },
+      },
+    ],
   },
 ];
 
