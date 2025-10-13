@@ -3,6 +3,7 @@ import { initPreferences } from '@vben/preferences';
 import { initStores } from '@vben/stores';
 import '@vben/styles';
 import '@vben/styles/antd';
+import 'ant-design-vue/dist/reset.css';
 
 import App from './App.vue';
 import router from './router';
