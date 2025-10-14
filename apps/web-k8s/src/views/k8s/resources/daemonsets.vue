@@ -1,15 +1,26 @@
-<script setup lang="ts">
-import { Card, Empty } from "ant-design-vue";
+<script lang="ts" setup>
+/**
+ * DaemonSet 资源管理页面
+ */
+import type { ResourceListConfig } from '#/types/k8s-resource-base';
+import type { DaemonSet } from '#/api/k8s/types';
+
+import { computed } from 'vue';
+
+import { createDaemonSetConfig } from '#/config/k8s-resources';
+import ResourceList from '#/views/k8s/_shared/ResourceList.vue';
+
+defineOptions({ name: 'K8sDaemonSets' });
+
+// 使用配置工厂创建资源配置
+const config = computed<ResourceListConfig<DaemonSet>>(() => createDaemonSetConfig());
 </script>
 
 <template>
-  <div class="p-5">
-    <Card title="daemonsets">
-      <Empty description="页面开发中..." />
-    </Card>
-  </div>
+  <ResourceList :config="config">
+    <!-- 就绪节点数插槽 -->
+    <template #ready-slot="{ row }">
+      <span>{{ row.status.numberReady }} / {{ row.status.desiredNumberScheduled }}</span>
+    </template>
+  </ResourceList>
 </template>
-
-<style scoped>
-.p-5 { padding: 20px; }
-</style>

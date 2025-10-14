@@ -1,12 +1,23 @@
 /**
- * K8s 应用的 API 请求配置
+ * 该文件可自行根据业务逻辑进行调整
  */
 import type { RequestClientOptions } from '@vben/request';
 
 import { useAppConfig } from '@vben/hooks';
-import { RequestClient } from '@vben/request';
+import { preferences } from '@vben/preferences';
+import {
+  authenticateResponseInterceptor,
+  defaultResponseInterceptor,
+  errorMessageResponseInterceptor,
+  RequestClient,
+} from '@vben/request';
+import { useAccessStore } from '@vben/stores';
 
 import { message } from 'ant-design-vue';
+
+import { useAuthStore } from '#/store';
+
+import { refreshTokenApi } from './core';
 
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 
@@ -16,77 +27,81 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     baseURL,
   });
 
-  // 请求拦截器 - 添加认证信息
+  /**
+   * 重新认证逻辑
+   */
+  async function doReAuthenticate() {
+    console.warn('Access token or refresh token is invalid or expired. ');
+    const accessStore = useAccessStore();
+    const authStore = useAuthStore();
+    accessStore.setAccessToken(null);
+    if (
+      preferences.app.loginExpiredMode === 'modal' &&
+      accessStore.isAccessChecked
+    ) {
+      accessStore.setLoginExpired(true);
+    } else {
+      await authStore.logout();
+    }
+  }
+
+  /**
+   * 刷新token逻辑
+   */
+  async function doRefreshToken() {
+    const accessStore = useAccessStore();
+    const resp = await refreshTokenApi();
+    const newToken = resp.data;
+    accessStore.setAccessToken(newToken);
+    return newToken;
+  }
+
+  function formatToken(token: null | string) {
+    return token ? `Bearer ${token}` : null;
+  }
+
+  // 请求头处理
   client.addRequestInterceptor({
     fulfilled: async (config) => {
-      // 从 localStorage 获取 token
-      const token = localStorage.getItem('k8s_access_token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+      const accessStore = useAccessStore();
 
-      // 添加语言设置
-      const locale = localStorage.getItem('app_locale') || 'zh-CN';
-      config.headers['Accept-Language'] = locale;
-
+      config.headers.Authorization = formatToken(accessStore.accessToken);
+      config.headers['Accept-Language'] = preferences.app.locale;
       return config;
     },
   });
 
-  // 响应拦截器 - 处理通用响应格式
-  client.addResponseInterceptor({
-    fulfilled: (response) => {
-      const { data } = response;
+  // 处理返回的响应数据格式
+  client.addResponseInterceptor(
+    defaultResponseInterceptor({
+      codeField: 'code',
+      dataField: 'data',
+      successCode: 0,
+    }),
+  );
 
-      // 统一的响应格式: { code, data, message }
-      if (data && typeof data === 'object' && 'code' in data) {
-        if (data.code === 0) {
-          // 成功响应，返回 data 字段
-          return data.data;
-        } else {
-          // 业务错误
-          const errorMessage = data.message || '请求失败';
-          message.error(errorMessage);
-          return Promise.reject(new Error(errorMessage));
-        }
-      }
+  // token过期的处理
+  client.addResponseInterceptor(
+    authenticateResponseInterceptor({
+      client,
+      doReAuthenticate,
+      doRefreshToken,
+      enableRefreshToken: preferences.app.enableRefreshToken,
+      formatToken,
+    }),
+  );
 
-      // 非标准格式，直接返回
-      return data;
-    },
-    rejected: (error) => {
-      // 处理HTTP错误
-      if (error.response) {
-        const { status, data } = error.response;
-
-        switch (status) {
-          case 401:
-            message.error('未授权，请重新登录');
-            // 清除 token
-            localStorage.removeItem('k8s_access_token');
-            // 可以跳转到登录页
-            break;
-          case 403:
-            message.error('没有权限访问该资源');
-            break;
-          case 404:
-            message.error('请求的资源不存在');
-            break;
-          case 500:
-            message.error('服务器错误');
-            break;
-          default:
-            message.error(data?.message || '请求失败');
-        }
-      } else if (error.request) {
-        message.error('网络错误，请检查网络连接');
-      } else {
-        message.error(error.message || '请求失败');
-      }
-
-      return Promise.reject(error);
-    },
-  });
+  // 通用的错误处理,如果没有进入上面的错误处理逻辑，就会进入这里
+  client.addResponseInterceptor(
+    errorMessageResponseInterceptor((msg: string, error) => {
+      // 这里可以根据业务进行定制,你可以拿到 error 内的信息进行定制化处理，根据不同的 code 做不同的提示，而不是直接使用 message.error 提示 msg
+      // 当前mock接口返回的错误字段是 error 或者 message
+      const responseData = error?.response?.data ?? {};
+      const errorMessage = responseData?.error ?? responseData?.message ?? '';
+      // 如果没有错误信息，则会根据状态码进行提示
+      message.error(errorMessage || msg);
+    }),
+  );
 
   return client;
 }

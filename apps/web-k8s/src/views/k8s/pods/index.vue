@@ -1,21 +1,296 @@
-<script setup lang="ts">
-import { Card, Empty } from 'ant-design-vue';
+<script lang="ts" setup>
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { Pod } from '#/api/k8s/types';
+
+import { ref, watch } from 'vue';
+
+import { Button, Input, message, Modal, Select, Space, Tag } from 'ant-design-vue';
+import {
+  DeleteOutlined,
+  EyeOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+} from '@ant-design/icons-vue';
+import { useDebounceFn } from '@vueuse/core';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+
+import { getMockPodList } from '#/api/k8s/mock';
+
+defineOptions({
+  name: 'PodsManagement',
+});
+
+const selectedClusterId = ref('cluster-prod-01');
+const searchKeyword = ref('');
+const selectedNamespace = ref<string>();
+
+const clusterOptions = [
+  { label: 'Production Cluster', value: 'cluster-prod-01' },
+  { label: 'Staging Cluster', value: 'cluster-staging-01' },
+  { label: 'Development Cluster', value: 'cluster-dev-01' },
+];
+
+const namespaceOptions = [
+  { label: '全部命名空间', value: undefined },
+  { label: 'default', value: 'default' },
+  { label: 'kube-system', value: 'kube-system' },
+  { label: 'production', value: 'production' },
+];
+
+// AbortController 用于取消请求
+let abortController: AbortController | null = null;
+
+async function fetchPodData(params: { page: { currentPage: number; pageSize: number } }) {
+  // 取消之前的请求
+  if (abortController) {
+    abortController.abort();
+  }
+
+  // 创建新的 AbortController
+  abortController = new AbortController();
+
+  try {
+    // 模拟 API 延迟
+    await new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(resolve, 500);
+      abortController!.signal.addEventListener('abort', () => {
+        clearTimeout(timeoutId);
+        reject(new Error('Request aborted'));
+      });
+    });
+
+    const result = getMockPodList({
+      clusterId: selectedClusterId.value,
+      namespace: selectedNamespace.value,
+      page: params.page.currentPage,
+      pageSize: params.page.pageSize,
+    });
+
+    return {
+      items: result.items,
+      total: result.total,
+    };
+  } catch (error: any) {
+    // 如果是取消请求，返回空结果
+    if (error.message === 'Request aborted') {
+      return { items: [], total: 0 };
+    }
+    throw error;
+  }
+}
+
+const gridOptions: VxeGridProps<Pod> = {
+  height: 600,
+  checkboxConfig: {
+    highlight: true,
+  },
+  scrollY: {
+    enabled: true,
+    mode: 'wheel',
+  },
+  columns: [
+    { title: '序号', type: 'seq', width: 60 },
+    { align: 'left', title: '选择', type: 'checkbox', width: 80 },
+    {
+      field: 'metadata.name',
+      title: 'Pod 名称',
+      minWidth: 200,
+    },
+    {
+      field: 'metadata.namespace',
+      title: '命名空间',
+      width: 150,
+    },
+    {
+      field: 'status.phase',
+      title: '状态',
+      width: 120,
+      slots: {
+        default: 'status-slot',
+      },
+    },
+    {
+      field: 'status.podIP',
+      title: 'Pod IP',
+      width: 150,
+    },
+    {
+      field: 'spec.nodeName',
+      title: '节点',
+      width: 150,
+    },
+    {
+      field: 'metadata.creationTimestamp',
+      title: '创建时间',
+      width: 180,
+      formatter: 'formatDateTime',
+    },
+    {
+      field: 'actions',
+      title: '操作',
+      width: 150,
+      fixed: 'right',
+      slots: {
+        default: 'actions-slot',
+      },
+    },
+  ],
+  exportConfig: {},
+  keepSource: true,
+  proxyConfig: {
+    ajax: {
+      query: async ({ page }) => {
+        return await fetchPodData({
+          page: { currentPage: page.currentPage, pageSize: page.pageSize },
+        });
+      },
+    },
+  },
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    zoom: true,
+  },
+};
+
+const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
+
+// 防抖搜索处理
+const debouncedSearch = useDebounceFn(() => {
+  gridApi.reload();
+}, 300);
+
+function handleSearch() {
+  gridApi.reload();
+}
+
+// 监听关键词变化,自动触发防抖搜索
+watch(searchKeyword, () => {
+  debouncedSearch();
+});
+
+function handleReset() {
+  searchKeyword.value = '';
+  selectedNamespace.value = undefined;
+  gridApi.reload();
+}
+
+function handleView(row: Pod) {
+  Modal.info({
+    title: 'Pod 详情',
+    width: 700,
+    content: `
+      名称: ${row.metadata.name}
+      命名空间: ${row.metadata.namespace}
+      状态: ${row.status.phase}
+      Pod IP: ${row.status.podIP}
+      节点: ${row.spec.nodeName}
+      容器数量: ${row.spec.containers.length}
+      创建时间: ${row.metadata.creationTimestamp}
+    `,
+  });
+}
+
+function handleDelete(row: Pod) {
+  Modal.confirm({
+    title: '确认删除',
+    content: `确定要删除 Pod "${row.metadata.name}" 吗？此操作不可恢复。`,
+    onOk() {
+      message.success(`Pod "${row.metadata.name}" 删除成功`);
+      gridApi.reload();
+    },
+  });
+}
+
+function handleLogs(row: Pod) {
+  message.info(`查看 Pod "${row.metadata.name}" 日志 (功能开发中)`);
+}
 </script>
 
 <template>
   <div class="p-5">
-    <Card title="Pod 管理">
-      <Empty description="Pod 管理页面开发中...">
-        <template #image>
-          <div style="font-size: 48px">🐳</div>
+    <div class="mb-5 text-2xl font-bold">Pod 管理</div>
+
+    <div class="mb-4 rounded-lg p-4">
+      <Space :size="12" wrap>
+        <Select
+          v-model:value="selectedClusterId"
+          :options="clusterOptions"
+          :style="{ width: '200px' }"
+          placeholder="选择集群"
+          @change="handleSearch"
+        />
+
+        <Select
+          v-model:value="selectedNamespace"
+          :options="namespaceOptions"
+          :style="{ width: '150px' }"
+          placeholder="命名空间"
+          @change="handleSearch"
+        />
+
+        <Input
+          v-model:value="searchKeyword"
+          :style="{ width: '240px' }"
+          placeholder="搜索 Pod 名称"
+          allow-clear
+          @press-enter="handleSearch"
+        >
+          <template #prefix>
+            <SearchOutlined />
+          </template>
+        </Input>
+
+        <Button type="primary" @click="handleSearch">
+          <SearchOutlined />
+          搜索
+        </Button>
+
+        <Button @click="handleReset">
+          <ReloadOutlined />
+          重置
+        </Button>
+      </Space>
+    </div>
+
+    <div class="rounded-lg p-4">
+      <Grid>
+        <template #status-slot="{ row }">
+          <Tag v-if="row.status.phase === 'Running'" color="success">Running</Tag>
+          <Tag v-else-if="row.status.phase === 'Pending'" color="warning">Pending</Tag>
+          <Tag v-else-if="row.status.phase === 'Failed'" color="error">Failed</Tag>
+          <Tag v-else-if="row.status.phase === 'Succeeded'" color="success">Succeeded</Tag>
+          <Tag v-else color="default">{{ row.status.phase }}</Tag>
         </template>
-      </Empty>
-    </Card>
+
+        <template #actions-slot="{ row }">
+          <Space :size="4">
+            <Button size="small" type="link" @click="handleView(row)">
+              <EyeOutlined />
+              详情
+            </Button>
+            <Button size="small" type="link" @click="handleLogs(row)"> 日志 </Button>
+            <Button size="small" type="link" danger @click="handleDelete(row)">
+              <DeleteOutlined />
+              删除
+            </Button>
+          </Space>
+        </template>
+
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="() => gridApi.query()">
+            刷新当前页
+          </Button>
+        </template>
+      </Grid>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.p-5 {
-  padding: 20px;
+:deep(.vxe-table) {
+  font-size: 14px;
 }
 </style>

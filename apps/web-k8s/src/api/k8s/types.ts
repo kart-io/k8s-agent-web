@@ -433,6 +433,12 @@ export interface Node {
   status?: NodeStatus;
 }
 
+export interface NodeListParams {
+  clusterId: string;
+  page?: number;
+  pageSize?: number;
+}
+
 export interface NodeListResult {
   apiVersion: string;
   kind: 'NodeList';

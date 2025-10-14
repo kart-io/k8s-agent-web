@@ -1,48 +1,67 @@
-import { createApp } from 'vue';
-import { initPreferences } from '@vben/preferences';
+import { createApp, watchEffect } from 'vue';
+
+import { registerAccessDirective } from '@vben/access';
+import { registerLoadingDirective } from '@vben/common-ui/es/loading';
+import { preferences } from '@vben/preferences';
 import { initStores } from '@vben/stores';
-import { setupI18n } from '@vben/locales';
-import { unmountGlobalLoading } from '@vben/utils';
 import '@vben/styles';
 import '@vben/styles/antd';
-import 'ant-design-vue/dist/reset.css';
 
-import App from './App.vue';
-import router from './router';
-import { overridesPreferences } from './preferences';
+import { useTitle } from '@vueuse/core';
+
+import { $t, setupI18n } from '#/locales';
+
+import { initComponentAdapter } from './adapter/component';
+import { initSetupVbenForm } from './adapter/form';
+import App from './app.vue';
+import { router } from './router';
 
 async function bootstrap(namespace: string) {
+  // 初始化组件适配器
+  await initComponentAdapter();
+
+  // 初始化表单组件
+  await initSetupVbenForm();
+
   const app = createApp(App);
 
-  // 配置国际化
-  await setupI18n(app, {
-    defaultLocale: 'zh-CN',
-    missingWarn: false,
+  // 注册v-loading指令
+  registerLoadingDirective(app, {
+    loading: 'loading',
+    spinning: 'spinning',
   });
 
-  // 配置 pinia store
+  // 国际化 i18n 配置
+  await setupI18n(app);
+
+  // 配置 pinia-store
   await initStores(app, { namespace });
 
-  // 配置路由
+  // 安装权限指令
+  registerAccessDirective(app);
+
+  // 初始化 tippy
+  const { initTippy } = await import('@vben/common-ui/es/tippy');
+  initTippy(app);
+
+  // 配置路由及路由守卫
   app.use(router);
 
-  app.mount('#app');
+  // 配置Motion插件
+  const { MotionPlugin } = await import('@vben/plugins/motion');
+  app.use(MotionPlugin);
 
-  // 移除全局 loading
-  unmountGlobalLoading();
-}
-
-async function initApplication() {
-  const namespace = 'vben-web-auth';
-
-  // app偏好设置初始化
-  await initPreferences({
-    namespace,
-    overrides: overridesPreferences,
+  // 动态更新标题
+  watchEffect(() => {
+    if (preferences.app.dynamicTitle) {
+      const routeTitle = router.currentRoute.value.meta?.title;
+      const pageTitle =
+        (routeTitle ? `${$t(routeTitle)} - ` : '') + preferences.app.name;
+      useTitle(pageTitle);
+    }
   });
 
-  // 启动应用
-  await bootstrap(namespace);
+  app.mount('#app');
 }
 
-initApplication();
+export { bootstrap };

@@ -1,0 +1,32 @@
+{
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "codeLogin": "Code Login",
+    "qrcodeLogin": "Qr Code Login",
+    "forgetPassword": "Forget Password"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "analytics": "Analytics",
+    "workspace": "Workspace"
+  },
+  "k8s": {
+    "title": "Kubernetes Management",
+    "clusters": "Clusters",
+    "clusterDetail": "Cluster Detail",
+    "pods": "Pods",
+    "podDetail": "Pod Detail",
+    "deployments": "Deployments",
+    "services": "Services",
+    "configmaps": "ConfigMaps",
+    "cronjobs": "CronJobs",
+    "resources": "Other Resources",
+    "namespaces": "Namespaces",
+    "nodes": "Nodes",
+    "secrets": "Secrets",
+    "statefulsets": "StatefulSets",
+    "daemonsets": "DaemonSets",
+    "jobs": "Jobs"
+  }
+}

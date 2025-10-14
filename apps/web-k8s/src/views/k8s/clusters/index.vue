@@ -1,360 +1,327 @@
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue';
-
-import {
-  createCluster,
-  deleteCluster,
-  getClusterList,
-  updateCluster,
-} from '#/api/k8s';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { Cluster, ClusterListParams } from '#/api/k8s/types';
 
-import {
-  Button,
-  Card,
-  Col,
-  Descriptions,
-  DescriptionsItem,
-  Empty,
-  Form,
-  FormItem,
-  Input,
-  message,
-  Modal,
-  Popconfirm,
-  Row,
-  Space,
-  Spin,
-  Table,
-  Tag,
-  Textarea,
-} from 'ant-design-vue';
+import { ref, watch } from 'vue';
 
-// 状态管理
-const loading = ref(false);
-const clusters = ref<Cluster[]>([]);
-const total = ref(0);
-const searchParams = reactive<ClusterListParams>({
+import { Button, Input, message, Modal, Select, Space, Tag } from 'ant-design-vue';
+import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons-vue';
+import { useDebounceFn } from '@vueuse/core';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+
+import { getMockClusterList } from '#/api/k8s/mock';
+
+defineOptions({
+  name: 'ClustersManagement',
+});
+
+// 搜索条件
+const searchForm = ref<ClusterListParams>({
+  keyword: '',
+  status: undefined,
   page: 1,
   pageSize: 10,
-  keyword: '',
-  status: '',
 });
 
-// 表单相关
-const modalVisible = ref(false);
-const modalTitle = ref('添加集群');
-const formRef = ref();
-const formData = ref<Partial<Cluster>>({
-  name: '',
-  description: '',
-  apiServer: '',
-  kubeconfig: '',
-});
-const isEdit = ref(false);
-
-// 表格列定义
-const columns = [
-  {
-    title: '集群名称',
-    dataIndex: 'name',
-    key: 'name',
-    width: 200,
-  },
-  {
-    title: '描述',
-    dataIndex: 'description',
-    key: 'description',
-    ellipsis: true,
-  },
-  {
-    title: 'API Server',
-    dataIndex: 'apiServer',
-    key: 'apiServer',
-    width: 250,
-  },
-  {
-    title: '版本',
-    dataIndex: 'version',
-    key: 'version',
-    width: 120,
-  },
-  {
-    title: '状态',
-    dataIndex: 'status',
-    key: 'status',
-    width: 100,
-  },
-  {
-    title: 'Nodes',
-    dataIndex: 'nodeCount',
-    key: 'nodeCount',
-    width: 80,
-  },
-  {
-    title: 'Pods',
-    dataIndex: 'podCount',
-    key: 'podCount',
-    width: 80,
-  },
-  {
-    title: '创建时间',
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    width: 180,
-  },
-  {
-    title: '操作',
-    key: 'action',
-    width: 200,
-    fixed: 'right' as const,
-  },
+// 状态选项
+const statusOptions = [
+  { label: '全部', value: undefined },
+  { label: '健康', value: 'healthy' },
+  { label: '异常', value: 'unhealthy' },
+  { label: '未知', value: 'unknown' },
 ];
 
-// 表单验证规则
-const rules = {
-  name: [{ required: true, message: '请输入集群名称', trigger: 'blur' }],
-  apiServer: [
-    { required: true, message: '请输入 API Server 地址', trigger: 'blur' },
-    { type: 'url', message: '请输入有效的 URL', trigger: 'blur' },
-  ],
-  kubeconfig: [
-    { required: true, message: '请输入 Kubeconfig', trigger: 'blur' },
-  ],
-};
+// AbortController 用于取消请求
+let abortController: AbortController | null = null;
 
-// 获取集群列表
-async function fetchClusterList() {
-  loading.value = true;
+// 获取集群数据
+async function fetchClusterData(params: { page: { currentPage: number; pageSize: number } }) {
+  // 取消之前的请求
+  if (abortController) {
+    abortController.abort();
+  }
+
+  // 创建新的 AbortController
+  abortController = new AbortController();
+
   try {
-    const res = await getClusterList(searchParams);
-    clusters.value = res.items;
-    total.value = res.total;
+    // 模拟 API 延迟
+    await new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(resolve, 500);
+      abortController!.signal.addEventListener('abort', () => {
+        clearTimeout(timeoutId);
+        reject(new Error('Request aborted'));
+      });
+    });
+
+    const result = getMockClusterList({
+      ...searchForm.value,
+      page: params.page.currentPage,
+      pageSize: params.page.pageSize,
+    });
+
+    return {
+      items: result.items,
+      total: result.total,
+    };
   } catch (error: any) {
-    message.error(error.message || '获取集群列表失败');
-  } finally {
-    loading.value = false;
+    // 如果是取消请求，返回空结果
+    if (error.message === 'Request aborted') {
+      return { items: [], total: 0 };
+    }
+    throw error;
   }
 }
 
-// 搜索
+// 定义表格配置
+const gridOptions: VxeGridProps<Cluster> = {
+  height: 600,
+  checkboxConfig: {
+    highlight: true,
+    labelField: 'name',
+  },
+  scrollY: {
+    enabled: true,
+    mode: 'wheel',
+  },
+  columns: [
+    { title: '序号', type: 'seq', width: 60 },
+    { align: 'left', title: '选择', type: 'checkbox', width: 80 },
+    {
+      field: 'name',
+      title: '集群名称',
+      minWidth: 180,
+      slots: {
+        default: 'name-slot',
+      },
+    },
+    {
+      field: 'status',
+      title: '状态',
+      width: 100,
+      slots: {
+        default: 'status-slot',
+      },
+    },
+    { field: 'version', title: 'K8s 版本', width: 120 },
+    { field: 'nodeCount', title: '节点数', width: 100 },
+    { field: 'podCount', title: 'Pod 数', width: 100 },
+    { field: 'namespaceCount', title: '命名空间', width: 120 },
+    {
+      field: 'apiServer',
+      title: 'API Server',
+      minWidth: 250,
+    },
+    {
+      field: 'createdAt',
+      title: '创建时间',
+      width: 180,
+      formatter: 'formatDateTime',
+    },
+    {
+      field: 'actions',
+      title: '操作',
+      width: 200,
+      fixed: 'right',
+      slots: {
+        default: 'actions-slot',
+      },
+    },
+  ],
+  exportConfig: {},
+  keepSource: true,
+  proxyConfig: {
+    ajax: {
+      query: async ({ page }) => {
+        return await fetchClusterData({
+          page: { currentPage: page.currentPage, pageSize: page.pageSize },
+        });
+      },
+    },
+  },
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    zoom: true,
+  },
+};
+
+const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
+
+// 防抖搜索处理
+const debouncedSearch = useDebounceFn(() => {
+  gridApi.reload();
+}, 300);
+
+// 搜索处理
 function handleSearch() {
-  searchParams.page = 1;
-  fetchClusterList();
+  gridApi.reload();
 }
+
+// 监听关键词变化,自动触发防抖搜索
+watch(
+  () => searchForm.value.keyword,
+  () => {
+    debouncedSearch();
+  },
+);
 
 // 重置搜索
 function handleReset() {
-  searchParams.keyword = '';
-  searchParams.status = '';
-  searchParams.page = 1;
-  fetchClusterList();
-}
-
-// 分页变化
-function handlePageChange(page: number, pageSize: number) {
-  searchParams.page = page;
-  searchParams.pageSize = pageSize;
-  fetchClusterList();
-}
-
-// 打开添加/编辑弹窗
-function handleAdd() {
-  isEdit.value = false;
-  modalTitle.value = '添加集群';
-  formData.value = {
-    name: '',
-    description: '',
-    apiServer: '',
-    kubeconfig: '',
+  searchForm.value = {
+    keyword: '',
+    status: undefined,
+    page: 1,
+    pageSize: 10,
   };
-  modalVisible.value = true;
-}
-
-function handleEdit(record: Cluster) {
-  isEdit.value = true;
-  modalTitle.value = '编辑集群';
-  formData.value = { ...record };
-  modalVisible.value = true;
-}
-
-// 提交表单
-async function handleSubmit() {
-  try {
-    await formRef.value.validate();
-    loading.value = true;
-
-    if (isEdit.value && formData.value.id) {
-      await updateCluster(formData.value.id, formData.value);
-      message.success('更新集群成功');
-    } else {
-      await createCluster(formData.value);
-      message.success('创建集群成功');
-    }
-
-    modalVisible.value = false;
-    fetchClusterList();
-  } catch (error: any) {
-    if (error.errorFields) {
-      return;
-    }
-    message.error(error.message || '操作失败');
-  } finally {
-    loading.value = false;
-  }
-}
-
-// 删除集群
-async function handleDelete(id: string) {
-  loading.value = true;
-  try {
-    await deleteCluster(id);
-    message.success('删除集群成功');
-    fetchClusterList();
-  } catch (error: any) {
-    message.error(error.message || '删除集群失败');
-  } finally {
-    loading.value = false;
-  }
+  gridApi.reload();
 }
 
 // 查看详情
-function handleViewDetail(record: Cluster) {
-  window.open(`/k8s/clusters/${record.id}`, '_blank');
+function handleView(row: Cluster) {
+  Modal.info({
+    title: '集群详情',
+    width: 600,
+    content: `
+      集群名称: ${row.name}
+      描述: ${row.description}
+      ID: ${row.id}
+      API Server: ${row.apiServer}
+      版本: ${row.version}
+      状态: ${row.status}
+      节点数: ${row.nodeCount}
+      Pod 数: ${row.podCount}
+      命名空间数: ${row.namespaceCount}
+      创建时间: ${row.createdAt}
+      更新时间: ${row.updatedAt}
+    `,
+  });
 }
 
-// 获取状态标签颜色
-function getStatusColor(status: string) {
-  const colorMap: Record<string, string> = {
-    healthy: 'success',
-    unhealthy: 'error',
-    unknown: 'default',
-  };
-  return colorMap[status] || 'default';
+// 编辑集群
+function handleEdit(row: Cluster) {
+  message.info(`编辑集群: ${row.name} (功能开发中)`);
 }
 
-// 获取状态文本
-function getStatusText(status: string) {
-  const textMap: Record<string, string> = {
-    healthy: '健康',
-    unhealthy: '异常',
-    unknown: '未知',
-  };
-  return textMap[status] || status;
+// 删除集群
+function handleDelete(row: Cluster) {
+  Modal.confirm({
+    title: '确认删除',
+    content: `确定要删除集群 "${row.name}" 吗？此操作不可恢复。`,
+    onOk() {
+      message.success(`集群 "${row.name}" 删除成功`);
+      gridApi.reload();
+    },
+  });
 }
 
-// 初始化
-onMounted(() => {
-  fetchClusterList();
-});
+// 添加集群
+function handleAdd() {
+  message.info('添加集群功能开发中');
+}
 </script>
 
 <template>
   <div class="p-5">
-    <!-- 搜索栏 -->
-    <Card class="mb-4">
-      <Form layout="inline">
-        <FormItem label="关键字">
-          <Input
-            v-model:value="searchParams.keyword"
-            placeholder="搜索集群名称"
-            style="width: 200px"
-            @press-enter="handleSearch"
-          />
-        </FormItem>
-        <FormItem>
-          <Space>
-            <Button type="primary" @click="handleSearch">搜索</Button>
-            <Button @click="handleReset">重置</Button>
-            <Button type="primary" @click="handleAdd">添加集群</Button>
-          </Space>
-        </FormItem>
-      </Form>
-    </Card>
+    <div class="mb-5 text-2xl font-bold">集群管理</div>
 
-    <!-- 集群列表 -->
-    <Card title="集群列表">
-      <Spin :spinning="loading">
-        <Table
-          :columns="columns"
-          :data-source="clusters"
-          :pagination="{
-            current: searchParams.page,
-            pageSize: searchParams.pageSize,
-            total: total,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total: number) => `共 ${total} 条`,
-            onChange: handlePageChange,
-          }"
-          :scroll="{ x: 1400 }"
-          row-key="id"
+    <!-- 搜索区域 -->
+    <div class="mb-4 rounded-lg p-4">
+      <Space :size="12" wrap>
+        <Input
+          v-model:value="searchForm.keyword"
+          :style="{ width: '240px' }"
+          placeholder="搜索集群名称、ID 或描述"
+          allow-clear
+          @press-enter="handleSearch"
         >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'status'">
-              <Tag :color="getStatusColor(record.status)">
-                {{ getStatusText(record.status) }}
-              </Tag>
-            </template>
-            <template v-if="column.key === 'action'">
-              <Space>
-                <Button size="small" type="link" @click="handleViewDetail(record)">
-                  详情
-                </Button>
-                <Button size="small" type="link" @click="handleEdit(record)">
-                  编辑
-                </Button>
-                <Popconfirm
-                  title="确定要删除这个集群吗？"
-                  @confirm="handleDelete(record.id)"
-                >
-                  <Button danger size="small" type="link">删除</Button>
-                </Popconfirm>
-              </Space>
-            </template>
+          <template #prefix>
+            <SearchOutlined />
           </template>
-        </Table>
-      </Spin>
-    </Card>
+        </Input>
 
-    <!-- 添加/编辑弹窗 -->
-    <Modal
-      v-model:open="modalVisible"
-      :title="modalTitle"
-      width="600px"
-      @ok="handleSubmit"
-    >
-      <Form
-        ref="formRef"
-        :model="formData"
-        :rules="rules"
-        label-col="{ span: 6 }"
-        wrapper-col="{ span: 16 }"
-      >
-        <FormItem label="集群名称" name="name">
-          <Input v-model:value="formData.name" placeholder="请输入集群名称" />
-        </FormItem>
-        <FormItem label="描述" name="description">
-          <Textarea
-            v-model:value="formData.description"
-            placeholder="请输入描述"
-            :rows="3"
-          />
-        </FormItem>
-        <FormItem label="API Server" name="apiServer">
-          <Input
-            v-model:value="formData.apiServer"
-            placeholder="https://kubernetes.default.svc"
-          />
-        </FormItem>
-        <FormItem label="Kubeconfig" name="kubeconfig">
-          <Textarea
-            v-model:value="formData.kubeconfig"
-            placeholder="粘贴 kubeconfig 内容"
-            :rows="8"
-          />
-        </FormItem>
-      </Form>
-    </Modal>
+        <Select
+          v-model:value="searchForm.status"
+          :options="statusOptions"
+          :style="{ width: '120px' }"
+          placeholder="状态"
+        />
+
+        <Button type="primary" @click="handleSearch">
+          <SearchOutlined />
+          搜索
+        </Button>
+
+        <Button @click="handleReset">
+          <ReloadOutlined />
+          重置
+        </Button>
+
+        <Button type="primary" @click="handleAdd">
+          <PlusOutlined />
+          添加集群
+        </Button>
+      </Space>
+    </div>
+
+    <!-- 表格区域 -->
+    <div class="rounded-lg p-4">
+      <Grid>
+        <!-- 集群名称自定义列 -->
+        <template #name-slot="{ row }">
+          <div>
+            <div class="font-medium">{{ row.name }}</div>
+            <div class="text-xs text-gray-500">{{ row.description }}</div>
+          </div>
+        </template>
+
+        <!-- 状态自定义列 -->
+        <template #status-slot="{ row }">
+          <Tag v-if="row.status === 'healthy'" color="success">健康</Tag>
+          <Tag v-else-if="row.status === 'unhealthy'" color="error">异常</Tag>
+          <Tag v-else color="default">未知</Tag>
+        </template>
+
+        <!-- 操作自定义列 -->
+        <template #actions-slot="{ row }">
+          <Space :size="8">
+            <Button size="small" type="link" @click="handleView(row)">
+              <EyeOutlined />
+              查看
+            </Button>
+            <Button size="small" type="link" @click="handleEdit(row)">
+              <EditOutlined />
+              编辑
+            </Button>
+            <Button size="small" type="link" danger @click="handleDelete(row)">
+              <DeleteOutlined />
+              删除
+            </Button>
+          </Space>
+        </template>
+
+        <!-- 工具栏自定义按钮 -->
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="() => gridApi.query()">
+            刷新当前页
+          </Button>
+          <Button type="default" @click="() => gridApi.reload()">
+            刷新并返回第一页
+          </Button>
+        </template>
+      </Grid>
+    </div>
   </div>
 </template>
+
+<style scoped>
+:deep(.vxe-table) {
+  font-size: 14px;
+}
+
+:deep(.vxe-table .vxe-body--row) {
+  height: 60px;
+}
+</style>

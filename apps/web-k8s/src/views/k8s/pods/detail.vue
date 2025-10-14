@@ -1,17 +1,10 @@
-<script setup lang="ts">
-import { Card } from 'ant-design-vue';
-</script>
-
 <template>
-  <div class="p-5">
-    <Card title="Pod 详情">
-      <p>Pod 详情页面开发中...</p>
-    </Card>
+  <div class="p-4">
+    <h1 class="text-2xl font-bold mb-4">Pod 详情</h1>
+    <a-empty description="功能开发中，敬请期待" />
   </div>
 </template>
 
-<style scoped>
-.p-5 {
-  padding: 20px;
-}
-</style>
+<script setup lang="ts">
+defineOptions({ name: 'K8sPodDetail' });
+</script>
