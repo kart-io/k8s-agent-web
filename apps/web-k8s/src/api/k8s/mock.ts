@@ -48,8 +48,21 @@ function generateTimestamp(daysAgo: number): string {
 // ==================== 集群 Mock 数据生成 ====================
 
 const CLUSTER_STATUSES = ['healthy', 'unhealthy', 'unknown'] as const;
-const CLUSTER_VERSIONS = ['v1.28.2', 'v1.28.1', 'v1.28.0', 'v1.27.5', 'v1.27.4'];
-const CLUSTER_ENVS = ['Production', 'Staging', 'Development', 'Test', 'QA', 'UAT'];
+const CLUSTER_VERSIONS = [
+  'v1.28.2',
+  'v1.28.1',
+  'v1.28.0',
+  'v1.27.5',
+  'v1.27.4',
+];
+const CLUSTER_ENVS = [
+  'Production',
+  'Staging',
+  'Development',
+  'Test',
+  'QA',
+  'UAT',
+];
 
 function generateMockClusters(count: number): Cluster[] {
   const clusters: Cluster[] = [];
@@ -81,9 +94,9 @@ function generateMockClusters(count: number): Cluster[] {
 const MOCK_CLUSTERS: Cluster[] = generateMockClusters(120);
 
 export function getMockClusterList(params?: {
+  keyword?: string;
   page?: number;
   pageSize?: number;
-  keyword?: string;
   status?: string;
 }): ClusterListResult {
   let filteredClusters = [...MOCK_CLUSTERS];
@@ -101,7 +114,9 @@ export function getMockClusterList(params?: {
 
   // 状态筛选
   if (params?.status && params.status !== 'all') {
-    filteredClusters = filteredClusters.filter((cluster) => cluster.status === params.status);
+    filteredClusters = filteredClusters.filter(
+      (cluster) => cluster.status === params.status,
+    );
   }
 
   const total = filteredClusters.length;
@@ -127,7 +142,13 @@ const POD_IMAGES = [
   'python:3.11-slim',
   'golang:1.21',
 ];
-const NAMESPACES = ['default', 'production', 'staging', 'development', 'kube-system'];
+const NAMESPACES = [
+  'default',
+  'production',
+  'staging',
+  'development',
+  'kube-system',
+];
 const APP_NAMES = [
   'nginx',
   'redis',
@@ -146,8 +167,8 @@ function generateMockPods(count: number): Pod[] {
   for (let i = 1; i <= count; i++) {
     const appName = randomElement(APP_NAMES);
     const namespace = randomElement(NAMESPACES);
-    const podId = `${appName}-${randomInt(100000, 999999)}`;
-    const hash = Math.random().toString(36).substring(2, 12);
+    const podId = `${appName}-${randomInt(100_000, 999_999)}`;
+    const hash = Math.random().toString(36).slice(2, 12);
     const createdDaysAgo = randomInt(0, 30);
     const phase = randomElement(POD_PHASES);
     const image = randomElement(POD_IMAGES);
@@ -212,7 +233,9 @@ export function getMockPodList(params: {
 
   // 命名空间筛选
   if (params.namespace) {
-    filteredPods = filteredPods.filter((pod) => pod.metadata.namespace === params.namespace);
+    filteredPods = filteredPods.filter(
+      (pod) => pod.metadata.namespace === params.namespace,
+    );
   }
 
   const total = filteredPods.length;
@@ -402,7 +425,13 @@ export function getMockServiceList(params: {
 
 // ==================== ConfigMap Mock 数据生成 ====================
 
-const CONFIG_TYPES = ['app-config', 'database-config', 'redis-config', 'nginx-config', 'env-config'];
+const CONFIG_TYPES = [
+  'app-config',
+  'database-config',
+  'redis-config',
+  'nginx-config',
+  'env-config',
+];
 
 function generateMockConfigMaps(count: number): ConfigMap[] {
   const configMaps: ConfigMap[] = [];
@@ -516,7 +545,9 @@ function generateMockCronJobs(count: number): CronJob[] {
         },
       },
       status: {
-        lastScheduleTime: suspend ? undefined : generateTimestamp(randomInt(0, 7)),
+        lastScheduleTime: suspend
+          ? undefined
+          : generateTimestamp(randomInt(0, 7)),
       },
     });
   }
@@ -558,8 +589,8 @@ export function getMockCronJobList(params: {
 
 // ==================== Node Mock 数据生成 ====================
 
-const NODE_ROLES = ['master', 'worker'];
-const NODE_STATUSES = ['Ready', 'NotReady', 'Unknown'];
+const _NODE_ROLES = ['master', 'worker'];
+const _NODE_STATUSES = ['Ready', 'NotReady', 'Unknown'];
 const OS_IMAGES = [
   'Ubuntu 22.04.3 LTS',
   'CentOS Linux 7 (Core)',
@@ -577,7 +608,8 @@ function generateMockNodes(count: number): Node[] {
   for (let i = 1; i <= count; i++) {
     const nodeName = `node-${i.toString().padStart(2, '0')}`;
     const role = i <= 3 ? 'master' : 'worker';
-    const status = Math.random() > 0.1 ? 'Ready' : randomElement(['NotReady', 'Unknown']);
+    const status =
+      Math.random() > 0.1 ? 'Ready' : randomElement(['NotReady', 'Unknown']);
     const createdDaysAgo = randomInt(30, 365);
     const cpuCapacity = randomInt(2, 64);
     const memoryCapacity = randomInt(4, 256);
@@ -636,9 +668,9 @@ function generateMockNodes(count: number): Node[] {
           },
         ],
         nodeInfo: {
-          machineID: Math.random().toString(36).substring(2, 18),
-          systemUUID: Math.random().toString(36).substring(2, 18),
-          bootID: Math.random().toString(36).substring(2, 18),
+          machineID: Math.random().toString(36).slice(2, 18),
+          systemUUID: Math.random().toString(36).slice(2, 18),
+          bootID: Math.random().toString(36).slice(2, 18),
           kernelVersion,
           osImage,
           containerRuntimeVersion: 'containerd://1.7.2',
@@ -710,9 +742,10 @@ function generateMockSecrets(count: number): Secret[] {
 
     // 生成随机密钥数据（Base64 编码）
     for (let j = 0; j < keyCount; j++) {
-      const key = ['username', 'password', 'token', 'key', 'cert'][j] || `secret-${j}`;
+      const key =
+        ['username', 'password', 'token', 'key', 'cert'][j] || `secret-${j}`;
       // 模拟 Base64 编码的数据（使用浏览器原生 btoa）
-      data[key] = btoa(`secret-value-${randomInt(10000, 99999)}`);
+      data[key] = btoa(`secret-value-${randomInt(10_000, 99_999)}`);
     }
 
     secrets.push({
@@ -932,7 +965,12 @@ function generateMockDaemonSets(count: number): DaemonSet[] {
   const daemonSets: DaemonSet[] = [];
 
   for (let i = 1; i <= count; i++) {
-    const appName = randomElement(['nginx', 'fluentd', 'node-exporter', 'kube-proxy']);
+    const appName = randomElement([
+      'nginx',
+      'fluentd',
+      'node-exporter',
+      'kube-proxy',
+    ]);
     const namespace = randomElement(NAMESPACES);
     const desiredNumber = randomInt(3, 20);
     const numberReady = randomInt(desiredNumber - 2, desiredNumber);
@@ -1094,7 +1132,9 @@ function generateMockJobs(count: number): Job[] {
                 {
                   type: 'Complete',
                   status: 'True',
-                  lastTransitionTime: generateTimestamp(randomInt(0, createdDaysAgo)),
+                  lastTransitionTime: generateTimestamp(
+                    randomInt(0, createdDaysAgo),
+                  ),
                 },
               ]
             : statusType === 'Failed'
@@ -1104,7 +1144,9 @@ function generateMockJobs(count: number): Job[] {
                     status: 'True',
                     reason: 'BackoffLimitExceeded',
                     message: 'Job has reached the specified backoff limit',
-                    lastTransitionTime: generateTimestamp(randomInt(0, createdDaysAgo)),
+                    lastTransitionTime: generateTimestamp(
+                      randomInt(0, createdDaysAgo),
+                    ),
                   },
                 ]
               : [],
@@ -1127,7 +1169,9 @@ export function getMockJobList(params: {
 
   // 命名空间筛选
   if (params.namespace) {
-    filteredJobs = filteredJobs.filter((job) => job.metadata.namespace === params.namespace);
+    filteredJobs = filteredJobs.filter(
+      (job) => job.metadata.namespace === params.namespace,
+    );
   }
 
   const total = filteredJobs.length;
@@ -1143,4 +1187,102 @@ export function getMockJobList(params: {
     items: filteredJobs.slice(start, end),
     total,
   };
+}
+
+// ==================== Pod 日志 Mock 数据生成 ====================
+
+/**
+ * 生成 Mock Pod 日志
+ */
+export function getMockPodLogs(params: {
+  clusterId: string;
+  container?: string;
+  name: string;
+  namespace: string;
+  tailLines?: number;
+  timestamps?: boolean;
+}): string {
+  const { container, timestamps = false, tailLines = 100 } = params;
+
+  const logTypes = ['INFO', 'WARN', 'ERROR', 'DEBUG'];
+
+  const logMessages = [
+    'Application started successfully',
+    'Database connection established',
+    'Processing request from client',
+    'Cache hit for key: user_session_12345',
+    'HTTP GET /api/users - Status: 200',
+    'HTTP POST /api/orders - Status: 201',
+    'HTTP PUT /api/products/123 - Status: 200',
+    'HTTP DELETE /api/cart/456 - Status: 204',
+    'Connecting to Redis server at redis:6379',
+    'Query executed successfully in 45ms',
+    'Background job processing started',
+    'Email notification sent to user@example.com',
+    'File uploaded successfully: document.pdf',
+    'User authentication successful',
+    'Session expired for user: john.doe',
+    'Rate limit check passed',
+    'Scheduled task completed',
+    'Memory usage: 512MB / 2GB',
+    'CPU usage: 25%',
+    'Disk I/O: Read 100KB, Write 50KB',
+    'WebSocket connection established',
+    'Message queue consumed: 10 items',
+    'Cache expired for key: product_list',
+    'Middleware processing time: 12ms',
+    'Request validation passed',
+    'Response compressed: 2.5MB -> 500KB',
+    'Health check endpoint called',
+    'Graceful shutdown initiated',
+    'All connections closed',
+    'Application stopped',
+  ];
+
+  const errorMessages = [
+    'Failed to connect to database: Connection timeout',
+    'Invalid request parameter: user_id is required',
+    'Authentication failed: Invalid credentials',
+    'Permission denied: User does not have access',
+    'Resource not found: /api/products/999',
+    'Internal server error: Null pointer exception',
+    'Failed to send notification: SMTP connection failed',
+    'Rate limit exceeded for IP: 192.168.1.100',
+    'Database query timeout after 30s',
+    'Failed to parse JSON request body',
+  ];
+
+  const logs: string[] = [];
+  const containerName = container || 'main-container';
+  const now = new Date();
+
+  for (let i = 0; i < tailLines; i++) {
+    const timestamp = new Date(now.getTime() - (tailLines - i) * 1000);
+    const logType = randomElement(logTypes);
+    const isError = logType === 'ERROR' || Math.random() < 0.05;
+    const message = isError
+      ? randomElement(errorMessages)
+      : randomElement(logMessages);
+
+    let logLine = '';
+
+    if (timestamps) {
+      logLine += `${timestamp.toISOString()} `;
+    }
+
+    logLine += `[${logType}] [${containerName}] ${message}`;
+
+    // 添加一些随机的详细信息
+    if (Math.random() < 0.3) {
+      logLine += ` | request_id=${Math.random().toString(36).slice(7)}`;
+    }
+
+    if (Math.random() < 0.2) {
+      logLine += ` | trace_id=${Math.random().toString(36).slice(2, 15)}`;
+    }
+
+    logs.push(logLine);
+  }
+
+  return logs.join('\n');
 }

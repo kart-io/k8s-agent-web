@@ -7,16 +7,44 @@
 import type { Pod } from '#/api/k8s/types';
 import type { ResourceListConfig } from '#/types/k8s-resource-base';
 
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
-import { message, Modal } from 'ant-design-vue';
+import { Modal } from 'ant-design-vue';
 
 import { getMockPodList } from '#/api/k8s/mock';
 import ResourceList from '#/views/k8s/_shared/ResourceList.vue';
 
+import DetailDrawer from './DetailDrawer.vue';
+import LogDrawer from './LogDrawer.vue';
+
 defineOptions({
   name: 'PodsManagement',
 });
+
+// 日志抽屉状态
+const logDrawerVisible = ref(false);
+const selectedPod = ref<null | Pod>(null);
+const currentClusterId = ref('cluster-prod-01');
+
+// 详情抽屉状态
+const detailDrawerVisible = ref(false);
+const selectedDetailPod = ref<null | Pod>(null);
+
+/**
+ * 打开日志抽屉
+ */
+function openLogDrawer(pod: Pod) {
+  selectedPod.value = pod;
+  logDrawerVisible.value = true;
+}
+
+/**
+ * 打开详情抽屉
+ */
+function openDetailDrawer(pod: Pod) {
+  selectedDetailPod.value = pod;
+  detailDrawerVisible.value = true;
+}
 
 /**
  * Pod 列表配置
@@ -27,8 +55,9 @@ const config = computed<ResourceListConfig<Pod>>(() => ({
 
   // 数据获取函数
   fetchData: async (params) => {
+    currentClusterId.value = params.clusterId || 'cluster-prod-01';
     const result = getMockPodList({
-      clusterId: params.clusterId || 'cluster-prod-01',
+      clusterId: currentClusterId.value,
       namespace: params.namespace,
       page: params.page,
       pageSize: params.pageSize,
@@ -83,26 +112,14 @@ const config = computed<ResourceListConfig<Pod>>(() => ({
       action: 'view',
       label: '详情',
       handler: (row: Pod) => {
-        Modal.info({
-          title: 'Pod 详情',
-          width: 700,
-          content: `
-            名称: ${row.metadata.name}
-            命名空间: ${row.metadata.namespace}
-            状态: ${row.status.phase}
-            Pod IP: ${row.status.podIP}
-            节点: ${row.spec.nodeName}
-            容器数量: ${row.spec.containers.length}
-            创建时间: ${row.metadata.creationTimestamp}
-          `,
-        });
+        openDetailDrawer(row);
       },
     },
     {
       action: 'logs',
       label: '日志',
       handler: (row: Pod) => {
-        message.info(`查看 Pod "${row.metadata.name}" 日志 (功能开发中)`);
+        openLogDrawer(row);
       },
     },
     {
@@ -114,7 +131,7 @@ const config = computed<ResourceListConfig<Pod>>(() => ({
           title: '确认删除',
           content: `确定要删除 Pod "${row.metadata.name}" 吗？此操作不可恢复。`,
           onOk() {
-            message.success(`Pod "${row.metadata.name}" 删除成功`);
+            // message.success(`Pod "${row.metadata.name}" 删除成功`);
           },
         });
       },
@@ -144,5 +161,20 @@ const config = computed<ResourceListConfig<Pod>>(() => ({
 </script>
 
 <template>
-  <ResourceList :config="config" />
+  <div>
+    <ResourceList :config="config" />
+
+    <!-- 日志抽屉 -->
+    <LogDrawer
+      v-model:visible="logDrawerVisible"
+      :pod="selectedPod"
+      :cluster-id="currentClusterId"
+    />
+
+    <!-- 详情抽屉 -->
+    <DetailDrawer
+      v-model:visible="detailDrawerVisible"
+      :pod="selectedDetailPod"
+    />
+  </div>
 </template>

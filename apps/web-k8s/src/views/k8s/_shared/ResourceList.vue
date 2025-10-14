@@ -11,12 +11,12 @@ import type {
 
 import { computed } from 'vue';
 
-import { Button, Space } from 'ant-design-vue';
 import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
 } from '@ant-design/icons-vue';
+import { Button, Space } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { useK8sResource } from '#/composables/useK8sResource';
@@ -41,7 +41,7 @@ const resourceState = useK8sResource({
 // 构建 Grid 配置
 const gridOptions = computed<VxeGridProps<any>>(() => {
   const baseOptions: VxeGridProps<any> = {
-    height: 600,
+    height: '100%',
     checkboxConfig: {
       highlight: true,
     },
@@ -99,7 +99,7 @@ function calculateActionsWidth(actions: ResourceActionConfig[]): number {
 const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
 
 // 使用资源操作 composable
-const resourceActions = useResourceActions({
+useResourceActions({
   resourceType: props.config.resourceType,
   resourceLabel: props.config.resourceLabel,
   onReload: () => gridApi.reload(),
@@ -113,7 +113,7 @@ const statusSlotName = computed(() => {
   if (!props.config.statusConfig) return null;
 
   const statusColumn = props.config.columns.find(
-    col => col.field === props.config.statusConfig!.field
+    (col) => col.field === props.config.statusConfig!.field,
   );
 
   return statusColumn?.slots?.default || null;
@@ -121,7 +121,15 @@ const statusSlotName = computed(() => {
 
 // 获取嵌套属性值
 function getNestedValue(obj: any, path: string) {
-  return path.split('.').reduce((current, prop) => current?.[prop], obj);
+  const parts = path.split('.');
+  let current = obj;
+  for (const prop of parts) {
+    if (current === null || current === undefined) {
+      return undefined;
+    }
+    current = current[prop];
+  }
+  return current;
 }
 
 // 获取操作的图标
@@ -144,34 +152,36 @@ function executeAction(action: ResourceActionConfig, row: any) {
 </script>
 
 <template>
-  <div class="p-5">
+  <div class="resource-list-container">
     <!-- 标题 -->
-    <div class="mb-5 text-2xl font-bold">{{ config.resourceLabel }} 管理</div>
+    <div class="resource-list-header">
+      <div class="mb-1 text-2xl font-bold">{{ config.resourceLabel }} 管理</div>
 
-    <!-- 筛选器 -->
-    <ResourceFilter
-      v-model:cluster-id="resourceState.selectedClusterId.value"
-      v-model:namespace="resourceState.selectedNamespace.value"
-      v-model:keyword="resourceState.searchKeyword.value"
-      :show-cluster-selector="resourceState.showClusterSelector"
-      :show-namespace-selector="resourceState.showNamespaceSelector"
-      :show-search="resourceState.showSearch"
-      :search-placeholder="resourceState.searchPlaceholder"
-      :cluster-options="resourceState.clusterOptions"
-      :namespace-options="resourceState.namespaceOptions"
-      @search="resourceState.handleSearch"
-      @reset="resourceState.handleReset"
-    >
-      <template #custom-filters>
-        <slot name="custom-filters" />
-      </template>
-      <template #actions>
-        <slot name="filter-actions" />
-      </template>
-    </ResourceFilter>
+      <!-- 筛选器 -->
+      <ResourceFilter
+        v-model:cluster-id="resourceState.selectedClusterId.value"
+        v-model:namespace="resourceState.selectedNamespace.value"
+        v-model:keyword="resourceState.searchKeyword.value"
+        :show-cluster-selector="resourceState.showClusterSelector"
+        :show-namespace-selector="resourceState.showNamespaceSelector"
+        :show-search="resourceState.showSearch"
+        :search-placeholder="resourceState.searchPlaceholder"
+        :cluster-options="resourceState.clusterOptions"
+        :namespace-options="resourceState.namespaceOptions"
+        @search="resourceState.handleSearch"
+        @reset="resourceState.handleReset"
+      >
+        <template #custom-filters>
+          <slot name="custom-filters"></slot>
+        </template>
+        <template #actions>
+          <slot name="filter-actions"></slot>
+        </template>
+      </ResourceFilter>
+    </div>
 
     <!-- 数据表格 -->
-    <div class="rounded-lg p-4 bg-white dark:bg-gray-800">
+    <div class="resource-list-table">
       <Grid>
         <!-- 状态标签插槽 -->
         <template v-if="statusSlotName" #[statusSlotName]="{ row }">
@@ -192,7 +202,10 @@ function executeAction(action: ResourceActionConfig, row: any) {
               :danger="action.danger"
               @click="executeAction(action, row)"
             >
-              <component :is="getActionIcon(action.action)" v-if="action.icon !== false" />
+              <component
+                :is="getActionIcon(action.action)"
+                v-if="action.icon !== false"
+              />
               {{ action.label }}
             </Button>
           </Space>
@@ -203,12 +216,12 @@ function executeAction(action: ResourceActionConfig, row: any) {
           <Button class="mr-2" type="primary" @click="() => gridApi.query()">
             刷新当前页
           </Button>
-          <slot name="toolbar-tools" :grid-api="gridApi" />
+          <slot name="toolbar-tools" :grid-api="gridApi"></slot>
         </template>
 
         <!-- 自定义插槽透传 -->
         <template v-for="(_, name) in $slots" #[name]="slotProps">
-          <slot :name="name" v-bind="slotProps" />
+          <slot :name="name" v-bind="slotProps"></slot>
         </template>
       </Grid>
     </div>
@@ -216,7 +229,34 @@ function executeAction(action: ResourceActionConfig, row: any) {
 </template>
 
 <style scoped>
+.resource-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.resource-list-header {
+  flex-shrink: 0;
+}
+
+.resource-list-table {
+  flex: 1;
+  min-height: 0;
+  padding: 16px;
+  padding-top: 0;
+  margin-top: 0;
+  background-color: var(--vben-background-color);
+  border-radius: 0 0 8px 8px;
+}
+
 :deep(.vxe-table) {
+  margin-top: 0 !important;
   font-size: 14px;
+}
+
+:deep(.vxe-grid) {
+  margin-top: 0 !important;
 }
 </style>

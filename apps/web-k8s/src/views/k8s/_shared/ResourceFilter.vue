@@ -1,10 +1,10 @@
 <script lang="ts" setup>
+import { ReloadOutlined, SearchOutlined } from '@ant-design/icons-vue';
 /**
  * 通用资源筛选器组件
  * 提供集群选择、命名空间选择、搜索等通用筛选功能
  */
 import { Button, Input, Select, Space } from 'ant-design-vue';
-import { ReloadOutlined, SearchOutlined } from '@ant-design/icons-vue';
 
 interface Props {
   /** 是否显示集群选择器 */
@@ -21,7 +21,7 @@ interface Props {
   namespaceOptions?: Array<{ label: string; value: string | undefined }>;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   showClusterSelector: true,
   showNamespaceSelector: true,
   showSearch: true,
@@ -40,12 +40,14 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  search: [];
   reset: [];
+  search: [];
 }>();
 
 // v-model 支持
-const clusterId = defineModel<string>('clusterId', { default: 'cluster-prod-01' });
+const clusterId = defineModel<string>('clusterId', {
+  default: 'cluster-prod-01',
+});
 const namespace = defineModel<string | undefined>('namespace');
 const keyword = defineModel<string>('keyword', { default: '' });
 
@@ -59,7 +61,7 @@ function handleReset() {
 </script>
 
 <template>
-  <div class="mb-4 rounded-lg p-4 bg-white dark:bg-gray-800">
+  <div class="resource-filter">
     <Space :size="12" wrap>
       <!-- 集群选择器 -->
       <Select
@@ -96,7 +98,7 @@ function handleReset() {
       </Input>
 
       <!-- 自定义插槽 -->
-      <slot name="custom-filters" />
+      <slot name="custom-filters"></slot>
 
       <!-- 搜索按钮 -->
       <Button type="primary" @click="handleSearch">
@@ -111,7 +113,15 @@ function handleReset() {
       </Button>
 
       <!-- 额外操作插槽 -->
-      <slot name="actions" />
+      <slot name="actions"></slot>
     </Space>
   </div>
 </template>
+
+<style scoped>
+.resource-filter {
+  padding: 16px;
+  background-color: var(--vben-background-color);
+  border-radius: 8px 8px 0 0;
+}
+</style>

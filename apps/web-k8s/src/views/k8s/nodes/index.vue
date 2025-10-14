@@ -2,20 +2,29 @@
 import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { Node } from '#/api/k8s/types';
 
-import { h, ref } from 'vue';
+import { ref } from 'vue';
 
-import { Button, Descriptions, Drawer, Input, message, Modal, Progress, Select, Space, Table, Tag, Tooltip } from 'ant-design-vue';
 import {
-  DeleteOutlined,
   EyeOutlined,
   ReloadOutlined,
   SearchOutlined,
-  InfoCircleOutlined,
 } from '@ant-design/icons-vue';
 import { useDebounceFn } from '@vueuse/core';
+import {
+  Button,
+  Descriptions,
+  Drawer,
+  Input,
+  message,
+  Modal,
+  Progress,
+  Select,
+  Space,
+  Table,
+  Tag,
+} from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-
 import { getMockNodeList, getMockPodList } from '#/api/k8s/mock';
 
 defineOptions({
@@ -36,7 +45,9 @@ const clusterOptions = [
 
 let abortController: AbortController | null = null;
 
-async function fetchNodeData(params: { page: { currentPage: number; pageSize: number } }) {
+async function fetchNodeData(params: {
+  page: { currentPage: number; pageSize: number };
+}) {
   if (abortController) {
     abortController.abort();
   }
@@ -62,7 +73,7 @@ async function fetchNodeData(params: { page: { currentPage: number; pageSize: nu
     if (searchKeyword.value) {
       const keyword = searchKeyword.value.toLowerCase();
       items = items.filter((node) =>
-        node.metadata.name.toLowerCase().includes(keyword)
+        node.metadata.name.toLowerCase().includes(keyword),
       );
     }
 
@@ -79,7 +90,9 @@ async function fetchNodeData(params: { page: { currentPage: number; pageSize: nu
 }
 
 function getNodeStatus(node: Node): string {
-  const readyCondition = node.status?.conditions?.find(c => c.type === 'Ready');
+  const readyCondition = node.status?.conditions?.find(
+    (c) => c.type === 'Ready',
+  );
   if (readyCondition?.status === 'True') {
     return 'Ready';
   }
@@ -88,10 +101,16 @@ function getNodeStatus(node: Node): string {
 
 function getNodeRole(node: Node): string {
   const labels = node.metadata.labels || {};
-  if (labels['kubernetes.io/role'] === 'master' || labels['node-role.kubernetes.io/master'] !== undefined) {
+  if (
+    labels['kubernetes.io/role'] === 'master' ||
+    labels['node-role.kubernetes.io/master'] !== undefined
+  ) {
     return 'Master';
   }
-  if (labels['kubernetes.io/role'] === 'worker' || labels['node-role.kubernetes.io/worker'] !== undefined) {
+  if (
+    labels['kubernetes.io/role'] === 'worker' ||
+    labels['node-role.kubernetes.io/worker'] !== undefined
+  ) {
     return 'Worker';
   }
   return 'Unknown';
@@ -117,15 +136,18 @@ function getNodeAge(creationTimestamp?: string): string {
 
 function getResourceUsage(capacity?: string, allocatable?: string): number {
   if (!capacity || !allocatable) return 0;
-  const cap = parseFloat(capacity.replace(/[^0-9.]/g, ''));
-  const alloc = parseFloat(allocatable.replace(/[^0-9.]/g, ''));
-  if (isNaN(cap) || cap === 0) return 0;
+  const cap = Number.parseFloat(capacity.replaceAll(/[^0-9.]/g, ''));
+  const alloc = Number.parseFloat(allocatable.replaceAll(/[^0-9.]/g, ''));
+  if (Number.isNaN(cap) || cap === 0) return 0;
   return Math.round(((cap - alloc) / cap) * 100);
 }
 
 function getResourcePercent(node: Node, type: 'cpu' | 'memory'): number {
   if (!node.status?.capacity || !node.status?.allocatable) return 0;
-  return getResourceUsage(node.status.capacity[type], node.status.allocatable[type]);
+  return getResourceUsage(
+    node.status.capacity[type],
+    node.status.allocatable[type],
+  );
 }
 
 const gridOptions: VxeGridProps<Node> = {
@@ -248,7 +270,9 @@ async function handleView(row: Node) {
     pageSize: 100,
   });
 
-  nodePods.value = result.items.filter(pod => pod.spec.nodeName === row.metadata.name);
+  nodePods.value = result.items.filter(
+    (pod) => pod.spec.nodeName === row.metadata.name,
+  );
 
   detailDrawerVisible.value = true;
 }
@@ -362,7 +386,9 @@ const podColumns = [
 
         <template #role-slot="{ row }">
           <Tag v-if="getNodeRole(row) === 'Master'" color="blue">Master</Tag>
-          <Tag v-else-if="getNodeRole(row) === 'Worker'" color="green">Worker</Tag>
+          <Tag v-else-if="getNodeRole(row) === 'Worker'" color="green">
+            Worker
+          </Tag>
           <Tag v-else color="default">Unknown</Tag>
         </template>
 
@@ -370,7 +396,13 @@ const podColumns = [
           <div class="flex items-center gap-2">
             <Progress
               :percent="getResourcePercent(row, 'cpu')"
-              :stroke-color="getResourcePercent(row, 'cpu') > 80 ? '#ff4d4f' : getResourcePercent(row, 'cpu') > 60 ? '#faad14' : '#52c41a'"
+              :stroke-color="
+                getResourcePercent(row, 'cpu') > 80
+                  ? '#ff4d4f'
+                  : getResourcePercent(row, 'cpu') > 60
+                    ? '#faad14'
+                    : '#52c41a'
+              "
               :style="{ width: '80px' }"
               :show-info="false"
             />
@@ -382,11 +414,19 @@ const podColumns = [
           <div class="flex items-center gap-2">
             <Progress
               :percent="getResourcePercent(row, 'memory')"
-              :stroke-color="getResourcePercent(row, 'memory') > 80 ? '#ff4d4f' : getResourcePercent(row, 'memory') > 60 ? '#faad14' : '#52c41a'"
+              :stroke-color="
+                getResourcePercent(row, 'memory') > 80
+                  ? '#ff4d4f'
+                  : getResourcePercent(row, 'memory') > 60
+                    ? '#faad14'
+                    : '#52c41a'
+              "
               :style="{ width: '80px' }"
               :show-info="false"
             />
-            <span class="text-xs">{{ getResourcePercent(row, 'memory') }}%</span>
+            <span class="text-xs"
+              >{{ getResourcePercent(row, 'memory') }}%</span
+            >
           </div>
         </template>
 
@@ -413,7 +453,7 @@ const podColumns = [
 
     <Drawer
       v-model:open="detailDrawerVisible"
-      :width="800"
+      width="80%"
       title="Node 详细信息"
     >
       <div v-if="selectedNode">
@@ -424,22 +464,42 @@ const podColumns = [
               {{ selectedNode.metadata.name }}
             </Descriptions.Item>
             <Descriptions.Item label="状态">
-              <Tag v-if="getNodeStatus(selectedNode) === 'Ready'" color="success">Ready</Tag>
+              <Tag
+                v-if="getNodeStatus(selectedNode) === 'Ready'"
+                color="success"
+              >
+                Ready
+              </Tag>
               <Tag v-else color="error">NotReady</Tag>
             </Descriptions.Item>
             <Descriptions.Item label="角色">
-              <Tag v-if="getNodeRole(selectedNode) === 'Master'" color="blue">Master</Tag>
-              <Tag v-else-if="getNodeRole(selectedNode) === 'Worker'" color="green">Worker</Tag>
+              <Tag v-if="getNodeRole(selectedNode) === 'Master'" color="blue">
+                Master
+              </Tag>
+              <Tag
+                v-else-if="getNodeRole(selectedNode) === 'Worker'"
+                color="green"
+              >
+                Worker
+              </Tag>
               <Tag v-else color="default">Unknown</Tag>
             </Descriptions.Item>
             <Descriptions.Item label="运行时长">
               {{ getNodeAge(selectedNode.metadata.creationTimestamp) }}
             </Descriptions.Item>
             <Descriptions.Item label="内部 IP">
-              {{ selectedNode.status?.addresses?.find(a => a.type === 'InternalIP')?.address || '-' }}
+              {{
+                selectedNode.status?.addresses?.find(
+                  (a) => a.type === 'InternalIP',
+                )?.address || '-'
+              }}
             </Descriptions.Item>
             <Descriptions.Item label="主机名">
-              {{ selectedNode.status?.addresses?.find(a => a.type === 'Hostname')?.address || '-' }}
+              {{
+                selectedNode.status?.addresses?.find(
+                  (a) => a.type === 'Hostname',
+                )?.address || '-'
+              }}
             </Descriptions.Item>
           </Descriptions>
         </div>
@@ -471,7 +531,13 @@ const podColumns = [
             <div class="mb-2 text-sm font-medium">CPU 使用率</div>
             <Progress
               :percent="getResourcePercent(selectedNode, 'cpu')"
-              :stroke-color="getResourcePercent(selectedNode, 'cpu') > 80 ? '#ff4d4f' : getResourcePercent(selectedNode, 'cpu') > 60 ? '#faad14' : '#52c41a'"
+              :stroke-color="
+                getResourcePercent(selectedNode, 'cpu') > 80
+                  ? '#ff4d4f'
+                  : getResourcePercent(selectedNode, 'cpu') > 60
+                    ? '#faad14'
+                    : '#52c41a'
+              "
             />
           </div>
 
@@ -479,7 +545,13 @@ const podColumns = [
             <div class="mb-2 text-sm font-medium">内存使用率</div>
             <Progress
               :percent="getResourcePercent(selectedNode, 'memory')"
-              :stroke-color="getResourcePercent(selectedNode, 'memory') > 80 ? '#ff4d4f' : getResourcePercent(selectedNode, 'memory') > 60 ? '#faad14' : '#52c41a'"
+              :stroke-color="
+                getResourcePercent(selectedNode, 'memory') > 80
+                  ? '#ff4d4f'
+                  : getResourcePercent(selectedNode, 'memory') > 60
+                    ? '#faad14'
+                    : '#52c41a'
+              "
             />
           </div>
         </div>
@@ -494,7 +566,9 @@ const podColumns = [
               {{ selectedNode.status?.nodeInfo?.kernelVersion || '-' }}
             </Descriptions.Item>
             <Descriptions.Item label="容器运行时">
-              {{ selectedNode.status?.nodeInfo?.containerRuntimeVersion || '-' }}
+              {{
+                selectedNode.status?.nodeInfo?.containerRuntimeVersion || '-'
+              }}
             </Descriptions.Item>
             <Descriptions.Item label="Kubelet 版本">
               {{ selectedNode.status?.nodeInfo?.kubeletVersion || '-' }}
@@ -520,9 +594,18 @@ const podColumns = [
           >
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'phase'">
-                <Tag v-if="record.status.phase === 'Running'" color="success">Running</Tag>
-                <Tag v-else-if="record.status.phase === 'Pending'" color="warning">Pending</Tag>
-                <Tag v-else-if="record.status.phase === 'Failed'" color="error">Failed</Tag>
+                <Tag v-if="record.status.phase === 'Running'" color="success">
+                  Running
+                </Tag>
+                <Tag
+                  v-else-if="record.status.phase === 'Pending'"
+                  color="warning"
+                >
+                  Pending
+                </Tag>
+                <Tag v-else-if="record.status.phase === 'Failed'" color="error">
+                  Failed
+                </Tag>
                 <Tag v-else color="default">{{ record.status.phase }}</Tag>
               </template>
             </template>
@@ -536,7 +619,12 @@ const podColumns = [
               { title: '类型', dataIndex: 'type', key: 'type' },
               { title: '状态', dataIndex: 'status', key: 'status' },
               { title: '原因', dataIndex: 'reason', key: 'reason' },
-              { title: '消息', dataIndex: 'message', key: 'message', ellipsis: true },
+              {
+                title: '消息',
+                dataIndex: 'message',
+                key: 'message',
+                ellipsis: true,
+              },
             ]"
             :data-source="selectedNode.status?.conditions || []"
             :pagination="false"
@@ -545,7 +633,9 @@ const podColumns = [
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'status'">
                 <Tag v-if="record.status === 'True'" color="success">True</Tag>
-                <Tag v-else-if="record.status === 'False'" color="error">False</Tag>
+                <Tag v-else-if="record.status === 'False'" color="error">
+                  False
+                </Tag>
                 <Tag v-else color="default">{{ record.status }}</Tag>
               </template>
             </template>
