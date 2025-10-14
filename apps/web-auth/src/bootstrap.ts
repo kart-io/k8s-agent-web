@@ -1,6 +1,8 @@
 import { createApp } from 'vue';
 import { initPreferences } from '@vben/preferences';
 import { initStores } from '@vben/stores';
+import { setupI18n } from '@vben/locales';
+import { unmountGlobalLoading } from '@vben/utils';
 import '@vben/styles';
 import '@vben/styles/antd';
 import 'ant-design-vue/dist/reset.css';
@@ -12,6 +14,12 @@ import { overridesPreferences } from './preferences';
 async function bootstrap(namespace: string) {
   const app = createApp(App);
 
+  // 配置国际化
+  await setupI18n(app, {
+    defaultLocale: 'zh-CN',
+    missingWarn: false,
+  });
+
   // 配置 pinia store
   await initStores(app, { namespace });
 
@@ -19,6 +27,9 @@ async function bootstrap(namespace: string) {
   app.use(router);
 
   app.mount('#app');
+
+  // 移除全局 loading
+  unmountGlobalLoading();
 }
 
 async function initApplication() {

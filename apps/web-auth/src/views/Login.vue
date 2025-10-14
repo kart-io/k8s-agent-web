@@ -128,7 +128,7 @@ async function handleSubmit(values: Record<string, any>) {
     }
   } catch (error: any) {
     message.error(error.message || '登录失败，请检查用户名和密码');
-    throw error;
+    console.error('Login error:', error);
   }
 }
 </script>
