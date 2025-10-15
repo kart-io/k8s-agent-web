@@ -8,18 +8,18 @@ import type { PersistentVolume } from '#/api/k8s/types';
 import { computed, ref } from 'vue';
 
 import {
+  Alert,
   Button,
   Descriptions,
   Drawer,
   message,
-  Table,
   Tabs,
   Tag,
 } from 'ant-design-vue';
 
 interface DetailDrawerProps {
   visible: boolean;
-  pv: PersistentVolume | null;
+  pv: null | PersistentVolume;
 }
 
 const props = withDefaults(defineProps<DetailDrawerProps>(), {
@@ -29,6 +29,7 @@ const props = withDefaults(defineProps<DetailDrawerProps>(), {
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void;
+  (e: 'close'): void;
 }>();
 
 // 当前激活的标签页
@@ -47,10 +48,10 @@ function formatDateTime(dateString?: string): string {
  */
 function formatAccessMode(mode: string): string {
   const modeMap: Record<string, string> = {
-    'ReadWriteOnce': 'RWO (ReadWriteOnce)',
-    'ReadOnlyMany': 'ROX (ReadOnlyMany)',
-    'ReadWriteMany': 'RWX (ReadWriteMany)',
-    'ReadWriteOncePod': 'RWOP (ReadWriteOncePod)',
+    ReadWriteOnce: 'RWO (ReadWriteOnce)',
+    ReadOnlyMany: 'ROX (ReadOnlyMany)',
+    ReadWriteMany: 'RWX (ReadWriteMany)',
+    ReadWriteOncePod: 'RWOP (ReadWriteOncePod)',
   };
   return modeMap[mode] || mode;
 }
@@ -83,31 +84,42 @@ const storageBackendConfig = computed(() => {
     config.push(
       { label: 'NFS 服务器', value: props.pv.spec.nfs.server },
       { label: 'NFS 路径', value: props.pv.spec.nfs.path },
-      { label: '只读', value: props.pv.spec.nfs.readOnly ? '是' : '否' }
+      { label: '只读', value: props.pv.spec.nfs.readOnly ? '是' : '否' },
     );
   } else if (props.pv.spec.hostPath) {
     config.push(
       { label: '主机路径', value: props.pv.spec.hostPath.path },
-      { label: '路径类型', value: props.pv.spec.hostPath.type || '-' }
+      { label: '路径类型', value: props.pv.spec.hostPath.type || '-' },
     );
   } else if (props.pv.spec.csi) {
     config.push(
       { label: 'CSI 驱动', value: props.pv.spec.csi.driver },
       { label: '卷句柄', value: props.pv.spec.csi.volumeHandle },
       { label: '文件系统类型', value: props.pv.spec.csi.fsType || '-' },
-      { label: '只读', value: props.pv.spec.csi.readOnly ? '是' : '否' }
+      { label: '只读', value: props.pv.spec.csi.readOnly ? '是' : '否' },
     );
 
     if (props.pv.spec.csi.volumeAttributes) {
-      Object.entries(props.pv.spec.csi.volumeAttributes).forEach(([key, value]) => {
-        config.push({ label: `属性: ${key}`, value });
-      });
+      Object.entries(props.pv.spec.csi.volumeAttributes).forEach(
+        ([key, value]) => {
+          config.push({ label: `属性: ${key}`, value });
+        },
+      );
     }
   } else if (props.pv.spec.awsElasticBlockStore) {
     config.push(
-      { label: 'Volume ID', value: props.pv.spec.awsElasticBlockStore.volumeID },
-      { label: '文件系统类型', value: props.pv.spec.awsElasticBlockStore.fsType || '-' },
-      { label: '只读', value: props.pv.spec.awsElasticBlockStore.readOnly ? '是' : '否' }
+      {
+        label: 'Volume ID',
+        value: props.pv.spec.awsElasticBlockStore.volumeID,
+      },
+      {
+        label: '文件系统类型',
+        value: props.pv.spec.awsElasticBlockStore.fsType || '-',
+      },
+      {
+        label: '只读',
+        value: props.pv.spec.awsElasticBlockStore.readOnly ? '是' : '否',
+      },
     );
   }
 
@@ -245,6 +257,7 @@ function downloadYaml() {
  */
 function handleClose() {
   emit('update:visible', false);
+  emit('close');
   activeTab.value = 'basic';
 }
 </script>
@@ -306,7 +319,13 @@ function handleClose() {
               </div>
             </Descriptions.Item>
             <Descriptions.Item label="回收策略">
-              <Tag :color="pv.spec.persistentVolumeReclaimPolicy === 'Retain' ? 'warning' : 'default'">
+              <Tag
+                :color="
+                  pv.spec.persistentVolumeReclaimPolicy === 'Retain'
+                    ? 'warning'
+                    : 'default'
+                "
+              >
                 {{ pv.spec.persistentVolumeReclaimPolicy || 'Delete' }}
               </Tag>
             </Descriptions.Item>
@@ -342,10 +361,17 @@ function handleClose() {
             </Descriptions>
           </div>
 
-          <div v-if="pv.spec.mountOptions && pv.spec.mountOptions.length > 0" class="spec-section">
+          <div
+            v-if="pv.spec.mountOptions && pv.spec.mountOptions.length > 0"
+            class="spec-section"
+          >
             <h4 class="section-title">挂载选项</h4>
             <div class="mount-options">
-              <Tag v-for="option in pv.spec.mountOptions" :key="option" color="blue">
+              <Tag
+                v-for="option in pv.spec.mountOptions"
+                :key="option"
+                color="blue"
+              >
                 {{ option }}
               </Tag>
             </div>
@@ -353,7 +379,9 @@ function handleClose() {
 
           <div v-if="pv.spec.nodeAffinity" class="spec-section">
             <h4 class="section-title">节点亲和性</h4>
-            <pre class="json-content">{{ JSON.stringify(pv.spec.nodeAffinity, null, 2) }}</pre>
+            <pre class="json-content">{{
+              JSON.stringify(pv.spec.nodeAffinity, null, 2)
+            }}</pre>
           </div>
         </Tabs.TabPane>
 
@@ -374,7 +402,7 @@ function handleClose() {
             </Descriptions>
 
             <div class="binding-info">
-              <a-alert
+              <Alert
                 message="此 PV 已绑定到 PVC"
                 :description="`PVC: ${pv.spec.claimRef.namespace}/${pv.spec.claimRef.name}`"
                 type="info"
@@ -383,7 +411,7 @@ function handleClose() {
             </div>
           </div>
           <div v-else class="binding-section">
-            <a-alert
+            <Alert
               message="未绑定"
               description="此 PV 尚未绑定到任何 PVC"
               type="warning"
@@ -423,9 +451,7 @@ function handleClose() {
             <Button type="primary" size="small" @click="copyYaml">
               复制 YAML
             </Button>
-            <Button size="small" @click="downloadYaml">
-              下载 YAML
-            </Button>
+            <Button size="small" @click="downloadYaml"> 下载 YAML </Button>
           </div>
           <div class="yaml-wrapper">
             <div class="yaml-content">

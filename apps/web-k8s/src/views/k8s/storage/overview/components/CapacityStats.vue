@@ -5,13 +5,13 @@
  */
 import { computed, h, onMounted, ref } from 'vue';
 
-import { Card, Col, Progress, Row, Statistic } from 'ant-design-vue';
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   DatabaseOutlined,
   WarningOutlined,
 } from '@ant-design/icons-vue';
+import { Alert, Card, Col, Progress, Row, Statistic } from 'ant-design-vue';
 
 // Mock 统计数据
 const stats = ref({
@@ -209,7 +209,7 @@ onMounted(() => {
     </Row>
 
     <!-- 使用率告警 -->
-    <a-alert
+    <Alert
       v-if="stats.usagePercent >= 80"
       :type="stats.usagePercent >= 90 ? 'error' : 'warning'"
       :message="
@@ -217,9 +217,7 @@ onMounted(() => {
           ? '存储使用率过高！'
           : '存储使用率较高，请注意监控'
       "
-      :description="
-        `当前使用率为 ${stats.usagePercent}%，${stats.usagePercent >= 90 ? '建议立即清理或扩容' : '建议及时清理不必要的数据'}`
-      "
+      :description="`当前使用率为 ${stats.usagePercent}%，${stats.usagePercent >= 90 ? '建议立即清理或扩容' : '建议及时清理不必要的数据'}`"
       show-icon
       class="usage-alert"
     />
@@ -266,8 +264,8 @@ onMounted(() => {
 }
 
 :deep(.ant-statistic-title) {
-  font-size: 14px;
   margin-bottom: 8px;
+  font-size: 14px;
   color: var(--vben-text-color-secondary);
 }
 

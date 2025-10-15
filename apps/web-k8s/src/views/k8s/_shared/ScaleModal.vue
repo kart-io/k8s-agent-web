@@ -5,11 +5,22 @@
  */
 import { computed, ref, watch } from 'vue';
 
-import { Form, InputNumber, message, Modal } from 'ant-design-vue';
+import {
+  Alert,
+  Button,
+  Form,
+  InputNumber,
+  message,
+  Modal,
+} from 'ant-design-vue';
 
 defineOptions({
   name: 'ScaleModal',
 });
+
+const props = defineProps<Props>();
+
+const emit = defineEmits<Emits>();
 
 interface Props {
   visible: boolean;
@@ -23,9 +34,6 @@ interface Emits {
   (e: 'update:visible', value: boolean): void;
   (e: 'confirm', replicas: number): void;
 }
-
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
 
 // 表单数据
 const formData = ref({
@@ -159,9 +167,7 @@ function handleDecrement() {
       >
         <Form.Item label="目标副本数" name="replicas">
           <div class="replicas-input-wrapper">
-            <a-button class="decrement-btn" @click="handleDecrement">
-              -
-            </a-button>
+            <Button class="decrement-btn" @click="handleDecrement"> - </Button>
             <InputNumber
               v-model:value="formData.replicas"
               :min="0"
@@ -169,9 +175,7 @@ function handleDecrement() {
               :step="1"
               class="replicas-input"
             />
-            <a-button class="increment-btn" @click="handleIncrement">
-              +
-            </a-button>
+            <Button class="increment-btn" @click="handleIncrement"> + </Button>
           </div>
         </Form.Item>
 
@@ -190,7 +194,7 @@ function handleDecrement() {
         </div>
       </Form>
 
-      <a-alert
+      <Alert
         message="提示"
         description="扩缩容操作会立即生效，请谨慎操作。扩容会创建新的 Pod，缩容会删除多余的 Pod。"
         type="warning"
@@ -207,8 +211,8 @@ function handleDecrement() {
 }
 
 .resource-info {
-  margin-bottom: 24px;
   padding: 16px;
+  margin-bottom: 24px;
   background-color: rgb(0 0 0 / 2%);
   border-radius: 4px;
 }
@@ -250,8 +254,8 @@ html[data-theme='dark'] .resource-info {
 
 .replicas-input-wrapper {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .decrement-btn,
@@ -279,10 +283,10 @@ html[data-theme='dark'] .resource-info {
 
 .diff-info {
   display: flex;
-  align-items: center;
   gap: 8px;
-  margin-top: 12px;
+  align-items: center;
   padding: 8px 12px;
+  margin-top: 12px;
   background-color: rgb(0 0 0 / 2%);
   border-radius: 4px;
 }

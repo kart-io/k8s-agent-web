@@ -6,14 +6,13 @@ import type { StorageClass } from '#/api/k8s/types';
 
 import { ref } from 'vue';
 
-import { message } from 'ant-design-vue';
+import { message, Tag } from 'ant-design-vue';
 
 import {
   checkStorageClassBeforeDelete,
   mockDeleteStorageClass,
 } from '#/api/k8s/mock';
 import { createStorageClassConfig } from '#/config/k8s-resources';
-
 import DeleteConfirmModal from '#/views/k8s/_shared/DeleteConfirmModal.vue';
 import ResourceList from '#/views/k8s/_shared/ResourceList.vue';
 
@@ -127,7 +126,9 @@ if (config.actions && config.actions.length > 0) {
     viewAction.handler = openDetailDrawer;
   }
 
-  const deleteAction = config.actions.find((action) => action.action === 'delete');
+  const deleteAction = config.actions.find(
+    (action) => action.action === 'delete',
+  );
   if (deleteAction) {
     deleteAction.handler = openDeleteModal;
   }
@@ -139,18 +140,16 @@ if (config.actions && config.actions.length > 0) {
     <ResourceList ref="resourceListRef" :config="config">
       <!-- 绑定模式插槽 -->
       <template #binding-mode-slot="{ row }">
-        <a-tag
-          :color="row.volumeBindingMode === 'Immediate' ? 'blue' : 'cyan'"
-        >
+        <Tag :color="row.volumeBindingMode === 'Immediate' ? 'blue' : 'cyan'">
           {{ row.volumeBindingMode || 'Immediate' }}
-        </a-tag>
+        </Tag>
       </template>
 
       <!-- 允许扩容插槽 -->
       <template #expansion-slot="{ row }">
-        <a-tag :color="row.allowVolumeExpansion ? 'success' : 'default'">
+        <Tag :color="row.allowVolumeExpansion ? 'success' : 'default'">
           {{ row.allowVolumeExpansion ? '是' : '否' }}
-        </a-tag>
+        </Tag>
       </template>
     </ResourceList>
 
@@ -164,7 +163,7 @@ if (config.actions && config.actions.length > 0) {
     <!-- 删除确认对话框 -->
     <DeleteConfirmModal
       v-model:visible="deleteModalVisible"
-      :resource-type="`StorageClass`"
+      resource-type="StorageClass"
       :resource-name="scToDelete?.metadata.name || ''"
       :warnings="deleteWarnings"
       :require-confirm-text="true"

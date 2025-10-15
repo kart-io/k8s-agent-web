@@ -5,10 +5,14 @@
  */
 import { computed, ref, watch } from 'vue';
 
-import { Alert, Modal } from 'ant-design-vue';
+import { Alert, Button, Modal } from 'ant-design-vue';
 import * as yaml from 'js-yaml';
 
 defineOptions({ name: 'YAMLEditorModal' });
+
+const props = defineProps<Props>();
+
+const emit = defineEmits<Emits>();
 
 interface Props {
   visible: boolean;
@@ -21,9 +25,6 @@ interface Emits {
   (e: 'update:visible', value: boolean): void;
   (e: 'confirm', resource: any): void;
 }
-
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
 
 // YAML 内容
 const yamlContent = ref('');
@@ -151,10 +152,8 @@ function handleCancel() {
   >
     <!-- 工具栏 -->
     <div class="editor-toolbar">
-      <a-button size="small" @click="handleFormat">格式化</a-button>
-      <span class="editor-info">
-        支持 YAML 格式编辑 K8s 资源配置
-      </span>
+      <Button size="small" @click="handleFormat">格式化</Button>
+      <span class="editor-info"> 支持 YAML 格式编辑 K8s 资源配置 </span>
     </div>
 
     <!-- 错误提示 -->
@@ -165,7 +164,7 @@ function handleCancel() {
       show-icon
       closable
       class="editor-error"
-      @close="validationError = ''"
+      @close="() => (validationError = '')"
     />
 
     <!-- YAML 编辑器 -->
@@ -176,7 +175,7 @@ function handleCancel() {
         class="yaml-editor"
         spellcheck="false"
         @input="handleYAMLChange"
-      />
+      ></textarea>
     </div>
 
     <!-- 提示信息 -->
@@ -219,28 +218,28 @@ function handleCancel() {
 .yaml-editor-wrapper {
   position: relative;
   height: 600px;
+  overflow: hidden;
   border: 2px solid var(--yaml-border-color);
   border-radius: 4px;
-  overflow: hidden;
 }
 
 .yaml-editor {
   width: 100%;
   height: 100%;
   padding: 16px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro',
-    monospace;
+  overflow-x: auto;
+  font-family:
+    Monaco, Menlo, 'Ubuntu Mono', Consolas, source-code-pro, monospace;
   font-size: 13px;
   line-height: 1.6;
   color: var(--yaml-text-color);
-  background-color: var(--yaml-bg-color);
-  border: none;
-  outline: none;
-  resize: none;
+  overflow-wrap: normal;
   tab-size: 2;
   white-space: pre;
-  overflow-wrap: normal;
-  overflow-x: auto;
+  resize: none;
+  outline: none;
+  background-color: var(--yaml-bg-color);
+  border: none;
 }
 
 /* 滚动条样式 */
@@ -275,7 +274,7 @@ html[data-theme='dark'] {
 /* 浅色主题 */
 html[data-theme='light'],
 html:not([data-theme]) {
-  --yaml-bg-color: #ffffff;
+  --yaml-bg-color: #fff;
   --yaml-text-color: #24292e;
   --yaml-border-color: #d1d5da;
   --yaml-scrollbar-track-color: #f0f0f0;

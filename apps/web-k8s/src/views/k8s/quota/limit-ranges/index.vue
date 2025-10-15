@@ -3,11 +3,13 @@
  * Kubernetes LimitRange 列表页面
  * 展示命名空间级别的资源限制范围（默认值、最大值、最小值）
  */
-import type { LimitRange, LimitRangeItem, LimitRangeListParams } from '#/api/k8s/types';
+import type { LimitRange, LimitRangeListParams } from '#/api/k8s/types';
 
 import { computed, onMounted, ref } from 'vue';
 
+import { ControlOutlined, SettingOutlined } from '@ant-design/icons-vue';
 import {
+  Button,
   Card,
   Descriptions,
   message,
@@ -17,10 +19,6 @@ import {
   Tag,
   Tooltip,
 } from 'ant-design-vue';
-import {
-  ControlOutlined,
-  SettingOutlined,
-} from '@ant-design/icons-vue';
 
 import { getMockLimitRangeList } from '#/api/k8s/mock';
 
@@ -142,14 +140,18 @@ function formatDateTime(dateString: string): string {
  */
 function getLimitTypeColor(type: string): string {
   switch (type) {
-    case 'Container':
+    case 'Container': {
       return 'blue';
-    case 'Pod':
-      return 'green';
-    case 'PersistentVolumeClaim':
+    }
+    case 'PersistentVolumeClaim': {
       return 'purple';
-    default:
+    }
+    case 'Pod': {
+      return 'green';
+    }
+    default: {
       return 'default';
+    }
   }
 }
 
@@ -161,7 +163,7 @@ function getLimitTypes(limitRange: LimitRange): string[] {
   limitRange.spec.limits.forEach((item) => {
     types.add(item.type);
   });
-  return Array.from(types);
+  return [...types];
 }
 
 /**
@@ -249,9 +251,7 @@ onMounted(() => {
           />
         </div>
 
-        <a-button type="link" @click="resetFilters">
-          重置筛选
-        </a-button>
+        <Button type="link" @click="resetFilters"> 重置筛选 </Button>
       </div>
     </Card>
 
@@ -288,15 +288,17 @@ onMounted(() => {
 
           <!-- 限制项数量列 -->
           <template v-else-if="column.key === 'limitsCount'">
-            <Tag color="blue">
-              {{ record.spec.limits.length }} 个限制
-            </Tag>
+            <Tag color="blue"> {{ record.spec.limits.length }} 个限制 </Tag>
           </template>
 
           <!-- 限制类型列 -->
           <template v-else-if="column.key === 'limitTypes'">
             <div class="limit-types-cell">
-              <Tag v-for="type in getLimitTypes(record)" :key="type" :color="getLimitTypeColor(type)">
+              <Tag
+                v-for="type in getLimitTypes(record)"
+                :key="type"
+                :color="getLimitTypeColor(type)"
+              >
                 {{ type }}
               </Tag>
             </div>
@@ -304,7 +306,9 @@ onMounted(() => {
 
           <!-- 创建时间列 -->
           <template v-else-if="column.key === 'creationTimestamp'">
-            <Tooltip :title="formatDateTime(record.metadata.creationTimestamp!)">
+            <Tooltip
+              :title="formatDateTime(record.metadata.creationTimestamp!)"
+            >
               <span class="time-text">
                 {{ formatRelativeTime(record.metadata.creationTimestamp!) }}
               </span>
@@ -315,7 +319,12 @@ onMounted(() => {
         <!-- 展开行内容 -->
         <template #expandedRowRender="{ record }">
           <div class="expanded-content">
-            <Descriptions title="LimitRange 详情" :column="2" bordered size="small">
+            <Descriptions
+              title="LimitRange 详情"
+              :column="2"
+              bordered
+              size="small"
+            >
               <Descriptions.Item label="名称" :span="2">
                 {{ record.metadata.name }}
               </Descriptions.Item>
@@ -362,7 +371,9 @@ onMounted(() => {
                           class="resource-item"
                         >
                           <span class="resource-label">{{ resource }}:</span>
-                          <code class="resource-value">{{ formatResourceValue(value) }}</code>
+                          <code class="resource-value">{{
+                            formatResourceValue(value)
+                          }}</code>
                         </div>
                       </div>
                     </div>
@@ -381,7 +392,9 @@ onMounted(() => {
                           class="resource-item"
                         >
                           <span class="resource-label">{{ resource }}:</span>
-                          <code class="resource-value">{{ formatResourceValue(value) }}</code>
+                          <code class="resource-value">{{
+                            formatResourceValue(value)
+                          }}</code>
                         </div>
                       </div>
                     </div>
@@ -389,7 +402,10 @@ onMounted(() => {
                     <!-- Default -->
                     <div v-if="limit.default" class="limit-field">
                       <div class="field-header">
-                        <Tag :color="getLimitFieldColor('default')" size="small">
+                        <Tag
+                          :color="getLimitFieldColor('default')"
+                          size="small"
+                        >
                           {{ getLimitFieldLabel('default') }}
                         </Tag>
                       </div>
@@ -400,7 +416,9 @@ onMounted(() => {
                           class="resource-item"
                         >
                           <span class="resource-label">{{ resource }}:</span>
-                          <code class="resource-value">{{ formatResourceValue(value) }}</code>
+                          <code class="resource-value">{{
+                            formatResourceValue(value)
+                          }}</code>
                         </div>
                       </div>
                     </div>
@@ -408,7 +426,10 @@ onMounted(() => {
                     <!-- Default Request -->
                     <div v-if="limit.defaultRequest" class="limit-field">
                       <div class="field-header">
-                        <Tag :color="getLimitFieldColor('defaultRequest')" size="small">
+                        <Tag
+                          :color="getLimitFieldColor('defaultRequest')"
+                          size="small"
+                        >
                           {{ getLimitFieldLabel('defaultRequest') }}
                         </Tag>
                       </div>
@@ -419,7 +440,9 @@ onMounted(() => {
                           class="resource-item"
                         >
                           <span class="resource-label">{{ resource }}:</span>
-                          <code class="resource-value">{{ formatResourceValue(value) }}</code>
+                          <code class="resource-value">{{
+                            formatResourceValue(value)
+                          }}</code>
                         </div>
                       </div>
                     </div>
@@ -427,18 +450,25 @@ onMounted(() => {
                     <!-- Max Limit/Request Ratio -->
                     <div v-if="limit.maxLimitRequestRatio" class="limit-field">
                       <div class="field-header">
-                        <Tag :color="getLimitFieldColor('maxLimitRequestRatio')" size="small">
+                        <Tag
+                          :color="getLimitFieldColor('maxLimitRequestRatio')"
+                          size="small"
+                        >
                           {{ getLimitFieldLabel('maxLimitRequestRatio') }}
                         </Tag>
                       </div>
                       <div class="field-resources">
                         <div
-                          v-for="(value, resource) in limit.maxLimitRequestRatio"
+                          v-for="(
+                            value, resource
+                          ) in limit.maxLimitRequestRatio"
                           :key="`ratio-${resource}`"
                           class="resource-item"
                         >
                           <span class="resource-label">{{ resource }}:</span>
-                          <code class="resource-value">{{ formatResourceValue(value) }}</code>
+                          <code class="resource-value">{{
+                            formatResourceValue(value)
+                          }}</code>
                         </div>
                       </div>
                     </div>
@@ -504,8 +534,8 @@ onMounted(() => {
 
 .card-title {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   font-size: 16px;
   font-weight: 600;
 }
@@ -517,8 +547,8 @@ onMounted(() => {
 
 .name-cell {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .name-icon {
@@ -580,8 +610,8 @@ html[data-theme='dark'] .expanded-content {
 
 .limit-card-header {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .limit-icon {
@@ -597,8 +627,8 @@ html[data-theme='dark'] .expanded-content {
 
 .limit-field {
   padding: 8px;
-  border-radius: 4px;
   background-color: rgb(0 0 0 / 2%);
+  border-radius: 4px;
 }
 
 html[data-theme='dark'] .limit-field {
@@ -617,12 +647,12 @@ html[data-theme='dark'] .limit-field {
 
 .resource-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
   gap: 8px;
+  align-items: center;
+  justify-content: space-between;
   padding: 4px 8px;
-  border-radius: 3px;
   background-color: var(--vben-background-color);
+  border-radius: 3px;
 }
 
 .resource-label {
@@ -632,12 +662,12 @@ html[data-theme='dark'] .limit-field {
 }
 
 .resource-value {
+  padding: 2px 6px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 12px;
   color: var(--vben-primary-color);
-  padding: 2px 6px;
-  border-radius: 3px;
   background-color: rgb(24 144 255 / 10%);
+  border-radius: 3px;
 }
 
 .pagination-wrapper {

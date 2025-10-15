@@ -7,7 +7,9 @@ import type { ResourceQuota, ResourceQuotaListParams } from '#/api/k8s/types';
 
 import { computed, onMounted, ref } from 'vue';
 
+import { DashboardOutlined, PieChartOutlined } from '@ant-design/icons-vue';
 import {
+  Button,
   Card,
   Descriptions,
   message,
@@ -18,10 +20,6 @@ import {
   Tag,
   Tooltip,
 } from 'ant-design-vue';
-import {
-  DashboardOutlined,
-  PieChartOutlined,
-} from '@ant-design/icons-vue';
 
 import { getMockResourceQuotaList } from '#/api/k8s/mock';
 
@@ -151,22 +149,22 @@ function parseResourceValue(value: string): number {
 
   // 处理存储单位: Gi, Mi, Ki
   if (value.endsWith('Gi')) {
-    return parseInt(value) * 1024 * 1024 * 1024;
+    return Number.parseInt(value) * 1024 * 1024 * 1024;
   }
   if (value.endsWith('Mi')) {
-    return parseInt(value) * 1024 * 1024;
+    return Number.parseInt(value) * 1024 * 1024;
   }
   if (value.endsWith('Ki')) {
-    return parseInt(value) * 1024;
+    return Number.parseInt(value) * 1024;
   }
 
   // 处理 CPU 单位: m (millicores)
   if (value.endsWith('m')) {
-    return parseInt(value) / 1000;
+    return Number.parseInt(value) / 1000;
   }
 
   // 纯数字
-  return parseInt(value) || 0;
+  return Number.parseInt(value) || 0;
 }
 
 /**
@@ -212,7 +210,7 @@ function getUsageColor(percent: number): string {
 /**
  * 获取使用率的状态
  */
-function getUsageStatus(percent: number): 'success' | 'normal' | 'exception' {
+function getUsageStatus(percent: number): 'exception' | 'normal' | 'success' {
   if (percent >= 90) return 'exception';
   if (percent >= 75) return 'normal';
   return 'success';
@@ -275,9 +273,7 @@ onMounted(() => {
           />
         </div>
 
-        <a-button type="link" @click="resetFilters">
-          重置筛选
-        </a-button>
+        <Button type="link" @click="resetFilters"> 重置筛选 </Button>
       </div>
     </Card>
 
@@ -333,8 +329,15 @@ onMounted(() => {
 
           <!-- 作用域列 -->
           <template v-else-if="column.key === 'scopes'">
-            <div v-if="record.spec.scopes && record.spec.scopes.length > 0" class="scopes-cell">
-              <Tag v-for="scope in record.spec.scopes" :key="scope" color="purple">
+            <div
+              v-if="record.spec.scopes && record.spec.scopes.length > 0"
+              class="scopes-cell"
+            >
+              <Tag
+                v-for="scope in record.spec.scopes"
+                :key="scope"
+                color="purple"
+              >
                 {{ scope }}
               </Tag>
             </div>
@@ -343,7 +346,9 @@ onMounted(() => {
 
           <!-- 创建时间列 -->
           <template v-else-if="column.key === 'creationTimestamp'">
-            <Tooltip :title="formatDateTime(record.metadata.creationTimestamp!)">
+            <Tooltip
+              :title="formatDateTime(record.metadata.creationTimestamp!)"
+            >
               <span class="time-text">
                 {{ formatRelativeTime(record.metadata.creationTimestamp!) }}
               </span>
@@ -364,8 +369,16 @@ onMounted(() => {
               <Descriptions.Item label="UID">
                 <code>{{ record.metadata.uid }}</code>
               </Descriptions.Item>
-              <Descriptions.Item v-if="record.spec.scopes" label="作用域" :span="2">
-                <Tag v-for="scope in record.spec.scopes" :key="scope" color="purple">
+              <Descriptions.Item
+                v-if="record.spec.scopes"
+                label="作用域"
+                :span="2"
+              >
+                <Tag
+                  v-for="scope in record.spec.scopes"
+                  :key="scope"
+                  color="purple"
+                >
                   {{ scope }}
                 </Tag>
               </Descriptions.Item>
@@ -373,7 +386,9 @@ onMounted(() => {
 
             <div class="resources-section">
               <h4 class="resources-title">
-                资源限制与使用情况 ({{ Object.keys(record.status?.hard || {}).length }})
+                资源限制与使用情况 ({{
+                  Object.keys(record.status?.hard || {}).length
+                }})
               </h4>
               <div class="resources-grid">
                 <Card
@@ -384,26 +399,63 @@ onMounted(() => {
                 >
                   <div class="resource-header">
                     <span class="resource-name">{{ resource }}</span>
-                    <Tag :color="getUsageColor(calculateUsagePercent(record.status!.used![resource] || '0', hardValue))">
-                      {{ calculateUsagePercent(record.status!.used![resource] || '0', hardValue) }}%
+                    <Tag
+                      :color="
+                        getUsageColor(
+                          calculateUsagePercent(
+                            record.status!.used![resource] || '0',
+                            hardValue,
+                          ),
+                        )
+                      "
+                    >
+                      {{
+                        calculateUsagePercent(
+                          record.status!.used![resource] || '0',
+                          hardValue,
+                        )
+                      }}%
                     </Tag>
                   </div>
                   <div class="resource-progress">
                     <Progress
-                      :percent="calculateUsagePercent(record.status!.used![resource] || '0', hardValue)"
-                      :status="getUsageStatus(calculateUsagePercent(record.status!.used![resource] || '0', hardValue))"
-                      :stroke-color="getUsageColor(calculateUsagePercent(record.status!.used![resource] || '0', hardValue))"
+                      :percent="
+                        calculateUsagePercent(
+                          record.status!.used![resource] || '0',
+                          hardValue,
+                        )
+                      "
+                      :status="
+                        getUsageStatus(
+                          calculateUsagePercent(
+                            record.status!.used![resource] || '0',
+                            hardValue,
+                          ),
+                        )
+                      "
+                      :stroke-color="
+                        getUsageColor(
+                          calculateUsagePercent(
+                            record.status!.used![resource] || '0',
+                            hardValue,
+                          ),
+                        )
+                      "
                       size="small"
                     />
                   </div>
                   <div class="resource-values">
                     <div class="value-row">
                       <span class="value-label">已使用:</span>
-                      <code class="value-text used">{{ formatResourceValue(record.status!.used![resource]) }}</code>
+                      <code class="value-text used">{{
+                        formatResourceValue(record.status!.used![resource])
+                      }}</code>
                     </div>
                     <div class="value-row">
                       <span class="value-label">硬限制:</span>
-                      <code class="value-text hard">{{ formatResourceValue(hardValue) }}</code>
+                      <code class="value-text hard">{{
+                        formatResourceValue(hardValue)
+                      }}</code>
                     </div>
                   </div>
                 </Card>
@@ -467,8 +519,8 @@ onMounted(() => {
 
 .card-title {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   font-size: 16px;
   font-weight: 600;
 }
@@ -480,8 +532,8 @@ onMounted(() => {
 
 .name-cell {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .name-icon {
@@ -551,16 +603,16 @@ html[data-theme='dark'] .expanded-content {
 
 .resource-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 8px;
 }
 
 .resource-name {
+  font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 13px;
   font-weight: 600;
   color: var(--vben-text-color);
-  font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
 }
 
 .resource-progress {
@@ -575,9 +627,9 @@ html[data-theme='dark'] .expanded-content {
 
 .value-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
   gap: 8px;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .value-label {
@@ -587,9 +639,9 @@ html[data-theme='dark'] .expanded-content {
 }
 
 .value-text {
+  padding: 2px 6px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 12px;
-  padding: 2px 6px;
   border-radius: 3px;
 }
 

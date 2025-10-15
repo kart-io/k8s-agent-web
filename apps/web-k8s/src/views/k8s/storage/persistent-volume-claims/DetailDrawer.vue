@@ -8,6 +8,7 @@ import type { PersistentVolumeClaim } from '#/api/k8s/types';
 import { computed, ref } from 'vue';
 
 import {
+  Alert,
   Button,
   Descriptions,
   Drawer,
@@ -19,7 +20,7 @@ import {
 
 interface DetailDrawerProps {
   visible: boolean;
-  pvc: PersistentVolumeClaim | null;
+  pvc: null | PersistentVolumeClaim;
 }
 
 const props = withDefaults(defineProps<DetailDrawerProps>(), {
@@ -29,6 +30,7 @@ const props = withDefaults(defineProps<DetailDrawerProps>(), {
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void;
+  (e: 'close'): void;
 }>();
 
 // 当前激活的标签页
@@ -47,10 +49,10 @@ function formatDateTime(dateString?: string): string {
  */
 function formatAccessMode(mode: string): string {
   const modeMap: Record<string, string> = {
-    'ReadWriteOnce': 'RWO (ReadWriteOnce)',
-    'ReadOnlyMany': 'ROX (ReadOnlyMany)',
-    'ReadWriteMany': 'RWX (ReadWriteMany)',
-    'ReadWriteOncePod': 'RWOP (ReadWriteOncePod)',
+    ReadWriteOnce: 'RWO (ReadWriteOnce)',
+    ReadOnlyMany: 'ROX (ReadOnlyMany)',
+    ReadWriteMany: 'RWX (ReadWriteMany)',
+    ReadWriteOncePod: 'RWOP (ReadWriteOncePod)',
   };
   return modeMap[mode] || mode;
 }
@@ -203,6 +205,7 @@ function downloadYaml() {
  */
 function handleClose() {
   emit('update:visible', false);
+  emit('close');
   activeTab.value = 'basic';
 }
 </script>
@@ -296,7 +299,9 @@ function handleClose() {
 
           <div v-if="pvc.spec.selector" class="spec-section">
             <h4 class="section-title">选择器</h4>
-            <pre class="json-content">{{ JSON.stringify(pvc.spec.selector, null, 2) }}</pre>
+            <pre class="json-content">{{
+              JSON.stringify(pvc.spec.selector, null, 2)
+            }}</pre>
           </div>
 
           <div v-if="pvc.spec.dataSource" class="spec-section">
@@ -308,7 +313,11 @@ function handleClose() {
               <Descriptions.Item label="名称">
                 {{ pvc.spec.dataSource.name }}
               </Descriptions.Item>
-              <Descriptions.Item v-if="pvc.spec.dataSource.apiGroup" label="API 组" :span="2">
+              <Descriptions.Item
+                v-if="pvc.spec.dataSource.apiGroup"
+                label="API 组"
+                :span="2"
+              >
                 {{ pvc.spec.dataSource.apiGroup }}
               </Descriptions.Item>
             </Descriptions>
@@ -317,7 +326,7 @@ function handleClose() {
 
         <!-- 使用情况标签页 -->
         <Tabs.TabPane key="usage" tab="使用情况">
-          <a-alert
+          <Alert
             message="Pod 使用情况"
             description="此 PVC 当前未被任何 Pod 使用（Mock 数据暂不支持此功能）"
             type="info"
@@ -328,7 +337,7 @@ function handleClose() {
         <!-- 绑定的 PV 标签页 -->
         <Tabs.TabPane key="bound-pv" tab="绑定的 PV">
           <div v-if="pvc.spec.volumeName" class="binding-section">
-            <a-alert
+            <Alert
               message="已绑定"
               :description="`此 PVC 已绑定到 PV: ${pvc.spec.volumeName}`"
               type="success"
@@ -343,7 +352,11 @@ function handleClose() {
                 <Descriptions.Item label="实际容量">
                   {{ pvc.status?.capacity?.storage || '-' }}
                 </Descriptions.Item>
-                <Descriptions.Item v-if="pvc.status?.accessModes" label="访问模式" :span="2">
+                <Descriptions.Item
+                  v-if="pvc.status?.accessModes"
+                  label="访问模式"
+                  :span="2"
+                >
                   <div class="access-modes">
                     <Tag
                       v-for="mode in pvc.status.accessModes"
@@ -359,7 +372,7 @@ function handleClose() {
             </div>
           </div>
           <div v-else class="binding-section">
-            <a-alert
+            <Alert
               message="未绑定"
               description="此 PVC 尚未绑定到任何 PV"
               type="warning"
@@ -412,9 +425,7 @@ function handleClose() {
             <Button type="primary" size="small" @click="copyYaml">
               复制 YAML
             </Button>
-            <Button size="small" @click="downloadYaml">
-              下载 YAML
-            </Button>
+            <Button size="small" @click="downloadYaml"> 下载 YAML </Button>
           </div>
           <div class="yaml-wrapper">
             <div class="yaml-content">

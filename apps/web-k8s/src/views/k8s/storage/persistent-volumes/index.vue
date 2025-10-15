@@ -6,14 +6,10 @@ import type { PersistentVolume } from '#/api/k8s/types';
 
 import { ref } from 'vue';
 
-import { message } from 'ant-design-vue';
+import { message, Tag } from 'ant-design-vue';
 
-import {
-  checkPVBeforeDelete,
-  mockDeletePV,
-} from '#/api/k8s/mock';
+import { checkPVBeforeDelete, mockDeletePV } from '#/api/k8s/mock';
 import { createPVConfig } from '#/config/k8s-resources';
-
 import DeleteConfirmModal from '#/views/k8s/_shared/DeleteConfirmModal.vue';
 import ResourceList from '#/views/k8s/_shared/ResourceList.vue';
 
@@ -124,7 +120,9 @@ if (config.actions && config.actions.length > 0) {
     viewAction.handler = openDetailDrawer;
   }
 
-  const deleteAction = config.actions.find((action) => action.action === 'delete');
+  const deleteAction = config.actions.find(
+    (action) => action.action === 'delete',
+  );
   if (deleteAction) {
     deleteAction.handler = openDeleteModal;
   }
@@ -136,7 +134,7 @@ if (config.actions && config.actions.length > 0) {
     <ResourceList ref="resourceListRef" :config="config">
       <!-- 访问模式插槽 -->
       <template #access-modes-slot="{ row }">
-        <a-tag
+        <Tag
           v-for="mode in row.spec.accessModes"
           :key="mode"
           color="blue"
@@ -151,7 +149,7 @@ if (config.actions && config.actions.length > 0) {
                   ? 'RWX'
                   : 'RWOP'
           }}
-        </a-tag>
+        </Tag>
       </template>
 
       <!-- 绑定的 PVC 插槽 -->
@@ -173,7 +171,7 @@ if (config.actions && config.actions.length > 0) {
     <!-- 删除确认对话框 -->
     <DeleteConfirmModal
       v-model:visible="deleteModalVisible"
-      :resource-type="`PersistentVolume`"
+      resource-type="PersistentVolume"
       :resource-name="pvToDelete?.metadata.name || ''"
       :warnings="deleteWarnings"
       :require-confirm-text="true"

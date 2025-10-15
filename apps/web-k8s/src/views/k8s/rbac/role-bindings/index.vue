@@ -3,11 +3,21 @@
  * Kubernetes RoleBinding 列表页面
  * 展示角色绑定关系：将 Subject (User/Group/ServiceAccount) 绑定到 Role
  */
-import type { RoleBinding, RoleBindingListParams, Subject } from '#/api/k8s/types';
+import type {
+  RoleBinding,
+  RoleBindingListParams,
+  Subject,
+} from '#/api/k8s/types';
 
 import { computed, onMounted, ref } from 'vue';
 
 import {
+  LinkOutlined,
+  TeamOutlined,
+  UserOutlined,
+} from '@ant-design/icons-vue';
+import {
+  Button,
   Card,
   Descriptions,
   message,
@@ -17,11 +27,6 @@ import {
   Tag,
   Tooltip,
 } from 'ant-design-vue';
-import {
-  LinkOutlined,
-  TeamOutlined,
-  UserOutlined,
-} from '@ant-design/icons-vue';
 
 import { getMockRoleBindingList } from '#/api/k8s/mock';
 
@@ -143,14 +148,18 @@ function formatDateTime(dateString: string): string {
  */
 function getSubjectTypeColor(kind: string): string {
   switch (kind) {
-    case 'User':
-      return 'blue';
-    case 'Group':
+    case 'Group': {
       return 'purple';
-    case 'ServiceAccount':
+    }
+    case 'ServiceAccount': {
       return 'green';
-    default:
+    }
+    case 'User': {
+      return 'blue';
+    }
+    default: {
       return 'default';
+    }
   }
 }
 
@@ -159,14 +168,18 @@ function getSubjectTypeColor(kind: string): string {
  */
 function getSubjectTypeIcon(kind: string) {
   switch (kind) {
-    case 'User':
-      return UserOutlined;
-    case 'Group':
+    case 'Group': {
       return TeamOutlined;
-    case 'ServiceAccount':
+    }
+    case 'ServiceAccount': {
       return UserOutlined;
-    default:
+    }
+    case 'User': {
       return UserOutlined;
+    }
+    default: {
+      return UserOutlined;
+    }
   }
 }
 
@@ -243,9 +256,7 @@ onMounted(() => {
           />
         </div>
 
-        <a-button type="link" @click="resetFilters">
-          重置筛选
-        </a-button>
+        <Button type="link" @click="resetFilters"> 重置筛选 </Button>
       </div>
     </Card>
 
@@ -298,7 +309,9 @@ onMounted(() => {
 
           <!-- 创建时间列 -->
           <template v-else-if="column.key === 'creationTimestamp'">
-            <Tooltip :title="formatDateTime(record.metadata.creationTimestamp!)">
+            <Tooltip
+              :title="formatDateTime(record.metadata.creationTimestamp!)"
+            >
               <span class="time-text">
                 {{ formatRelativeTime(record.metadata.creationTimestamp!) }}
               </span>
@@ -331,7 +344,10 @@ onMounted(() => {
               <h4 class="subjects-title">
                 绑定主体 ({{ record.subjects?.length || 0 }})
               </h4>
-              <div v-if="record.subjects && record.subjects.length > 0" class="subjects-list">
+              <div
+                v-if="record.subjects && record.subjects.length > 0"
+                class="subjects-list"
+              >
                 <Card
                   v-for="(subject, index) in record.subjects"
                   :key="`subject-${index}`"
@@ -363,9 +379,7 @@ onMounted(() => {
                   </div>
                 </Card>
               </div>
-              <div v-else class="no-subjects">
-                暂无绑定主体
-              </div>
+              <div v-else class="no-subjects">暂无绑定主体</div>
             </div>
           </div>
         </template>
@@ -425,8 +439,8 @@ onMounted(() => {
 
 .card-title {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   font-size: 16px;
   font-weight: 600;
 }
@@ -438,8 +452,8 @@ onMounted(() => {
 
 .name-cell {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .name-icon {
@@ -501,8 +515,8 @@ html[data-theme='dark'] .expanded-content {
 
 .subject-header {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   margin-bottom: 12px;
 }
 

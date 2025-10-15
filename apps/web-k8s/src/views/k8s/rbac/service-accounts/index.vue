@@ -8,6 +8,13 @@ import type { ServiceAccount, ServiceAccountListParams } from '#/api/k8s/types';
 import { computed, onMounted, ref } from 'vue';
 
 import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  KeyOutlined,
+  UserOutlined,
+} from '@ant-design/icons-vue';
+import {
+  Button,
   Card,
   message,
   Pagination,
@@ -16,12 +23,6 @@ import {
   Tag,
   Tooltip,
 } from 'ant-design-vue';
-import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  KeyOutlined,
-  UserOutlined,
-} from '@ant-design/icons-vue';
 
 import { getMockServiceAccountList } from '#/api/k8s/mock';
 
@@ -188,9 +189,7 @@ onMounted(() => {
           />
         </div>
 
-        <a-button type="link" @click="resetFilters">
-          重置筛选
-        </a-button>
+        <Button type="link" @click="resetFilters"> 重置筛选 </Button>
       </div>
     </Card>
 
@@ -229,7 +228,11 @@ onMounted(() => {
                 <KeyOutlined class="secret-icon" />
                 <Tooltip>
                   <template #title>
-                    <div v-for="secret in record.secrets" :key="secret.name" class="secret-tooltip-item">
+                    <div
+                      v-for="secret in record.secrets"
+                      :key="secret.name"
+                      class="secret-tooltip-item"
+                    >
                       {{ secret.name }}
                     </div>
                   </template>
@@ -242,22 +245,28 @@ onMounted(() => {
 
           <!-- 自动挂载 Token 列 -->
           <template v-else-if="column.key === 'automount'">
-            <Tag v-if="record.automountServiceAccountToken === true" color="green">
+            <Tag
+              v-if="record.automountServiceAccountToken === true"
+              color="green"
+            >
               <CheckCircleOutlined />
               启用
             </Tag>
-            <Tag v-else-if="record.automountServiceAccountToken === false" color="red">
+            <Tag
+              v-else-if="record.automountServiceAccountToken === false"
+              color="red"
+            >
               <CloseCircleOutlined />
               禁用
             </Tag>
-            <Tag v-else color="default">
-              默认
-            </Tag>
+            <Tag v-else color="default"> 默认 </Tag>
           </template>
 
           <!-- 创建时间列 -->
           <template v-else-if="column.key === 'creationTimestamp'">
-            <Tooltip :title="formatDateTime(record.metadata.creationTimestamp!)">
+            <Tooltip
+              :title="formatDateTime(record.metadata.creationTimestamp!)"
+            >
               <span class="time-text">
                 {{ formatRelativeTime(record.metadata.creationTimestamp!) }}
               </span>
@@ -320,8 +329,8 @@ onMounted(() => {
 
 .card-title {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   font-size: 16px;
   font-weight: 600;
 }
@@ -333,8 +342,8 @@ onMounted(() => {
 
 .name-cell {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .name-icon {
@@ -349,8 +358,8 @@ onMounted(() => {
 
 .secrets-cell {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .secret-icon {

@@ -8,6 +8,7 @@ import type { StorageClass } from '#/api/k8s/types';
 import { computed, ref } from 'vue';
 
 import {
+  Alert,
   Button,
   Descriptions,
   Drawer,
@@ -18,7 +19,7 @@ import {
 
 interface DetailDrawerProps {
   visible: boolean;
-  storageClass: StorageClass | null;
+  storageClass: null | StorageClass;
 }
 
 const props = withDefaults(defineProps<DetailDrawerProps>(), {
@@ -28,6 +29,7 @@ const props = withDefaults(defineProps<DetailDrawerProps>(), {
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void;
+  (e: 'close'): void;
 }>();
 
 // 当前激活的标签页
@@ -204,6 +206,7 @@ function downloadYaml() {
  */
 function handleClose() {
   emit('update:visible', false);
+  emit('close');
   activeTab.value = 'basic';
 }
 </script>
@@ -223,9 +226,7 @@ function handleClose() {
           <Descriptions :column="2" bordered size="small">
             <Descriptions.Item label="名称">
               {{ storageClass.metadata.name }}
-              <Tag v-if="isDefaultClass" color="gold" class="ml-2">
-                默认
-              </Tag>
+              <Tag v-if="isDefaultClass" color="gold" class="ml-2"> 默认 </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="UID">
               {{ storageClass.metadata.uid }}
@@ -237,7 +238,11 @@ function handleClose() {
             </Descriptions.Item>
             <Descriptions.Item label="回收策略">
               <Tag
-                :color="storageClass.reclaimPolicy === 'Retain' ? 'warning' : 'default'"
+                :color="
+                  storageClass.reclaimPolicy === 'Retain'
+                    ? 'warning'
+                    : 'default'
+                "
               >
                 {{ storageClass.reclaimPolicy || 'Delete' }}
               </Tag>
@@ -245,14 +250,20 @@ function handleClose() {
             <Descriptions.Item label="绑定模式">
               <Tag
                 :color="
-                  storageClass.volumeBindingMode === 'Immediate' ? 'blue' : 'cyan'
+                  storageClass.volumeBindingMode === 'Immediate'
+                    ? 'blue'
+                    : 'cyan'
                 "
               >
                 {{ storageClass.volumeBindingMode || 'Immediate' }}
               </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="允许扩容">
-              <Tag :color="storageClass.allowVolumeExpansion ? 'success' : 'default'">
+              <Tag
+                :color="
+                  storageClass.allowVolumeExpansion ? 'success' : 'default'
+                "
+              >
                 {{ storageClass.allowVolumeExpansion ? '是' : '否' }}
               </Tag>
             </Descriptions.Item>
@@ -286,7 +297,9 @@ function handleClose() {
         <!-- 挂载选项标签页 -->
         <Tabs.TabPane key="mount-options" tab="挂载选项">
           <div
-            v-if="storageClass.mountOptions && storageClass.mountOptions.length > 0"
+            v-if="
+              storageClass.mountOptions && storageClass.mountOptions.length > 0
+            "
             class="mount-options"
           >
             <Tag
@@ -313,7 +326,7 @@ function handleClose() {
 
         <!-- 使用统计标签页 -->
         <Tabs.TabPane key="stats" tab="使用统计">
-          <a-alert
+          <Alert
             message="使用统计"
             description="使用该存储类的 PV 和 PVC 统计（Mock 数据暂不支持此功能）"
             type="info"
@@ -352,9 +365,7 @@ function handleClose() {
             <Button type="primary" size="small" @click="copyYaml">
               复制 YAML
             </Button>
-            <Button size="small" @click="downloadYaml">
-              下载 YAML
-            </Button>
+            <Button size="small" @click="downloadYaml"> 下载 YAML </Button>
           </div>
           <div class="yaml-wrapper">
             <div class="yaml-content">

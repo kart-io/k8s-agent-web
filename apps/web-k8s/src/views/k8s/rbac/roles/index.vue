@@ -7,7 +7,9 @@ import type { PolicyRule, Role, RoleListParams } from '#/api/k8s/types';
 
 import { computed, onMounted, ref } from 'vue';
 
+import { LockOutlined, SafetyOutlined } from '@ant-design/icons-vue';
 import {
+  Button,
   Card,
   Descriptions,
   message,
@@ -17,10 +19,6 @@ import {
   Tag,
   Tooltip,
 } from 'ant-design-vue';
-import {
-  LockOutlined,
-  SafetyOutlined,
-} from '@ant-design/icons-vue';
 
 import { getMockRoleList } from '#/api/k8s/mock';
 
@@ -171,9 +169,10 @@ function getPermissionsSummary(rules: PolicyRule[]): string {
     rule.verbs?.forEach((v) => allVerbs.add(v));
   });
 
-  const resourcesStr = Array.from(allResources).slice(0, 3).join(', ');
-  const verbsStr = Array.from(allVerbs).slice(0, 3).join(', ');
-  const moreResources = allResources.size > 3 ? ` +${allResources.size - 3}` : '';
+  const resourcesStr = [...allResources].slice(0, 3).join(', ');
+  const verbsStr = [...allVerbs].slice(0, 3).join(', ');
+  const moreResources =
+    allResources.size > 3 ? ` +${allResources.size - 3}` : '';
   const moreVerbs = allVerbs.size > 3 ? ` +${allVerbs.size - 3}` : '';
 
   return `[${resourcesStr}${moreResources}] → [${verbsStr}${moreVerbs}]`;
@@ -241,9 +240,7 @@ onMounted(() => {
           />
         </div>
 
-        <a-button type="link" @click="resetFilters">
-          重置筛选
-        </a-button>
+        <Button type="link" @click="resetFilters"> 重置筛选 </Button>
       </div>
     </Card>
 
@@ -280,9 +277,7 @@ onMounted(() => {
 
           <!-- 规则数量列 -->
           <template v-else-if="column.key === 'rulesCount'">
-            <Tag color="blue">
-              {{ record.rules.length }} 条规则
-            </Tag>
+            <Tag color="blue"> {{ record.rules.length }} 条规则 </Tag>
           </template>
 
           <!-- 权限摘要列 -->
@@ -296,7 +291,9 @@ onMounted(() => {
 
           <!-- 创建时间列 -->
           <template v-else-if="column.key === 'creationTimestamp'">
-            <Tooltip :title="formatDateTime(record.metadata.creationTimestamp!)">
+            <Tooltip
+              :title="formatDateTime(record.metadata.creationTimestamp!)"
+            >
               <span class="time-text">
                 {{ formatRelativeTime(record.metadata.creationTimestamp!) }}
               </span>
@@ -332,21 +329,33 @@ onMounted(() => {
                 <template #bodyCell="{ column, record: rule }">
                   <template v-if="column.key === 'apiGroups'">
                     <div class="tags-cell">
-                      <Tag v-for="group in rule.apiGroups" :key="group" color="purple">
+                      <Tag
+                        v-for="group in rule.apiGroups"
+                        :key="group"
+                        color="purple"
+                      >
                         {{ group || '(core)' }}
                       </Tag>
                     </div>
                   </template>
                   <template v-else-if="column.key === 'resources'">
                     <div class="tags-cell">
-                      <Tag v-for="resource in rule.resources" :key="resource" color="cyan">
+                      <Tag
+                        v-for="resource in rule.resources"
+                        :key="resource"
+                        color="cyan"
+                      >
                         {{ resource }}
                       </Tag>
                     </div>
                   </template>
                   <template v-else-if="column.key === 'verbs'">
                     <div class="tags-cell">
-                      <Tag v-for="verb in rule.verbs" :key="verb" :color="getVerbColor(verb)">
+                      <Tag
+                        v-for="verb in rule.verbs"
+                        :key="verb"
+                        :color="getVerbColor(verb)"
+                      >
                         {{ verb }}
                       </Tag>
                     </div>
@@ -412,8 +421,8 @@ onMounted(() => {
 
 .card-title {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   font-size: 16px;
   font-weight: 600;
 }
@@ -425,8 +434,8 @@ onMounted(() => {
 
 .name-cell {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .name-icon {
