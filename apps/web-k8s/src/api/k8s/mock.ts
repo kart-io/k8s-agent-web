@@ -194,7 +194,7 @@ function generateMockPods(count: number): Pod[] {
             ports: [{ containerPort: randomInt(3000, 9000), protocol: 'TCP' }],
           },
         ],
-        nodeName: `node-${randomInt(1, 20).toString().padStart(2, '0')}`,
+        nodeName: `node-${randomInt(1, 5)}`,
       },
       status: {
         phase,
@@ -1285,4 +1285,137 @@ export function getMockPodLogs(params: {
   }
 
   return logs.join('\n');
+}
+
+// ==================== Node 管理操作 Mock ====================
+
+/**
+ * Mock 封锁节点 (Cordon)
+ */
+export function mockCordonNode(
+  clusterId: string,
+  nodeName: string,
+): Promise<Node> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const node = MOCK_NODES.find((n) => n.metadata.name === nodeName);
+      if (node) {
+        // 标记为不可调度
+        node.spec = node.spec || {};
+        node.spec.unschedulable = true;
+      }
+      resolve(node!);
+    }, 500);
+  });
+}
+
+/**
+ * Mock 解除封锁节点 (Uncordon)
+ */
+export function mockUncordonNode(
+  clusterId: string,
+  nodeName: string,
+): Promise<Node> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const node = MOCK_NODES.find((n) => n.metadata.name === nodeName);
+      if (node && node.spec) {
+        // 恢复可调度状态
+        node.spec.unschedulable = false;
+      }
+      resolve(node!);
+    }, 500);
+  });
+}
+
+/**
+ * Mock 驱逐节点 (Drain)
+ */
+export function mockDrainNode(
+  clusterId: string,
+  nodeName: string,
+  options?: {
+    force?: boolean;
+    deleteLocalData?: boolean;
+    ignoreDaemonsets?: boolean;
+    timeout?: number;
+  },
+): Promise<{ success: boolean; message: string }> {
+  return new Promise((resolve) => {
+    // 模拟驱逐操作需要一些时间
+    setTimeout(() => {
+      const node = MOCK_NODES.find((n) => n.metadata.name === nodeName);
+      if (node) {
+        // 自动封锁节点
+        node.spec = node.spec || {};
+        node.spec.unschedulable = true;
+
+        resolve({
+          success: true,
+          message: `Successfully drained node ${nodeName}. All pods have been evicted.`,
+        });
+      } else {
+        resolve({
+          success: false,
+          message: `Node ${nodeName} not found.`,
+        });
+      }
+    }, 2000); // 驱逐操作模拟 2 秒
+  });
+}
+
+/**
+ * Mock 更新节点标签
+ */
+export function mockUpdateNodeLabels(
+  clusterId: string,
+  nodeName: string,
+  labels: Record<string, string>,
+): Promise<Node> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const node = MOCK_NODES.find((n) => n.metadata.name === nodeName);
+      if (node) {
+        // 更新标签，保留系统标签
+        const systemLabels = {
+          'kubernetes.io/role': node.metadata.labels?.['kubernetes.io/role'],
+          'kubernetes.io/hostname':
+            node.metadata.labels?.['kubernetes.io/hostname'],
+          'node-role.kubernetes.io/':
+            node.metadata.labels?.['node-role.kubernetes.io/'],
+        };
+
+        node.metadata.labels = {
+          ...systemLabels,
+          ...labels,
+        };
+      }
+      resolve(node!);
+    }, 500);
+  });
+}
+
+/**
+ * Mock 更新节点污点
+ */
+export function mockUpdateNodeTaints(
+  clusterId: string,
+  nodeName: string,
+  taints: Array<{
+    key: string;
+    value?: string;
+    effect: 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
+  }>,
+): Promise<Node> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const node = MOCK_NODES.find((n) => n.metadata.name === nodeName);
+      if (node) {
+        // 更新污点
+        node.spec = node.spec || {};
+        node.spec.taints = taints;
+      }
+      resolve(node!);
+    }, 500);
+  });
 }

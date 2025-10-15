@@ -405,7 +405,7 @@ export async function toggleCronJob(
   name: string,
   suspend: boolean,
 ): Promise<CronJob> {
-  return requestClient.patch(
+  return requestClient.put(
     `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs/${name}`,
     {
       spec: { suspend },
@@ -488,7 +488,7 @@ export async function scaleDeployment(
   name: string,
   params: ScaleParams,
 ): Promise<Deployment> {
-  return requestClient.patch(
+  return requestClient.post(
     `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/scale`,
     params,
   );
@@ -505,7 +505,7 @@ export async function restartDeployment(
   const restartParams: RestartParams = {
     restartedAt: new Date().toISOString(),
   };
-  return requestClient.patch(
+  return requestClient.post(
     `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/restart`,
     restartParams,
   );
@@ -567,6 +567,83 @@ export async function getNodeDetail(
   name: string,
 ): Promise<Node> {
   return requestClient.get(`/k8s/clusters/${clusterId}/nodes/${name}`);
+}
+
+/**
+ * 封锁 Node (Cordon) - 标记为不可调度
+ */
+export async function cordonNode(
+  clusterId: string,
+  name: string,
+): Promise<Node> {
+  return requestClient.post(`/k8s/clusters/${clusterId}/nodes/${name}/cordon`);
+}
+
+/**
+ * 解除封锁 Node (Uncordon) - 恢复可调度状态
+ */
+export async function uncordonNode(
+  clusterId: string,
+  name: string,
+): Promise<Node> {
+  return requestClient.post(
+    `/k8s/clusters/${clusterId}/nodes/${name}/uncordon`,
+  );
+}
+
+/**
+ * 驱逐 Node (Drain) - 安全地迁移所有 Pod
+ */
+export async function drainNode(
+  clusterId: string,
+  name: string,
+  options?: {
+    force?: boolean;
+    deleteLocalData?: boolean;
+    ignoreDaemonsets?: boolean;
+    timeout?: number;
+  },
+): Promise<{ success: boolean; message: string }> {
+  return requestClient.post(
+    `/k8s/clusters/${clusterId}/nodes/${name}/drain`,
+    options,
+  );
+}
+
+/**
+ * 更新 Node 标签
+ */
+export async function updateNodeLabels(
+  clusterId: string,
+  name: string,
+  labels: Record<string, string>,
+): Promise<Node> {
+  return requestClient.put(
+    `/k8s/clusters/${clusterId}/nodes/${name}/labels`,
+    {
+      labels,
+    },
+  );
+}
+
+/**
+ * 更新 Node 污点
+ */
+export async function updateNodeTaints(
+  clusterId: string,
+  name: string,
+  taints: Array<{
+    key: string;
+    value?: string;
+    effect: 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
+  }>,
+): Promise<Node> {
+  return requestClient.put(
+    `/k8s/clusters/${clusterId}/nodes/${name}/taints`,
+    {
+      taints,
+    },
+  );
 }
 
 /**
@@ -691,7 +768,7 @@ export async function scaleStatefulSet(
   name: string,
   params: ScaleParams,
 ): Promise<StatefulSet> {
-  return requestClient.patch(
+  return requestClient.post(
     `/k8s/clusters/${clusterId}/namespaces/${namespace}/statefulsets/${name}/scale`,
     params,
   );

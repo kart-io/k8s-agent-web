@@ -5,27 +5,43 @@ import type { Node } from '#/api/k8s/types';
 import { ref } from 'vue';
 
 import {
+  CloudUploadOutlined,
+  DownOutlined,
+  EditOutlined,
   EyeOutlined,
+  LockOutlined,
   ReloadOutlined,
   SearchOutlined,
+  TagOutlined,
+  UnlockOutlined,
 } from '@ant-design/icons-vue';
 import { useDebounceFn } from '@vueuse/core';
 import {
   Button,
-  Descriptions,
-  Drawer,
+  Dropdown,
   Input,
+  Menu,
   message,
   Modal,
   Progress,
   Select,
   Space,
-  Table,
   Tag,
 } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { getMockNodeList, getMockPodList } from '#/api/k8s/mock';
+import {
+  cordonNode,
+  drainNode,
+  getNodeList,
+  uncordonNode,
+  updateNodeLabels,
+  updateNodeTaints,
+} from '#/api/k8s';
+
+import DetailDrawer from './DetailDrawer.vue';
+import EditLabelsModal from './EditLabelsModal.vue';
+import EditTaintsModal from './EditTaintsModal.vue';
 
 defineOptions({
   name: 'NodesManagement',
@@ -35,7 +51,11 @@ const selectedClusterId = ref('cluster-prod-01');
 const searchKeyword = ref('');
 const detailDrawerVisible = ref(false);
 const selectedNode = ref<Node | null>(null);
-const nodePods = ref<any[]>([]);
+
+// 编辑标签和污点的对话框状态
+const editLabelsModalVisible = ref(false);
+const editTaintsModalVisible = ref(false);
+const editingNode = ref<Node | null>(null);
 
 const clusterOptions = [
   { label: 'Production Cluster', value: 'cluster-prod-01' },
@@ -63,11 +83,7 @@ async function fetchNodeData(params: {
       });
     });
 
-    const result = getMockNodeList({
-      clusterId: selectedClusterId.value,
-      page: params.page.currentPage,
-      pageSize: params.page.pageSize,
-    });
+    const result = await getNodeList(selectedClusterId.value);
 
     let items = result.items;
     if (searchKeyword.value) {
@@ -77,9 +93,13 @@ async function fetchNodeData(params: {
       );
     }
 
+    // 手动分页
+    const start = (params.page.currentPage - 1) * params.page.pageSize;
+    const end = start + params.page.pageSize;
+
     return {
-      items,
-      total: searchKeyword.value ? items.length : result.total,
+      items: items.slice(start, end),
+      total: items.length,
     };
   } catch (error: any) {
     if (error.message === 'Request aborted') {
@@ -151,7 +171,7 @@ function getResourcePercent(node: Node, type: 'cpu' | 'memory'): number {
 }
 
 const gridOptions: VxeGridProps<Node> = {
-  height: 600,
+  height: '100%',
   checkboxConfig: {
     highlight: true,
   },
@@ -220,7 +240,7 @@ const gridOptions: VxeGridProps<Node> = {
     {
       field: 'actions',
       title: '操作',
-      width: 150,
+      width: 180,
       fixed: 'right',
       slots: {
         default: 'actions-slot',
@@ -261,89 +281,131 @@ function handleReset() {
   gridApi.reload();
 }
 
-async function handleView(row: Node) {
+/**
+ * 查看节点详情
+ */
+function handleView(row: Node) {
   selectedNode.value = row;
-
-  const result = getMockPodList({
-    clusterId: selectedClusterId.value,
-    page: 1,
-    pageSize: 100,
-  });
-
-  nodePods.value = result.items.filter(
-    (pod) => pod.spec.nodeName === row.metadata.name,
-  );
-
   detailDrawerVisible.value = true;
 }
 
-function handleCordon(row: Node) {
+/**
+ * 检查节点是否被封锁 (Unschedulable)
+ */
+function isNodeCordoned(node: Node): boolean {
+  return node.spec?.unschedulable === true;
+}
+
+/**
+ * 封锁节点 (Cordon) - 标记为不可调度
+ */
+async function handleCordon(row: Node) {
   Modal.confirm({
-    title: '确认封锁',
-    content: `确定要封锁节点 "${row.metadata.name}" 吗？封锁后将不会调度新的 Pod 到此节点。`,
-    onOk() {
-      message.success(`节点 "${row.metadata.name}" 封锁成功`);
-      gridApi.reload();
+    title: '确认封锁节点',
+    content: `确定要封锁节点 "${row.metadata.name}" 吗？封锁后新的 Pod 将不会调度到此节点，但现有 Pod 会继续运行。`,
+    async onOk() {
+      try {
+        await cordonNode(selectedClusterId.value, row.metadata.name);
+        message.success(`节点 "${row.metadata.name}" 已封锁`);
+        gridApi.reload();
+      } catch (error) {
+        message.error('封锁节点失败');
+        console.error(error);
+      }
     },
   });
 }
 
-function handleDrain(row: Node) {
+/**
+ * 解除封锁 (Uncordon) - 恢复可调度状态
+ */
+async function handleUncordon(row: Node) {
   Modal.confirm({
-    title: '确认驱逐',
-    content: `确定要驱逐节点 "${row.metadata.name}" 上的所有 Pod 吗？此操作将影响运行中的工作负载。`,
-    onOk() {
-      message.success(`节点 "${row.metadata.name}" 驱逐成功`);
-      gridApi.reload();
+    title: '确认解除封锁',
+    content: `确定要解除节点 "${row.metadata.name}" 的封锁吗？解除后 Pod 可以正常调度到此节点。`,
+    async onOk() {
+      try {
+        await uncordonNode(selectedClusterId.value, row.metadata.name);
+        message.success(`节点 "${row.metadata.name}" 已解除封锁`);
+        gridApi.reload();
+      } catch (error) {
+        message.error('解除封锁失败');
+        console.error(error);
+      }
     },
   });
 }
 
-function handleDelete(row: Node) {
+/**
+ * 驱逐节点 (Drain) - 安全地迁移所有 Pod
+ */
+async function handleDrain(row: Node) {
   Modal.confirm({
-    title: '确认删除',
-    content: `确定要删除节点 "${row.metadata.name}" 吗？此操作不可恢复，将会影响集群的可用资源。`,
-    onOk() {
-      message.success(`节点 "${row.metadata.name}" 删除成功`);
-      gridApi.reload();
+    title: '确认驱逐节点',
+    content: `确定要驱逐节点 "${row.metadata.name}" 上的所有 Pod 吗？Pod 将被安全地迁移到其他节点。此操作可能需要一些时间。`,
+    okText: '确认驱逐',
+    okType: 'danger',
+    async onOk() {
+      const hide = message.loading({
+        content: `正在驱逐节点 "${row.metadata.name}" 上的 Pod...`,
+        duration: 0,
+      });
+
+      try {
+        await drainNode(selectedClusterId.value, row.metadata.name, {
+          ignoreDaemonsets: true,
+          deleteLocalData: true,
+        });
+        hide();
+        message.success(`节点 "${row.metadata.name}" 上的 Pod 已全部驱逐`);
+        gridApi.reload();
+      } catch (error) {
+        hide();
+        message.error('驱逐节点失败');
+        console.error(error);
+      }
     },
   });
 }
 
-const podColumns = [
-  {
-    title: 'Pod 名称',
-    dataIndex: ['metadata', 'name'],
-    key: 'name',
-    ellipsis: true,
-  },
-  {
-    title: '命名空间',
-    dataIndex: ['metadata', 'namespace'],
-    key: 'namespace',
-    width: 150,
-  },
-  {
-    title: '状态',
-    dataIndex: ['status', 'phase'],
-    key: 'phase',
-    width: 120,
-  },
-  {
-    title: 'Pod IP',
-    dataIndex: ['status', 'podIP'],
-    key: 'podIP',
-    width: 150,
-  },
-];
+/**
+ * 编辑节点标签
+ */
+function handleEditLabels(row: Node) {
+  editingNode.value = row;
+  editLabelsModalVisible.value = true;
+}
+
+/**
+ * 编辑节点污点
+ */
+function handleEditTaints(row: Node) {
+  editingNode.value = row;
+  editTaintsModalVisible.value = true;
+}
+
+/**
+ * 标签编辑成功回调
+ */
+function handleLabelsSuccess() {
+  gridApi.reload();
+}
+
+/**
+ * 污点编辑成功回调
+ */
+function handleTaintsSuccess() {
+  gridApi.reload();
+}
 </script>
 
 <template>
-  <div class="p-5">
-    <div class="mb-5 text-2xl font-bold">Node 管理</div>
+  <div class="node-list-container">
+    <div class="node-list-header">
+      <div class="mb-1 text-2xl font-bold">Node 管理</div>
 
-    <div class="mb-4 rounded-lg p-4">
-      <Space :size="12" wrap>
+      <div class="search-filter">
+        <Space :size="12" wrap>
         <Select
           v-model:value="selectedClusterId"
           :options="clusterOptions"
@@ -375,9 +437,10 @@ const podColumns = [
           重置
         </Button>
       </Space>
+      </div>
     </div>
 
-    <div class="rounded-lg p-4">
+    <div class="node-list-table">
       <Grid>
         <template #status-slot="{ row }">
           <Tag v-if="getNodeStatus(row) === 'Ready'" color="success">Ready</Tag>
@@ -435,11 +498,67 @@ const podColumns = [
         </template>
 
         <template #actions-slot="{ row }">
-          <Space :size="4">
+          <Space :size="8">
+            <!-- 详情按钮 - 最常用，独立显示 -->
             <Button size="small" type="link" @click="handleView(row)">
               <EyeOutlined />
               详情
             </Button>
+
+            <!-- 更多操作下拉菜单 -->
+            <Dropdown>
+              <Button size="small" type="link">
+                更多
+                <DownOutlined />
+              </Button>
+              <template #overlay>
+                <Menu>
+                  <!-- 封锁/解除封锁 -->
+                  <Menu.Item
+                    v-if="!isNodeCordoned(row)"
+                    key="cordon"
+                    @click="handleCordon(row)"
+                  >
+                    <LockOutlined />
+                    封锁节点
+                  </Menu.Item>
+                  <Menu.Item
+                    v-else
+                    key="uncordon"
+                    @click="handleUncordon(row)"
+                  >
+                    <UnlockOutlined />
+                    解除封锁
+                  </Menu.Item>
+
+                  <Menu.Divider />
+
+                  <!-- 驱逐 -->
+                  <Menu.Item
+                    key="drain"
+                    danger
+                    @click="handleDrain(row)"
+                  >
+                    <CloudUploadOutlined />
+                    驱逐 Pod
+                  </Menu.Item>
+
+                  <Menu.Divider />
+
+                  <!-- 编辑标签 -->
+                  <Menu.Item key="labels" @click="handleEditLabels(row)">
+                    <TagOutlined />
+                    编辑标签
+                  </Menu.Item>
+
+                  <!-- 编辑污点 -->
+                  <Menu.Item key="taints" @click="handleEditTaints(row)">
+                    <EditOutlined />
+                    编辑污点
+                  </Menu.Item>
+                </Menu>
+              </template>
+            </Dropdown>
           </Space>
         </template>
 
@@ -451,209 +570,66 @@ const podColumns = [
       </Grid>
     </div>
 
-    <Drawer
-      v-model:open="detailDrawerVisible"
-      width="80%"
-      title="Node 详细信息"
-    >
-      <div v-if="selectedNode">
-        <div class="mb-6">
-          <div class="mb-4 text-lg font-semibold">基本信息</div>
-          <Descriptions :column="2" bordered>
-            <Descriptions.Item label="节点名称">
-              {{ selectedNode.metadata.name }}
-            </Descriptions.Item>
-            <Descriptions.Item label="状态">
-              <Tag
-                v-if="getNodeStatus(selectedNode) === 'Ready'"
-                color="success"
-              >
-                Ready
-              </Tag>
-              <Tag v-else color="error">NotReady</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="角色">
-              <Tag v-if="getNodeRole(selectedNode) === 'Master'" color="blue">
-                Master
-              </Tag>
-              <Tag
-                v-else-if="getNodeRole(selectedNode) === 'Worker'"
-                color="green"
-              >
-                Worker
-              </Tag>
-              <Tag v-else color="default">Unknown</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="运行时长">
-              {{ getNodeAge(selectedNode.metadata.creationTimestamp) }}
-            </Descriptions.Item>
-            <Descriptions.Item label="内部 IP">
-              {{
-                selectedNode.status?.addresses?.find(
-                  (a) => a.type === 'InternalIP',
-                )?.address || '-'
-              }}
-            </Descriptions.Item>
-            <Descriptions.Item label="主机名">
-              {{
-                selectedNode.status?.addresses?.find(
-                  (a) => a.type === 'Hostname',
-                )?.address || '-'
-              }}
-            </Descriptions.Item>
-          </Descriptions>
-        </div>
+    <!-- 详情抽屉 -->
+    <DetailDrawer
+      v-model:visible="detailDrawerVisible"
+      :node="selectedNode"
+      :cluster-id="selectedClusterId"
+    />
 
-        <div class="mb-6">
-          <div class="mb-4 text-lg font-semibold">资源信息</div>
-          <Descriptions :column="2" bordered>
-            <Descriptions.Item label="CPU 容量">
-              {{ selectedNode.status?.capacity?.cpu || '-' }}
-            </Descriptions.Item>
-            <Descriptions.Item label="CPU 可分配">
-              {{ selectedNode.status?.allocatable?.cpu || '-' }}
-            </Descriptions.Item>
-            <Descriptions.Item label="内存容量">
-              {{ selectedNode.status?.capacity?.memory || '-' }}
-            </Descriptions.Item>
-            <Descriptions.Item label="内存可分配">
-              {{ selectedNode.status?.allocatable?.memory || '-' }}
-            </Descriptions.Item>
-            <Descriptions.Item label="Pod 容量">
-              {{ selectedNode.status?.capacity?.pods || '-' }}
-            </Descriptions.Item>
-            <Descriptions.Item label="Pod 可分配">
-              {{ selectedNode.status?.allocatable?.pods || '-' }}
-            </Descriptions.Item>
-          </Descriptions>
+    <!-- 编辑标签对话框 -->
+    <EditLabelsModal
+      v-model:visible="editLabelsModalVisible"
+      :node="editingNode"
+      :cluster-id="selectedClusterId"
+      @success="handleLabelsSuccess"
+    />
 
-          <div class="mt-4">
-            <div class="mb-2 text-sm font-medium">CPU 使用率</div>
-            <Progress
-              :percent="getResourcePercent(selectedNode, 'cpu')"
-              :stroke-color="
-                getResourcePercent(selectedNode, 'cpu') > 80
-                  ? '#ff4d4f'
-                  : getResourcePercent(selectedNode, 'cpu') > 60
-                    ? '#faad14'
-                    : '#52c41a'
-              "
-            />
-          </div>
-
-          <div class="mt-4">
-            <div class="mb-2 text-sm font-medium">内存使用率</div>
-            <Progress
-              :percent="getResourcePercent(selectedNode, 'memory')"
-              :stroke-color="
-                getResourcePercent(selectedNode, 'memory') > 80
-                  ? '#ff4d4f'
-                  : getResourcePercent(selectedNode, 'memory') > 60
-                    ? '#faad14'
-                    : '#52c41a'
-              "
-            />
-          </div>
-        </div>
-
-        <div class="mb-6">
-          <div class="mb-4 text-lg font-semibold">系统信息</div>
-          <Descriptions :column="1" bordered>
-            <Descriptions.Item label="操作系统">
-              {{ selectedNode.status?.nodeInfo?.osImage || '-' }}
-            </Descriptions.Item>
-            <Descriptions.Item label="内核版本">
-              {{ selectedNode.status?.nodeInfo?.kernelVersion || '-' }}
-            </Descriptions.Item>
-            <Descriptions.Item label="容器运行时">
-              {{
-                selectedNode.status?.nodeInfo?.containerRuntimeVersion || '-'
-              }}
-            </Descriptions.Item>
-            <Descriptions.Item label="Kubelet 版本">
-              {{ selectedNode.status?.nodeInfo?.kubeletVersion || '-' }}
-            </Descriptions.Item>
-            <Descriptions.Item label="Kube-Proxy 版本">
-              {{ selectedNode.status?.nodeInfo?.kubeProxyVersion || '-' }}
-            </Descriptions.Item>
-            <Descriptions.Item label="架构">
-              {{ selectedNode.status?.nodeInfo?.architecture || '-' }}
-            </Descriptions.Item>
-          </Descriptions>
-        </div>
-
-        <div class="mb-6">
-          <div class="mb-4 text-lg font-semibold">
-            运行的 Pod ({{ nodePods.length }})
-          </div>
-          <Table
-            :columns="podColumns"
-            :data-source="nodePods"
-            :pagination="{ pageSize: 10 }"
-            size="small"
-          >
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'phase'">
-                <Tag v-if="record.status.phase === 'Running'" color="success">
-                  Running
-                </Tag>
-                <Tag
-                  v-else-if="record.status.phase === 'Pending'"
-                  color="warning"
-                >
-                  Pending
-                </Tag>
-                <Tag v-else-if="record.status.phase === 'Failed'" color="error">
-                  Failed
-                </Tag>
-                <Tag v-else color="default">{{ record.status.phase }}</Tag>
-              </template>
-            </template>
-          </Table>
-        </div>
-
-        <div class="mb-6">
-          <div class="mb-4 text-lg font-semibold">健康状态</div>
-          <Table
-            :columns="[
-              { title: '类型', dataIndex: 'type', key: 'type' },
-              { title: '状态', dataIndex: 'status', key: 'status' },
-              { title: '原因', dataIndex: 'reason', key: 'reason' },
-              {
-                title: '消息',
-                dataIndex: 'message',
-                key: 'message',
-                ellipsis: true,
-              },
-            ]"
-            :data-source="selectedNode.status?.conditions || []"
-            :pagination="false"
-            size="small"
-          >
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'status'">
-                <Tag v-if="record.status === 'True'" color="success">True</Tag>
-                <Tag v-else-if="record.status === 'False'" color="error">
-                  False
-                </Tag>
-                <Tag v-else color="default">{{ record.status }}</Tag>
-              </template>
-            </template>
-          </Table>
-        </div>
-
-        <div class="flex justify-end gap-2">
-          <Button @click="handleCordon(selectedNode)">封锁节点</Button>
-          <Button @click="handleDrain(selectedNode)">驱逐 Pod</Button>
-          <Button danger @click="handleDelete(selectedNode)">删除节点</Button>
-        </div>
-      </div>
-    </Drawer>
+    <!-- 编辑污点对话框 -->
+    <EditTaintsModal
+      v-model:visible="editTaintsModalVisible"
+      :node="editingNode"
+      :cluster-id="selectedClusterId"
+      @success="handleTaintsSuccess"
+    />
   </div>
 </template>
 
 <style scoped>
+.node-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.node-list-header {
+  flex-shrink: 0;
+}
+
+.search-filter {
+  padding: 16px;
+  background-color: var(--vben-background-color);
+  border-radius: 8px 8px 0 0;
+}
+
+.node-list-table {
+  flex: 1;
+  min-height: 0;
+  padding: 16px;
+  padding-top: 0;
+  margin-top: 0;
+  background-color: var(--vben-background-color);
+  border-radius: 0 0 8px 8px;
+}
+
 :deep(.vxe-table) {
+  margin-top: 0 !important;
   font-size: 14px;
+}
+
+:deep(.vxe-grid) {
+  margin-top: 0 !important;
 }
 </style>

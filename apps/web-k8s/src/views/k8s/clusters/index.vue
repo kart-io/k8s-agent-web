@@ -12,6 +12,8 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 
 import { getMockClusterList } from '#/api/k8s/mock';
 
+import DetailDrawer from './DetailDrawer.vue';
+
 defineOptions({
   name: 'ClustersManagement',
 });
@@ -23,6 +25,10 @@ const searchForm = ref<ClusterListParams>({
   page: 1,
   pageSize: 10,
 });
+
+// 详情抽屉状态
+const detailDrawerVisible = ref(false);
+const selectedCluster = ref<Cluster | null>(null);
 
 // 状态选项
 const statusOptions = [
@@ -76,7 +82,7 @@ async function fetchClusterData(params: { page: { currentPage: number; pageSize:
 
 // 定义表格配置
 const gridOptions: VxeGridProps<Cluster> = {
-  height: 600,
+  height: '100%',
   checkboxConfig: {
     highlight: true,
     labelField: 'name',
@@ -181,23 +187,8 @@ function handleReset() {
 
 // 查看详情
 function handleView(row: Cluster) {
-  Modal.info({
-    title: '集群详情',
-    width: 600,
-    content: `
-      集群名称: ${row.name}
-      描述: ${row.description}
-      ID: ${row.id}
-      API Server: ${row.apiServer}
-      版本: ${row.version}
-      状态: ${row.status}
-      节点数: ${row.nodeCount}
-      Pod 数: ${row.podCount}
-      命名空间数: ${row.namespaceCount}
-      创建时间: ${row.createdAt}
-      更新时间: ${row.updatedAt}
-    `,
-  });
+  selectedCluster.value = row;
+  detailDrawerVisible.value = true;
 }
 
 // 编辑集群
@@ -224,50 +215,52 @@ function handleAdd() {
 </script>
 
 <template>
-  <div class="p-5">
-    <div class="mb-5 text-2xl font-bold">集群管理</div>
+  <div class="cluster-list-container">
+    <div class="cluster-list-header">
+      <div class="mb-1 text-2xl font-bold">集群管理</div>
 
-    <!-- 搜索区域 -->
-    <div class="mb-4 rounded-lg p-4">
-      <Space :size="12" wrap>
-        <Input
-          v-model:value="searchForm.keyword"
-          :style="{ width: '240px' }"
-          placeholder="搜索集群名称、ID 或描述"
-          allow-clear
-          @press-enter="handleSearch"
-        >
-          <template #prefix>
+      <!-- 搜索区域 -->
+      <div class="search-filter">
+        <Space :size="12" wrap>
+          <Input
+            v-model:value="searchForm.keyword"
+            :style="{ width: '240px' }"
+            placeholder="搜索集群名称、ID 或描述"
+            allow-clear
+            @press-enter="handleSearch"
+          >
+            <template #prefix>
+              <SearchOutlined />
+            </template>
+          </Input>
+
+          <Select
+            v-model:value="searchForm.status"
+            :options="statusOptions"
+            :style="{ width: '120px' }"
+            placeholder="状态"
+          />
+
+          <Button type="primary" @click="handleSearch">
             <SearchOutlined />
-          </template>
-        </Input>
+            搜索
+          </Button>
 
-        <Select
-          v-model:value="searchForm.status"
-          :options="statusOptions"
-          :style="{ width: '120px' }"
-          placeholder="状态"
-        />
+          <Button @click="handleReset">
+            <ReloadOutlined />
+            重置
+          </Button>
 
-        <Button type="primary" @click="handleSearch">
-          <SearchOutlined />
-          搜索
-        </Button>
-
-        <Button @click="handleReset">
-          <ReloadOutlined />
-          重置
-        </Button>
-
-        <Button type="primary" @click="handleAdd">
-          <PlusOutlined />
-          添加集群
-        </Button>
-      </Space>
+          <Button type="primary" @click="handleAdd">
+            <PlusOutlined />
+            添加集群
+          </Button>
+        </Space>
+      </div>
     </div>
 
     <!-- 表格区域 -->
-    <div class="rounded-lg p-4">
+    <div class="cluster-list-table">
       <Grid>
         <!-- 集群名称自定义列 -->
         <template #name-slot="{ row }">
@@ -313,12 +306,51 @@ function handleAdd() {
         </template>
       </Grid>
     </div>
+
+    <!-- 详情抽屉 -->
+    <DetailDrawer
+      v-model:visible="detailDrawerVisible"
+      :cluster="selectedCluster"
+    />
   </div>
 </template>
 
 <style scoped>
+.cluster-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.cluster-list-header {
+  flex-shrink: 0;
+}
+
+.search-filter {
+  padding: 16px;
+  background-color: var(--vben-background-color);
+  border-radius: 8px 8px 0 0;
+}
+
+.cluster-list-table {
+  flex: 1;
+  min-height: 0;
+  padding: 16px;
+  padding-top: 0;
+  margin-top: 0;
+  background-color: var(--vben-background-color);
+  border-radius: 0 0 8px 8px;
+}
+
 :deep(.vxe-table) {
+  margin-top: 0 !important;
   font-size: 14px;
+}
+
+:deep(.vxe-grid) {
+  margin-top: 0 !important;
 }
 
 :deep(.vxe-table .vxe-body--row) {
