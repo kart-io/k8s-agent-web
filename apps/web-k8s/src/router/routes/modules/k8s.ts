@@ -13,8 +13,19 @@ const routes: RouteRecordRaw[] = [
     },
     name: 'K8sManagement',
     path: '/k8s',
-    redirect: '/k8s/workloads/pods',
+    redirect: '/k8s/dashboard',
     children: [
+      // ==================== Dashboard ====================
+      {
+        name: 'K8sDashboard',
+        path: 'dashboard',
+        component: () => import('#/views/k8s/dashboard/index.vue'),
+        meta: {
+          icon: 'lucide:layout-dashboard',
+          title: 'Dashboard',
+        },
+      },
+
       // ==================== 工作负载 ====================
       {
         meta: {
@@ -46,7 +57,7 @@ const routes: RouteRecordRaw[] = [
           {
             name: 'K8sStatefulSets',
             path: 'statefulsets',
-            component: () => import('#/views/k8s/resources/statefulsets.vue'),
+            component: () => import('#/views/k8s/workloads/statefulsets/index.vue'),
             meta: {
               icon: 'lucide:database',
               title: 'StatefulSets',
@@ -101,6 +112,15 @@ const routes: RouteRecordRaw[] = [
               title: 'Services',
             },
           },
+          {
+            name: 'K8sIngress',
+            path: 'ingress',
+            component: () => import('#/views/k8s/network/ingress/index.vue'),
+            meta: {
+              icon: 'lucide:globe',
+              title: 'Ingress',
+            },
+          },
         ],
       },
 
@@ -130,6 +150,144 @@ const routes: RouteRecordRaw[] = [
             meta: {
               icon: 'lucide:key',
               title: 'Secrets',
+            },
+          },
+        ],
+      },
+
+      // ==================== 存储 ====================
+      {
+        meta: {
+          icon: 'lucide:hard-drive',
+          title: '存储',
+        },
+        name: 'K8sStorage',
+        path: 'storage',
+        redirect: '/k8s/storage/overview',
+        children: [
+          {
+            name: 'K8sStorageOverview',
+            path: 'overview',
+            component: () => import('#/views/k8s/storage/overview/index.vue'),
+            meta: {
+              icon: 'lucide:bar-chart-3',
+              title: '存储概览',
+            },
+          },
+          {
+            name: 'K8sPersistentVolumes',
+            path: 'persistent-volumes',
+            component: () => import('#/views/k8s/storage/persistent-volumes/index.vue'),
+            meta: {
+              icon: 'lucide:hard-drive',
+              title: 'PersistentVolumes',
+            },
+          },
+          {
+            name: 'K8sPersistentVolumeClaims',
+            path: 'persistent-volume-claims',
+            component: () => import('#/views/k8s/storage/persistent-volume-claims/index.vue'),
+            meta: {
+              icon: 'lucide:file-box',
+              title: 'PersistentVolumeClaims',
+            },
+          },
+          {
+            name: 'K8sStorageClasses',
+            path: 'storage-classes',
+            component: () => import('#/views/k8s/storage/storage-classes/index.vue'),
+            meta: {
+              icon: 'lucide:database',
+              title: 'StorageClasses',
+            },
+          },
+        ],
+      },
+
+      // ==================== 权限与安全 ====================
+      {
+        meta: {
+          icon: 'lucide:shield',
+          title: '权限与安全',
+        },
+        name: 'K8sRBAC',
+        path: 'rbac',
+        redirect: '/k8s/rbac/service-accounts',
+        children: [
+          {
+            name: 'K8sServiceAccounts',
+            path: 'service-accounts',
+            component: () => import('#/views/k8s/rbac/service-accounts/index.vue'),
+            meta: {
+              icon: 'lucide:user',
+              title: 'ServiceAccounts',
+            },
+          },
+          {
+            name: 'K8sRoles',
+            path: 'roles',
+            component: () => import('#/views/k8s/rbac/roles/index.vue'),
+            meta: {
+              icon: 'lucide:lock',
+              title: 'Roles',
+            },
+          },
+          {
+            name: 'K8sRoleBindings',
+            path: 'role-bindings',
+            component: () => import('#/views/k8s/rbac/role-bindings/index.vue'),
+            meta: {
+              icon: 'lucide:link',
+              title: 'RoleBindings',
+            },
+          },
+          {
+            name: 'K8sClusterRoles',
+            path: 'cluster-roles',
+            component: () => import('#/views/k8s/rbac/cluster-roles/index.vue'),
+            meta: {
+              icon: 'lucide:shield-check',
+              title: 'ClusterRoles',
+            },
+          },
+          {
+            name: 'K8sClusterRoleBindings',
+            path: 'cluster-role-bindings',
+            component: () => import('#/views/k8s/rbac/cluster-role-bindings/index.vue'),
+            meta: {
+              icon: 'lucide:link-2',
+              title: 'ClusterRoleBindings',
+            },
+          },
+        ],
+      },
+
+      // ==================== 资源配额与限制 ====================
+      {
+        meta: {
+          icon: 'lucide:gauge',
+          title: '资源配额',
+        },
+        name: 'K8sQuota',
+        path: 'quota',
+        redirect: '/k8s/quota/resource-quotas',
+        children: [
+          {
+            name: 'K8sResourceQuotas',
+            path: 'resource-quotas',
+            component: () => import('#/views/k8s/quota/resource-quotas/index.vue'),
+            meta: {
+              icon: 'lucide:pie-chart',
+              title: 'ResourceQuotas',
+            },
+          },
+          {
+            name: 'K8sLimitRanges',
+            path: 'limit-ranges',
+            component: () => import('#/views/k8s/quota/limit-ranges/index.vue'),
+            meta: {
+              icon: 'lucide:sliders',
+              title: 'LimitRanges',
             },
           },
         ],
@@ -170,6 +328,15 @@ const routes: RouteRecordRaw[] = [
             meta: {
               icon: 'lucide:folder',
               title: 'Namespaces',
+            },
+          },
+          {
+            name: 'K8sEvents',
+            path: 'events',
+            component: () => import('#/views/k8s/cluster/events/index.vue'),
+            meta: {
+              icon: 'lucide:clock',
+              title: 'Events',
             },
           },
         ],

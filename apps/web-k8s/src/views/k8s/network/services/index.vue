@@ -7,10 +7,11 @@ import type { Service } from '#/api/k8s/types';
 
 import { computed, ref } from 'vue';
 
-import { Tag } from 'ant-design-vue';
+import { message, Tag } from 'ant-design-vue';
 
 import { createServiceConfig } from '#/config/k8s-resources';
 import ResourceList from '#/views/k8s/_shared/ResourceList.vue';
+import YAMLEditorModal from '#/views/k8s/_shared/YAMLEditorModal.vue';
 
 import DetailDrawer from './DetailDrawer.vue';
 
@@ -22,6 +23,13 @@ defineOptions({
 const detailDrawerVisible = ref(false);
 const selectedService = ref<null | Service>(null);
 
+// YAML 编辑模态框状态
+const yamlEditorVisible = ref(false);
+const editingService = ref<Service | null>(null);
+
+// 列表引用（用于刷新）
+const resourceListRef = ref();
+
 /**
  * 打开详情抽屉
  */
@@ -30,10 +38,45 @@ function openDetailDrawer(service: Service) {
   detailDrawerVisible.value = true;
 }
 
+/**
+ * 打开 YAML 编辑器
+ */
+function openYAMLEditor(service: Service) {
+  editingService.value = service;
+  yamlEditorVisible.value = true;
+}
+
+/**
+ * 处理 YAML 编辑确认
+ */
+async function handleYAMLEditConfirm(updatedResource: any) {
+  try {
+    // TODO: 调用真实 API 更新资源
+    // await updateService(
+    //   updatedResource.metadata.namespace,
+    //   updatedResource.metadata.name,
+    //   updatedResource
+    // );
+
+    message.success(
+      `Service "${updatedResource.metadata.name}" 已成功更新`,
+    );
+
+    // 关闭模态框
+    yamlEditorVisible.value = false;
+
+    // 刷新列表
+    resourceListRef.value?.refresh();
+  } catch (error: any) {
+    message.error(`更新失败: ${error.message}`);
+  }
+}
+
 const config = computed(() => {
   const baseConfig = createServiceConfig();
 
   // 覆盖 view 操作，使用详情抽屉
+  // 覆盖 edit 操作，使用 YAML 编辑器
   if (baseConfig.actions) {
     const viewActionIndex = baseConfig.actions.findIndex(
       (a) => a.action === 'view',
@@ -47,6 +90,19 @@ const config = computed(() => {
         },
       };
     }
+
+    const editActionIndex = baseConfig.actions.findIndex(
+      (a) => a.action === 'edit',
+    );
+    if (editActionIndex !== -1) {
+      baseConfig.actions[editActionIndex] = {
+        action: 'edit',
+        label: '编辑',
+        handler: (row: Service) => {
+          openYAMLEditor(row);
+        },
+      };
+    }
   }
 
   return baseConfig;
@@ -55,7 +111,7 @@ const config = computed(() => {
 
 <template>
   <div>
-    <ResourceList :config="config">
+    <ResourceList ref="resourceListRef" :config="config">
       <!-- Service 类型标签 -->
       <template #type-slot="{ row }">
         <Tag :color="row.spec.type === 'ClusterIP' ? 'blue' : 'green'">
@@ -75,6 +131,16 @@ const config = computed(() => {
     <DetailDrawer
       v-model:visible="detailDrawerVisible"
       :service="selectedService"
+    />
+
+    <!-- YAML 编辑器模态框 -->
+    <YAMLEditorModal
+      v-if="editingService"
+      v-model:visible="yamlEditorVisible"
+      :resource="editingService"
+      :resource-type="'Service'"
+      :resource-name="editingService.metadata.name"
+      @confirm="handleYAMLEditConfirm"
     />
   </div>
 </template>

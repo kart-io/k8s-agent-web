@@ -14,10 +14,15 @@
 
 #### 2. 网络 (Network)
 - ✅ **Services** - 完整实现，包含详情查看
+- ✅ **Ingress** - 完整实现，包含详情抽屉、规则查看、TLS 配置、YAML 导出
 
 #### 3. 配置与存储 (Config & Storage)
 - ✅ **ConfigMaps** - 完整实现，包含详情查看
 - ✅ **Secrets** - 基础实现
+- ✅ **PersistentVolumes (PV)** - 完整实现，包含详情、删除操作
+- ✅ **PersistentVolumeClaims (PVC)** - 完整实现，包含详情、删除操作
+- ✅ **StorageClasses** - 完整实现，包含详情、删除操作
+- ✅ **存储概览** - 容量统计、分布可视化、使用情况监控
 
 #### 4. 集群 (Cluster)
 - ✅ **集群管理** - 完整实现
@@ -48,7 +53,7 @@
 ### 2. 服务、负载均衡与网络 (Service, Load Balancing, and Networking)
 ```
 ├── Service                ✅ 已实现
-├── Ingress                ❌ 缺失 ⚠️ 重要
+├── Ingress                ✅ 已实现 ⭐ 完整
 ├── IngressClass           ❌ 缺失
 ├── NetworkPolicy          ❌ 缺失 ⚠️ 重要
 └── Endpoints              ❌ 缺失
@@ -61,9 +66,9 @@
 ├── Secret                 ✅ 已实现
 
 存储：
-├── PersistentVolume (PV)           ❌ 缺失 ⚠️ 重要
-├── PersistentVolumeClaim (PVC)     ❌ 缺失 ⚠️ 重要
-├── StorageClass                    ❌ 缺失 ⚠️ 重要
+├── PersistentVolume (PV)           ✅ 已实现 ⭐ 完整
+├── PersistentVolumeClaim (PVC)     ✅ 已实现 ⭐ 完整
+├── StorageClass                    ✅ 已实现 ⭐ 完整
 └── VolumeAttachment                ❌ 缺失
 ```
 
@@ -81,7 +86,7 @@
 ### 5. 集群资源 (Cluster)
 ```
 ├── Node                   ✅ 已实现（完整）
-├── PersistentVolume       ❌ 缺失（同上）
+├── PersistentVolume       ✅ 已实现（同上）
 ├── Namespace              ✅ 已实现
 ├── ClusterRole            ❌ 缺失 ⚠️ 重要
 ├── ClusterRoleBinding     ❌ 缺失 ⚠️ 重要
@@ -383,8 +388,8 @@ Deployment → ReplicaSet → Pods
 ## 实施路线图
 
 ### Phase 1: 核心补充（1-2周）
-1. 存储管理（PV/PVC/StorageClass）
-2. Ingress 管理
+1. ✅ ~~存储管理（PV/PVC/StorageClass）~~ - **已完成**
+2. ✅ ~~Ingress 管理~~ - **已完成**
 3. Events 事件查看
 4. 基础 RBAC（ServiceAccount, Role, RoleBinding）
 
@@ -516,19 +521,21 @@ interface HorizontalPodAutoscaler {
 
 ### 当前项目亮点
 1. ✅ 清晰的模块化结构
-2. ✅ 良好的组件复用（ResourceList, ResourceFilter）
+2. ✅ 良好的组件复用（ResourceList, ResourceFilter, DeleteConfirmModal）
 3. ✅ 完整的 Node 管理功能
 4. ✅ 统一的 UI/UX 设计
+5. ✅ 完整的存储管理（PV/PVC/StorageClass + 概览可视化）
+6. ✅ 完整的 Ingress 管理（规则查看、TLS 配置、YAML 导出）
 
 ### 主要缺失
-1. ❌ 存储管理（PV/PVC）- 核心功能
-2. ❌ Ingress 管理 - 生产必需
+1. ✅ ~~存储管理（PV/PVC）~~ - **已完成**
+2. ✅ ~~Ingress 管理~~ - **已完成**
 3. ❌ RBAC 权限 - 安全基础
 4. ❌ 自动扩缩容（HPA）- 弹性伸缩
 
 ### 建议优先实现顺序
-1. **存储管理**（PV/PVC/StorageClass）
-2. **Ingress** 和 **Events**
+1. ✅ ~~**存储管理**（PV/PVC/StorageClass）~~ - **已完成**
+2. ✅ ~~**Ingress**~~ - **已完成** 和 **Events**（待实现）
 3. **RBAC**（ServiceAccount, Role, RoleBinding）
 4. **HPA** 和 **ResourceQuota**
 5. 增强功能（监控、关联视图、批量操作）

@@ -149,6 +149,14 @@ function executeAction(action: ResourceActionConfig, row: any) {
   }
   action.handler(row);
 }
+
+// 获取操作的标签文本
+function getActionLabel(action: ResourceActionConfig, row: any): string {
+  if (typeof action.label === 'function') {
+    return action.label(row);
+  }
+  return action.label;
+}
 </script>
 
 <template>
@@ -206,7 +214,7 @@ function executeAction(action: ResourceActionConfig, row: any) {
                 :is="getActionIcon(action.action)"
                 v-if="action.icon !== false"
               />
-              {{ action.label }}
+              {{ getActionLabel(action, row) }}
             </Button>
           </Space>
         </template>

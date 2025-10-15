@@ -37,8 +37,8 @@ export type ResourceAction =
  */
 export interface ResourceActionConfig {
   action: ResourceAction;
-  label: string;
-  icon?: string;
+  label: string | ((row: any) => string);
+  icon?: string | false;
   danger?: boolean;
   permission?: string;
   show?: (row: any) => boolean;
@@ -182,6 +182,7 @@ export const K8S_RESOURCE_TYPES = {
   // 存储
   PERSISTENTVOLUME: 'persistentvolume',
   PERSISTENTVOLUMECLAIM: 'persistentvolumeclaim',
+  STORAGECLASS: 'storageclass',
 
   // 集群
   NODE: 'node',
@@ -264,6 +265,30 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     icon: 'lucide:key',
     namespaced: true,
     path: '/k8s/config/secrets',
+  },
+  [K8S_RESOURCE_TYPES.PERSISTENTVOLUME]: {
+    type: K8S_RESOURCE_TYPES.PERSISTENTVOLUME,
+    label: 'PersistentVolume',
+    category: ResourceCategory.STORAGE,
+    icon: 'lucide:hard-drive',
+    namespaced: false,
+    path: '/k8s/storage/persistent-volumes',
+  },
+  [K8S_RESOURCE_TYPES.PERSISTENTVOLUMECLAIM]: {
+    type: K8S_RESOURCE_TYPES.PERSISTENTVOLUMECLAIM,
+    label: 'PersistentVolumeClaim',
+    category: ResourceCategory.STORAGE,
+    icon: 'lucide:file-box',
+    namespaced: true,
+    path: '/k8s/storage/persistent-volume-claims',
+  },
+  [K8S_RESOURCE_TYPES.STORAGECLASS]: {
+    type: K8S_RESOURCE_TYPES.STORAGECLASS,
+    label: 'StorageClass',
+    category: ResourceCategory.STORAGE,
+    icon: 'lucide:database',
+    namespaced: false,
+    path: '/k8s/storage/storage-classes',
   },
   [K8S_RESOURCE_TYPES.NODE]: {
     type: K8S_RESOURCE_TYPES.NODE,

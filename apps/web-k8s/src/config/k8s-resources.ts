@@ -8,12 +8,16 @@ import type {
   CronJob,
   DaemonSet,
   Deployment,
+  Ingress,
   Job,
   Namespace,
+  PersistentVolume,
+  PersistentVolumeClaim,
   Pod,
   Secret,
   Service,
   StatefulSet,
+  StorageClass,
 } from '#/api/k8s/types';
 import type {
   ResourceActionConfig,
@@ -28,12 +32,16 @@ import {
   getMockCronJobList,
   getMockDaemonSetList,
   getMockDeploymentList,
+  getMockIngressList,
   getMockJobList,
   getMockNamespaceList,
   getMockPodList,
+  getMockPVCList,
+  getMockPVList,
   getMockSecretList,
   getMockServiceList,
   getMockStatefulSetList,
+  getMockStorageClassList,
 } from '#/api/k8s/mock';
 
 /**
@@ -774,6 +782,481 @@ export function createJobConfig(): ResourceListConfig<Job> {
       showNamespaceSelector: true,
       showSearch: true,
       searchPlaceholder: '搜索 Job 名称',
+    },
+  };
+}
+
+// ==================== 存储资源配置 ====================
+
+/**
+ * PersistentVolume 资源配置
+ */
+export function createPVConfig(): ResourceListConfig<PersistentVolume> {
+  return {
+    resourceType: 'persistentvolume',
+    resourceLabel: 'PersistentVolume',
+    fetchData: async (params) => {
+      const result = getMockPVList({
+        clusterId: params.clusterId || 'cluster-prod-01',
+        storageClass: params.storageClass,
+        status: params.status,
+        accessMode: params.accessMode,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items, total: result.total };
+    },
+    columns: [
+      { field: 'metadata.name', title: 'PV 名称', minWidth: 200 },
+      {
+        field: 'status.phase',
+        title: '状态',
+        width: 120,
+        slots: { default: 'status-slot' },
+      },
+      {
+        field: 'spec.capacity.storage',
+        title: '容量',
+        width: 100,
+      },
+      {
+        field: 'spec.storageClassName',
+        title: '存储类',
+        width: 150,
+      },
+      {
+        field: 'spec.accessModes',
+        title: '访问模式',
+        width: 180,
+        slots: { default: 'access-modes-slot' },
+      },
+      {
+        field: 'spec.persistentVolumeReclaimPolicy',
+        title: '回收策略',
+        width: 120,
+      },
+      {
+        field: 'spec.claimRef',
+        title: '绑定的 PVC',
+        minWidth: 200,
+        slots: { default: 'claim-slot' },
+      },
+      {
+        field: 'metadata.creationTimestamp',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('PersistentVolume', (row: PersistentVolume) => {
+        const backendType = row.spec.nfs
+          ? 'NFS'
+          : row.spec.hostPath
+            ? 'HostPath'
+            : row.spec.csi
+              ? 'CSI'
+              : row.spec.awsElasticBlockStore
+                ? 'AWS EBS'
+                : '其他';
+
+        return `
+          名称: ${row.metadata.name}
+          状态: ${row.status?.phase}
+          容量: ${row.spec.capacity.storage}
+          存储类: ${row.spec.storageClassName || '-'}
+          访问模式: ${row.spec.accessModes.join(', ')}
+          回收策略: ${row.spec.persistentVolumeReclaimPolicy}
+          存储后端: ${backendType}
+          绑定的 PVC: ${row.spec.claimRef ? `${row.spec.claimRef.namespace}/${row.spec.claimRef.name}` : '未绑定'}
+          创建时间: ${row.metadata.creationTimestamp}
+        `;
+      }),
+      createDeleteAction('PersistentVolume'),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: false,
+      showSearch: true,
+      searchPlaceholder: '搜索 PV 名称',
+      customFilters: [
+        {
+          field: 'storageClass',
+          label: '存储类',
+          type: 'select',
+          options: [
+            { label: '全部', value: '' },
+            { label: 'standard', value: 'standard' },
+            { label: 'fast-ssd', value: 'fast-ssd' },
+            { label: 'slow-hdd', value: 'slow-hdd' },
+            { label: 'nfs-storage', value: 'nfs-storage' },
+            { label: 'local-storage', value: 'local-storage' },
+          ],
+        },
+        {
+          field: 'status',
+          label: '状态',
+          type: 'select',
+          options: [
+            { label: '全部', value: '' },
+            { label: 'Available', value: 'Available' },
+            { label: 'Bound', value: 'Bound' },
+            { label: 'Released', value: 'Released' },
+            { label: 'Failed', value: 'Failed' },
+            { label: 'Pending', value: 'Pending' },
+          ],
+        },
+        {
+          field: 'accessMode',
+          label: '访问模式',
+          type: 'select',
+          options: [
+            { label: '全部', value: '' },
+            { label: 'ReadWriteOnce', value: 'ReadWriteOnce' },
+            { label: 'ReadOnlyMany', value: 'ReadOnlyMany' },
+            { label: 'ReadWriteMany', value: 'ReadWriteMany' },
+          ],
+        },
+      ],
+    },
+    statusConfig: {
+      field: 'status.phase',
+      statusMap: {
+        Available: { color: 'success', label: 'Available' },
+        Bound: { color: 'processing', label: 'Bound' },
+        Released: { color: 'warning', label: 'Released' },
+        Failed: { color: 'error', label: 'Failed' },
+        Pending: { color: 'default', label: 'Pending' },
+      },
+    },
+  };
+}
+
+/**
+ * PersistentVolumeClaim 资源配置
+ */
+export function createPVCConfig(): ResourceListConfig<PersistentVolumeClaim> {
+  return {
+    resourceType: 'persistentvolumeclaim',
+    resourceLabel: 'PersistentVolumeClaim',
+    fetchData: async (params) => {
+      const result = getMockPVCList({
+        clusterId: params.clusterId || 'cluster-prod-01',
+        namespace: params.namespace,
+        storageClass: params.storageClass,
+        status: params.status,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items, total: result.total };
+    },
+    columns: [
+      { field: 'metadata.name', title: 'PVC 名称', minWidth: 200 },
+      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      {
+        field: 'status.phase',
+        title: '状态',
+        width: 120,
+        slots: { default: 'status-slot' },
+      },
+      {
+        field: 'spec.volumeName',
+        title: '绑定的 PV',
+        minWidth: 200,
+      },
+      {
+        field: 'spec.resources.requests.storage',
+        title: '请求容量',
+        width: 120,
+      },
+      {
+        field: 'status.capacity.storage',
+        title: '实际容量',
+        width: 120,
+      },
+      {
+        field: 'spec.storageClassName',
+        title: '存储类',
+        width: 150,
+      },
+      {
+        field: 'spec.accessModes',
+        title: '访问模式',
+        width: 180,
+        slots: { default: 'access-modes-slot' },
+      },
+      {
+        field: 'metadata.creationTimestamp',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('PersistentVolumeClaim', (row: PersistentVolumeClaim) => {
+        return `
+          名称: ${row.metadata.name}
+          命名空间: ${row.metadata.namespace}
+          状态: ${row.status?.phase}
+          绑定的 PV: ${row.spec.volumeName || '未绑定'}
+          请求容量: ${row.spec.resources.requests.storage}
+          实际容量: ${row.status?.capacity?.storage || '-'}
+          存储类: ${row.spec.storageClassName || '-'}
+          访问模式: ${row.spec.accessModes.join(', ')}
+          创建时间: ${row.metadata.creationTimestamp}
+        `;
+      }),
+      createDeleteAction('PersistentVolumeClaim'),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: true,
+      showSearch: true,
+      searchPlaceholder: '搜索 PVC 名称',
+      customFilters: [
+        {
+          field: 'storageClass',
+          label: '存储类',
+          type: 'select',
+          options: [
+            { label: '全部', value: '' },
+            { label: 'standard', value: 'standard' },
+            { label: 'fast-ssd', value: 'fast-ssd' },
+            { label: 'slow-hdd', value: 'slow-hdd' },
+            { label: 'nfs-storage', value: 'nfs-storage' },
+            { label: 'local-storage', value: 'local-storage' },
+          ],
+        },
+        {
+          field: 'status',
+          label: '状态',
+          type: 'select',
+          options: [
+            { label: '全部', value: '' },
+            { label: 'Pending', value: 'Pending' },
+            { label: 'Bound', value: 'Bound' },
+            { label: 'Lost', value: 'Lost' },
+          ],
+        },
+      ],
+    },
+    statusConfig: {
+      field: 'status.phase',
+      statusMap: {
+        Pending: { color: 'warning', label: 'Pending' },
+        Bound: { color: 'success', label: 'Bound' },
+        Lost: { color: 'error', label: 'Lost' },
+      },
+    },
+  };
+}
+
+/**
+ * StorageClass 资源配置
+ */
+export function createStorageClassConfig(): ResourceListConfig<StorageClass> {
+  return {
+    resourceType: 'storageclass',
+    resourceLabel: 'StorageClass',
+    fetchData: async (params) => {
+      const result = getMockStorageClassList({
+        clusterId: params.clusterId || 'cluster-prod-01',
+        provisioner: params.provisioner,
+        reclaimPolicy: params.reclaimPolicy,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items, total: result.total };
+    },
+    columns: [
+      { field: 'metadata.name', title: '存储类名称', minWidth: 200 },
+      {
+        field: 'provisioner',
+        title: 'Provisioner',
+        minWidth: 250,
+      },
+      {
+        field: 'reclaimPolicy',
+        title: '回收策略',
+        width: 120,
+      },
+      {
+        field: 'volumeBindingMode',
+        title: '绑定模式',
+        width: 180,
+        slots: { default: 'binding-mode-slot' },
+      },
+      {
+        field: 'allowVolumeExpansion',
+        title: '允许扩容',
+        width: 120,
+        slots: { default: 'expansion-slot' },
+      },
+      {
+        field: 'parameters',
+        title: '参数数量',
+        width: 120,
+        formatter: ({ cellValue }: any) => {
+          return cellValue ? Object.keys(cellValue).length : 0;
+        },
+      },
+      {
+        field: 'metadata.creationTimestamp',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('StorageClass', (row: StorageClass) => {
+        const isDefault = row.metadata.annotations?.['storageclass.kubernetes.io/is-default-class'] === 'true';
+        const paramsCount = row.parameters ? Object.keys(row.parameters).length : 0;
+        const mountOptionsCount = row.mountOptions ? row.mountOptions.length : 0;
+
+        return `
+          名称: ${row.metadata.name}
+          Provisioner: ${row.provisioner}
+          回收策略: ${row.reclaimPolicy || 'Delete'}
+          绑定模式: ${row.volumeBindingMode || 'Immediate'}
+          允许扩容: ${row.allowVolumeExpansion ? '是' : '否'}
+          默认存储类: ${isDefault ? '是' : '否'}
+          参数数量: ${paramsCount}
+          挂载选项数量: ${mountOptionsCount}
+          创建时间: ${row.metadata.creationTimestamp}
+        `;
+      }),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: false,
+      showSearch: true,
+      searchPlaceholder: '搜索存储类名称',
+      customFilters: [
+        {
+          field: 'provisioner',
+          label: 'Provisioner',
+          type: 'select',
+          options: [
+            { label: '全部', value: '' },
+            { label: 'AWS EBS', value: 'kubernetes.io/aws-ebs' },
+            { label: 'GCE PD', value: 'kubernetes.io/gce-pd' },
+            { label: 'Azure Disk', value: 'kubernetes.io/azure-disk' },
+            { label: 'NFS CSI', value: 'nfs.csi.k8s.io' },
+            { label: 'CSI Example', value: 'csi.example.com' },
+            { label: 'Local Storage', value: 'kubernetes.io/no-provisioner' },
+          ],
+        },
+        {
+          field: 'reclaimPolicy',
+          label: '回收策略',
+          type: 'select',
+          options: [
+            { label: '全部', value: '' },
+            { label: 'Delete', value: 'Delete' },
+            { label: 'Retain', value: 'Retain' },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+// ==================== 网络资源配置 ====================
+
+/**
+ * Ingress 资源配置
+ */
+export function createIngressConfig(): ResourceListConfig<Ingress> {
+  return {
+    resourceType: 'ingress',
+    resourceLabel: 'Ingress',
+    fetchData: async (params) => {
+      const result = getMockIngressList({
+        clusterId: params.clusterId || 'cluster-prod-01',
+        namespace: params.namespace,
+        ingressClass: params.ingressClass,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items, total: result.total };
+    },
+    columns: [
+      { field: 'metadata.name', title: 'Ingress 名称', minWidth: 200 },
+      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      {
+        field: 'spec.ingressClassName',
+        title: 'Ingress Class',
+        width: 150,
+      },
+      {
+        field: 'spec.rules',
+        title: '主机/域名',
+        minWidth: 200,
+        slots: { default: 'hosts-slot' },
+      },
+      {
+        field: 'spec.tls',
+        title: 'TLS',
+        width: 80,
+        slots: { default: 'tls-slot' },
+      },
+      {
+        field: 'status.loadBalancer',
+        title: 'LoadBalancer',
+        minWidth: 180,
+        slots: { default: 'lb-slot' },
+      },
+      {
+        field: 'metadata.creationTimestamp',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('Ingress', (row: Ingress) => {
+        const hosts = row.spec.rules?.map(r => r.host).filter(Boolean).join(', ') || '-';
+        const hasTLS = row.spec.tls && row.spec.tls.length > 0;
+        const tlsHosts = hasTLS ? row.spec.tls![0].hosts.join(', ') : '-';
+        const ruleCount = row.spec.rules?.length || 0;
+        const pathCount = row.spec.rules?.reduce((sum, rule) => sum + (rule.http?.paths.length || 0), 0) || 0;
+        const lbIP = row.status?.loadBalancer?.ingress?.[0]?.ip ||
+                     row.status?.loadBalancer?.ingress?.[0]?.hostname || '-';
+
+        return `
+          名称: ${row.metadata.name}
+          命名空间: ${row.metadata.namespace}
+          Ingress Class: ${row.spec.ingressClassName || '-'}
+          主机/域名: ${hosts}
+          规则数量: ${ruleCount}
+          路径数量: ${pathCount}
+          TLS: ${hasTLS ? '已配置' : '未配置'}
+          TLS 域名: ${tlsHosts}
+          LoadBalancer: ${lbIP}
+          创建时间: ${row.metadata.creationTimestamp}
+        `;
+      }),
+      createDeleteAction('Ingress'),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: true,
+      showSearch: true,
+      searchPlaceholder: '搜索 Ingress 名称',
+      customFilters: [
+        {
+          field: 'ingressClass',
+          label: 'Ingress Class',
+          type: 'select',
+          options: [
+            { label: '全部', value: '' },
+            { label: 'nginx', value: 'nginx' },
+            { label: 'traefik', value: 'traefik' },
+            { label: 'kong', value: 'kong' },
+            { label: 'haproxy', value: 'haproxy' },
+          ],
+        },
+      ],
     },
   };
 }
