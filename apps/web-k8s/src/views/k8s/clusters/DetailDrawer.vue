@@ -30,6 +30,7 @@ const props = withDefaults(defineProps<DetailDrawerProps>(), {
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void;
+  (e: 'close'): void;
 }>();
 
 // 当前激活的标签页
@@ -192,7 +193,7 @@ async function copyApiServer() {
  */
 function handleClose() {
   emit('update:visible', false);
-  // 重置标签页到第一个
+  emit('close'); // 重置标签页到第一个
   activeTab.value = 'basic';
 }
 </script>

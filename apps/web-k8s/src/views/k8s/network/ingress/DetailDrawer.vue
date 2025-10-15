@@ -5,8 +5,13 @@
  */
 import type { Ingress } from '#/api/k8s/types';
 
-import { computed, h, ref } from 'vue';
+import { computed, ref } from 'vue';
 
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  LockOutlined,
+} from '@ant-design/icons-vue';
 import {
   Button,
   Descriptions,
@@ -16,15 +21,10 @@ import {
   Tabs,
   Tag,
 } from 'ant-design-vue';
-import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  LockOutlined,
-} from '@ant-design/icons-vue';
 
 interface DetailDrawerProps {
   visible: boolean;
-  ingress: null | Ingress;
+  ingress: Ingress | null;
 }
 
 const props = withDefaults(defineProps<DetailDrawerProps>(), {
@@ -34,6 +34,7 @@ const props = withDefaults(defineProps<DetailDrawerProps>(), {
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void;
+  (e: 'close'): void;
 }>();
 
 // 当前激活的标签页
@@ -266,7 +267,7 @@ function downloadYaml() {
  */
 function handleClose() {
   emit('update:visible', false);
-  // 重置标签页到第一个
+  emit('close'); // 重置标签页到第一个
   activeTab.value = 'basic';
   expandedRuleKeys.value = [];
 }
@@ -332,11 +333,14 @@ function handleClose() {
             :data-source="ingress.spec.rules || []"
             :pagination="false"
             size="small"
-            :row-key="(record: any, index: number) => record.host || `rule-${index}`"
+            :row-key="
+              (record: any, index: number) => record.host || `rule-${index}`
+            "
             :expanded-row-keys="expandedRuleKeys"
             @expand="
               (expanded, record) => {
-                const key = record.host || `rule-${ingress.spec.rules?.indexOf(record)}`;
+                const key =
+                  record.host || `rule-${ingress.spec.rules?.indexOf(record)}`;
                 if (expanded) {
                   if (!expandedRuleKeys.includes(key)) {
                     expandedRuleKeys.push(key);
@@ -366,7 +370,10 @@ function handleClose() {
         </Tabs.TabPane>
 
         <!-- TLS 配置标签页 -->
-        <Tabs.TabPane key="tls" :tab="`TLS 配置 ${tlsStatus.enabled ? `(${tlsStatus.count})` : ''}`">
+        <Tabs.TabPane
+          key="tls"
+          :tab="`TLS 配置 ${tlsStatus.enabled ? `(${tlsStatus.count})` : ''}`"
+        >
           <div v-if="tlsStatus.enabled" class="tls-info">
             <div class="tls-header">
               <Tag color="success" class="tls-tag">
@@ -381,7 +388,10 @@ function handleClose() {
               :data-source="ingress.spec.tls || []"
               :pagination="false"
               size="small"
-              :row-key="(record: any, index: number) => record.secretName || `tls-${index}`"
+              :row-key="
+                (record: any, index: number) =>
+                  record.secretName || `tls-${index}`
+              "
             />
           </div>
           <div v-else class="empty-text">未配置 TLS</div>
@@ -547,8 +557,8 @@ html[data-theme='dark'] .annotation-value {
 
 .tls-header {
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
 }
 
 .tls-tag {

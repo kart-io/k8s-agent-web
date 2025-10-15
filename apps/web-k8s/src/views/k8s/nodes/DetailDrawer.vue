@@ -34,6 +34,7 @@ const props = withDefaults(defineProps<DetailDrawerProps>(), {
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void;
+  (e: 'close'): void;
 }>();
 
 // 当前激活的标签页
@@ -458,7 +459,7 @@ watch(
  */
 function handleClose() {
   emit('update:visible', false);
-  // 重置标签页到第一个
+  emit('close'); // 重置标签页到第一个
   activeTab.value = 'basic';
 }
 </script>
@@ -660,14 +661,19 @@ function handleClose() {
                 </template>
               </template>
             </Table>
-            <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded">
+            <div class="mt-4 rounded bg-gray-50 p-3 dark:bg-gray-800">
               <p class="text-sm text-gray-600 dark:text-gray-400">
-                <strong>说明：</strong>污点（Taints）用于标记节点，防止 Pod 被调度到该节点，除非 Pod 有相应的容忍度（Tolerations）。
+                <strong>说明：</strong>污点（Taints）用于标记节点，防止 Pod
+                被调度到该节点，除非 Pod 有相应的容忍度（Tolerations）。
               </p>
-              <ul class="mt-2 text-sm text-gray-600 dark:text-gray-400 list-disc list-inside">
+              <ul
+                class="mt-2 list-inside list-disc text-sm text-gray-600 dark:text-gray-400"
+              >
                 <li><strong>NoSchedule:</strong> 不会将 Pod 调度到该节点</li>
                 <li><strong>PreferNoSchedule:</strong> 尽量不调度到该节点</li>
-                <li><strong>NoExecute:</strong> 不调度新 Pod，并驱逐现有 Pod</li>
+                <li>
+                  <strong>NoExecute:</strong> 不调度新 Pod，并驱逐现有 Pod
+                </li>
               </ul>
             </div>
           </div>
