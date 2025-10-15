@@ -22,27 +22,29 @@ export interface K8sResourceBase {
  * 资源操作类型
  */
 export type ResourceAction =
-  | 'view'
-  | 'edit'
-  | 'delete'
-  | 'scale'
-  | 'restart'
-  | 'logs'
-  | 'exec'
   | 'create'
-  | 'update';
+  | 'delete'
+  | 'edit'
+  | 'exec'
+  | 'logs'
+  | 'restart'
+  | 'scale'
+  | 'update'
+  | 'view';
 
 /**
  * 资源操作配置
  */
 export interface ResourceActionConfig {
   action: ResourceAction;
-  label: string | ((row: any) => string);
-  icon?: string | false;
+  label: ((row: any) => string) | string;
+  icon?: false | string;
   danger?: boolean;
   permission?: string;
   show?: (row: any) => boolean;
-  handler: (row: any) => void | Promise<void>;
+  handler: (row: any) => Promise<void> | void;
+  /** 在下拉菜单中是否在此操作后显示分隔线 */
+  divider?: boolean;
 }
 
 /**
@@ -53,7 +55,7 @@ export interface ResourceStatusConfig {
   statusMap: Record<
     string,
     {
-      color: 'success' | 'warning' | 'error' | 'default' | 'processing';
+      color: 'default' | 'error' | 'processing' | 'success' | 'warning';
       label?: string;
     }
   >;
@@ -62,18 +64,19 @@ export interface ResourceStatusConfig {
 /**
  * 资源列表列配置
  */
-export interface ResourceColumnConfig extends Omit<VxeGridPropTypes.Column, 'field'> {
+export interface ResourceColumnConfig
+  extends Omit<VxeGridPropTypes.Column, 'field'> {
   field: string;
   title: string;
   width?: number;
   minWidth?: number;
   fixed?: 'left' | 'right';
-  formatter?: string | ((params: any) => string);
+  formatter?: ((params: any) => string) | string;
   slots?: {
     default?: string;
-    header?: string;
-    footer?: string;
     edit?: string;
+    footer?: string;
+    header?: string;
   };
 }
 
@@ -88,8 +91,8 @@ export interface ResourceFilterConfig {
   customFilters?: Array<{
     field: string;
     label: string;
-    type: 'select' | 'input' | 'date';
     options?: Array<{ label: string; value: any }>;
+    type: 'date' | 'input' | 'select';
   }>;
 }
 
@@ -140,11 +143,11 @@ export interface ResourceListResult<T = any> {
  * 资源分类
  */
 export enum ResourceCategory {
-  WORKLOAD = 'workload',
-  NETWORK = 'network',
-  CONFIG = 'config',
-  STORAGE = 'storage',
   CLUSTER = 'cluster',
+  CONFIG = 'config',
+  NETWORK = 'network',
+  STORAGE = 'storage',
+  WORKLOAD = 'workload',
 }
 
 /**

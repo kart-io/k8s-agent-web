@@ -2,6 +2,8 @@
  * K8s 相关的工具函数
  */
 
+import * as yaml from 'js-yaml';
+
 /**
  * 格式化时间为相对时间
  * @param dateString ISO 8601 时间字符串
@@ -45,18 +47,34 @@ export function formatDateTime(dateString: string): string {
  * 格式化字节大小
  * @param bytes 字节数
  * @param decimals 小数位数
+ * @param locale 语言环境（如：'zh-CN', 'en-US'）
  * @returns 格式化的大小字符串（如：1.5 GB）
  */
-export function formatBytes(bytes: number, decimals: number = 2): string {
+export function formatBytes(
+  bytes: number,
+  decimals: number = 2,
+  locale: string = 'zh-CN',
+): string {
   if (bytes === 0) return '0 Bytes';
 
   const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
+  const dm = Math.max(decimals, 0);
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const value = Number.parseFloat((bytes / k ** i).toFixed(dm));
 
-  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  // 使用国际化格式化数字
+  try {
+    const formatter = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: dm,
+      maximumFractionDigits: dm,
+    });
+    return `${formatter.format(value)} ${sizes[i]}`;
+  } catch {
+    // 降级为简单格式
+    return `${value} ${sizes[i]}`;
+  }
 }
 
 /**
@@ -92,7 +110,7 @@ export function formatK8sCapacity(capacity: string): string {
  * @param cpu CPU 值（如：500m、2、0.5）
  * @returns 格式化的 CPU 字符串
  */
-export function formatCpu(cpu: string | number): string {
+export function formatCpu(cpu: number | string): string {
   if (typeof cpu === 'number') {
     return `${cpu} Core${cpu > 1 ? 's' : ''}`;
   }
@@ -149,7 +167,7 @@ export function getNodeStatusColor(status: string): string {
  */
 export function isValidK8sName(name: string): boolean {
   // K8s 资源名称规则：小写字母、数字、- 和 .，不能以 - 或 . 开头或结尾
-  const regex = /^[a-z0-9]([a-z0-9-.])*[a-z0-9]$/;
+  const regex = /^[a-z0-9][a-z0-9-.]*[a-z0-9]$/;
   return regex.test(name) && name.length <= 253;
 }
 
@@ -167,13 +185,13 @@ export function isValidLabelKey(key: string): boolean {
     // 前缀部分
     const prefix = parts[0];
     if (prefix.length > 253) return false;
-    if (!/^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$/.test(prefix)) return false;
+    if (!/^[a-z0-9](?:[-a-z0-9.]*[a-z0-9])?$/.test(prefix)) return false;
   }
 
   // 名称部分
   const name = parts[parts.length - 1];
   if (name.length === 0 || name.length > 63) return false;
-  return /^[a-z0-9A-Z]([-a-z0-9A-Z_.]*[a-z0-9A-Z])?$/.test(name);
+  return /^[a-z0-9](?:[-\w.]*[a-z0-9])?$/i.test(name);
 }
 
 /**
@@ -184,18 +202,20 @@ export function isValidLabelKey(key: string): boolean {
 export function isValidLabelValue(value: string): boolean {
   if (value.length === 0) return true; // 空值是允许的
   if (value.length > 63) return false;
-  return /^[a-z0-9A-Z]([-a-z0-9A-Z_.]*[a-z0-9A-Z])?$/.test(value);
+  return /^[a-z0-9](?:[-\w.]*[a-z0-9])?$/i.test(value);
 }
 
 /**
  * 解析资源请求/限制字符串
  * @param resources 资源对象
+ * @param resources.cpu CPU 资源
+ * @param resources.memory 内存资源
  * @returns 格式化的资源字符串
  */
 export function formatResources(resources?: {
+  [key: string]: string | undefined;
   cpu?: string;
   memory?: string;
-  [key: string]: string | undefined;
 }): string {
   if (!resources) return '-';
 
@@ -257,36 +277,38 @@ export function truncateText(text: string, maxLength: number = 50): string {
 }
 
 /**
- * 将对象转换为 YAML 字符串（简化版）
+ * 将对象转换为 YAML 字符串
  * @param obj 对象
- * @param indent 缩进级别
+ * @param options yaml.dump 选项
  * @returns YAML 字符串
  */
-export function toYaml(obj: any, indent: number = 0): string {
-  const spaces = '  '.repeat(indent);
-  let result = '';
-
-  if (Array.isArray(obj)) {
-    for (const item of obj) {
-      if (typeof item === 'object' && item !== null) {
-        result += `${spaces}- ${toYaml(item, indent + 1).trim()}\n`;
-      } else {
-        result += `${spaces}- ${item}\n`;
-      }
-    }
-  } else if (typeof obj === 'object' && obj !== null) {
-    for (const [key, value] of Object.entries(obj)) {
-      if (typeof value === 'object' && value !== null) {
-        result += `${spaces}${key}:\n${toYaml(value, indent + 1)}`;
-      } else {
-        result += `${spaces}${key}: ${value}\n`;
-      }
-    }
-  } else {
-    return `${obj}`;
+export function toYaml(obj: any, options?: any): string {
+  try {
+    return yaml.dump(obj, {
+      indent: 2,
+      lineWidth: 120,
+      noRefs: true,
+      sortKeys: true,
+      ...options,
+    });
+  } catch (error: any) {
+    console.error('YAML conversion failed:', error);
+    // 降级为 JSON
+    return JSON.stringify(obj, null, 2);
   }
+}
 
-  return result;
+/**
+ * 解析 YAML 字符串为对象
+ * @param yamlString YAML 字符串
+ * @returns 解析后的对象
+ */
+export function fromYaml<T = any>(yamlString: string): T {
+  try {
+    return yaml.load(yamlString) as T;
+  } catch (error: any) {
+    throw new Error(`YAML parsing failed: ${error.message}`);
+  }
 }
 
 /**
@@ -306,10 +328,10 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     textarea.value = text;
     textarea.style.position = 'fixed';
     textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
+    document.body.append(textarea);
     textarea.select();
     const success = document.execCommand('copy');
-    document.body.removeChild(textarea);
+    textarea.remove();
     return success;
   } catch {
     return false;
@@ -332,9 +354,9 @@ export function downloadTextFile(
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
-  document.body.appendChild(link);
+  document.body.append(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
   URL.revokeObjectURL(url);
 }
 
@@ -357,7 +379,7 @@ export function debounce<T extends (...args: any[]) => any>(
   fn: T,
   wait: number = 300,
 ): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
+  let timeout: null | ReturnType<typeof setTimeout> = null;
 
   return function (this: any, ...args: Parameters<T>) {
     if (timeout) clearTimeout(timeout);

@@ -8,6 +8,13 @@ import type { EventListParams, K8sEvent } from '#/api/k8s/types';
 import { computed, onMounted, ref } from 'vue';
 
 import {
+  ClockCircleOutlined,
+  ExclamationCircleOutlined,
+  InfoCircleOutlined,
+  SearchOutlined,
+} from '@ant-design/icons-vue';
+import {
+  Button,
   Card,
   Input,
   message,
@@ -16,12 +23,6 @@ import {
   Tag,
   Timeline,
 } from 'ant-design-vue';
-import {
-  ClockCircleOutlined,
-  ExclamationCircleOutlined,
-  InfoCircleOutlined,
-  SearchOutlined,
-} from '@ant-design/icons-vue';
 
 import { getMockEventList } from '#/api/k8s/mock';
 
@@ -41,10 +42,10 @@ const pageSize = ref(20);
 
 // 筛选参数
 const filters = ref<{
-  namespace?: string;
-  type?: 'Normal' | 'Warning' | '';
   involvedObjectKind?: string;
   involvedObjectName?: string;
+  namespace?: string;
+  type?: '' | 'Normal' | 'Warning';
 }>({
   namespace: undefined,
   type: '',
@@ -187,48 +188,45 @@ onMounted(() => {
   <div class="events-container">
     <!-- 筛选区域 -->
     <Card class="filter-card" :bordered="false">
-      <div class="filter-row">
+      <div class="filter-container">
         <div class="filter-item">
-          <label class="filter-label">命名空间</label>
+          <span class="filter-label">命名空间:</span>
           <Select
             v-model:value="filters.namespace"
             :options="namespaceOptions"
             placeholder="选择命名空间"
-            style="width: 200px"
-            @change="handleFilterChange"
+            class="filter-select"
           />
         </div>
 
         <div class="filter-item">
-          <label class="filter-label">事件类型</label>
+          <span class="filter-label">事件类型:</span>
           <Select
             v-model:value="filters.type"
             :options="eventTypeOptions"
-            placeholder="选择事件类型"
-            style="width: 150px"
-            @change="handleFilterChange"
+            placeholder="全部类型"
+            class="filter-select"
           />
         </div>
 
         <div class="filter-item">
-          <label class="filter-label">资源类型</label>
+          <span class="filter-label">资源类型:</span>
           <Select
             v-model:value="filters.involvedObjectKind"
             :options="resourceKindOptions"
             placeholder="选择资源类型"
-            style="width: 200px"
-            @change="handleFilterChange"
+            class="filter-select"
           />
         </div>
 
         <div class="filter-item">
-          <label class="filter-label">资源名称</label>
+          <span class="filter-label">资源名称:</span>
           <Input
             v-model:value="filters.involvedObjectName"
             placeholder="输入资源名称搜索"
-            style="width: 250px"
+            class="filter-input"
             allow-clear
-            @pressEnter="handleFilterChange"
+            @press-enter="handleFilterChange"
           >
             <template #prefix>
               <SearchOutlined />
@@ -236,9 +234,13 @@ onMounted(() => {
           </Input>
         </div>
 
-        <a-button type="link" @click="resetFilters">
-          重置筛选
-        </a-button>
+        <div class="filter-actions">
+          <Button type="primary" @click="handleFilterChange">
+            <SearchOutlined />
+            搜索
+          </Button>
+          <Button @click="resetFilters"> 重置筛选 </Button>
+        </div>
       </div>
     </Card>
 
@@ -261,27 +263,47 @@ onMounted(() => {
             <template #dot>
               <component
                 :is="getEventTypeIcon(event.type)"
-                :style="{ fontSize: '16px', color: event.type === 'Warning' ? '#ff4d4f' : '#52c41a' }"
+                :style="{
+                  fontSize: '16px',
+                  color: event.type === 'Warning' ? '#ff4d4f' : '#52c41a',
+                }"
               />
             </template>
 
             <div class="event-item">
               <div class="event-header">
                 <div class="event-meta">
-                  <Tag :color="getEventTypeColor(event.type)" class="event-type-tag">
+                  <Tag
+                    :color="getEventTypeColor(event.type)"
+                    class="event-type-tag"
+                  >
                     {{ event.type }}
                   </Tag>
-                  <span class="event-time" :title="formatDateTime(event.lastTimestamp)">
-                    {{ formatRelativeTime(event.lastTimestamp || event.firstTimestamp) }}
+                  <span
+                    class="event-time"
+                    :title="formatDateTime(event.lastTimestamp)"
+                  >
+                    {{
+                      formatRelativeTime(
+                        event.lastTimestamp || event.firstTimestamp,
+                      )
+                    }}
                   </span>
-                  <span v-if="event.count && event.count > 1" class="event-count">
+                  <span
+                    v-if="event.count && event.count > 1"
+                    class="event-count"
+                  >
                     ({{ event.count }}次)
                   </span>
                 </div>
                 <div class="event-resource">
                   <Tag color="blue">{{ event.involvedObject.kind }}</Tag>
                   <span class="resource-name">
-                    {{ event.involvedObject.namespace ? `${event.involvedObject.namespace}/` : '' }}{{ event.involvedObject.name }}
+                    {{
+                      event.involvedObject.namespace
+                        ? `${event.involvedObject.namespace}/`
+                        : ''
+                    }}{{ event.involvedObject.name }}
                   </span>
                 </div>
               </div>
@@ -297,7 +319,11 @@ onMounted(() => {
               <div class="event-source">
                 <span class="source-label">来源:</span>
                 <span class="source-value">{{ event.source.component }}</span>
-                <span v-if="event.source.host" class="source-host">@ {{ event.source.host }}</span>
+                <!-- eslint-disable vue/html-closing-bracket-newline -->
+                <span v-if="event.source.host" class="source-host"
+                  >@ {{ event.source.host }}</span
+                >
+                <!-- eslint-enable vue/html-closing-bracket-newline -->
               </div>
             </div>
           </Timeline.Item>
@@ -328,34 +354,76 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* 响应式布局 */
+@media (max-width: 1400px) {
+  .filter-actions {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-item {
+    flex: 1 1 100%;
+  }
+
+  .filter-select,
+  .filter-input {
+    flex: 1;
+    width: auto;
+  }
+
+  .filter-actions {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+}
+
 .events-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  gap: 12px;
+  padding: 12px;
 }
 
 .filter-card {
   background-color: var(--vben-background-color);
 }
 
-.filter-row {
+.filter-card :deep(.ant-card-body) {
+  padding: 16px;
+}
+
+.filter-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-end;
+  gap: 12px 16px;
+  align-items: center;
 }
 
 .filter-item {
   display: flex;
-  flex-direction: column;
   gap: 8px;
+  align-items: center;
+  min-width: 0;
 }
 
 .filter-label {
+  flex-shrink: 0;
   font-size: 14px;
   font-weight: 500;
   color: var(--vben-text-color);
+  white-space: nowrap;
+}
+
+.filter-select,
+.filter-input {
+  width: 200px;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .events-card {
@@ -363,10 +431,19 @@ onMounted(() => {
   background-color: var(--vben-background-color);
 }
 
+.events-card :deep(.ant-card-body) {
+  padding: 16px;
+}
+
+.events-card :deep(.ant-card-head) {
+  min-height: 48px;
+  padding: 0 16px;
+}
+
 .card-title {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   font-size: 16px;
   font-weight: 600;
 }
@@ -377,11 +454,11 @@ onMounted(() => {
 }
 
 .events-list {
-  padding: 16px 0;
+  padding: 8px 0;
 }
 
 .event-item {
-  padding: 12px;
+  padding: 10px;
   background-color: var(--vben-background-color);
   border: 1px solid var(--vben-border-color);
   border-radius: 6px;
@@ -395,15 +472,15 @@ onMounted(() => {
 
 .event-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  margin-bottom: 6px;
 }
 
 .event-meta {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .event-type-tag {
@@ -422,8 +499,8 @@ onMounted(() => {
 
 .event-resource {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .resource-name {
@@ -433,14 +510,14 @@ onMounted(() => {
 }
 
 .event-reason {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-size: 14px;
   color: var(--vben-text-color);
 }
 
 .event-message {
-  padding: 8px;
-  margin-bottom: 8px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 13px;
   line-height: 1.6;
@@ -494,8 +571,8 @@ html[data-theme='dark'] .event-message {
 .pagination-wrapper {
   display: flex;
   justify-content: flex-end;
-  padding-top: 24px;
-  margin-top: 24px;
+  padding-top: 16px;
+  margin-top: 16px;
   border-top: 1px solid var(--vben-border-color);
 }
 
@@ -510,6 +587,6 @@ html[data-theme='dark'] .event-message {
 }
 
 :deep(.ant-timeline-item-content) {
-  margin-left: 24px;
+  margin-left: 20px;
 }
 </style>

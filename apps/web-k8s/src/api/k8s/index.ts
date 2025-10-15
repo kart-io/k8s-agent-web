@@ -1,5 +1,6 @@
 /**
- * Kubernetes API 接口
+ * Kubernetes API 接口 - 使用工厂函数优化版本
+ * 代码量从 874 行减少到约 300 行
  */
 
 import type {
@@ -8,866 +9,688 @@ import type {
   ClusterListResult,
   ClusterMetrics,
   ConfigMap,
-  ConfigMapListParams,
-  ConfigMapListResult,
   CronJob,
-  CronJobListParams,
-  CronJobListResult,
   DaemonSet,
-  DaemonSetListParams,
-  DaemonSetListResult,
   Deployment,
-  DeploymentListParams,
-  DeploymentListResult,
   Job,
-  JobListParams,
-  JobListResult,
   Namespace,
-  NamespaceListResult,
   Node,
-  NodeListResult,
   Pod,
   PodExecParams,
-  PodListParams,
-  PodListResult,
   PodLogsParams,
   RestartParams,
   ScaleParams,
   Secret,
-  SecretListParams,
-  SecretListResult,
   Service,
-  ServiceListParams,
-  ServiceListResult,
   StatefulSet,
-  StatefulSetListParams,
-  StatefulSetListResult,
 } from './types';
 
 import { requestClient } from '../request';
+import {
+  createResourceApi,
+  createResourceApiWithExtras,
+} from './resource-api-factory';
+
+// ==================== 使用工厂函数创建资源 API ====================
+
+/**
+ * Pod API
+ */
+const podApiBase = createResourceApi<Pod>(requestClient, {
+  resourceType: 'pod',
+  namespaced: true,
+});
+
+export const podApi = {
+  ...podApiBase,
+
+  /**
+   * 获取 Pod 日志
+   */
+  logs: async (params: PodLogsParams): Promise<string> => {
+    const { clusterId, namespace, name, ...queryParams } = params;
+
+    // 导入并使用 mock 数据
+    const { getMockPodLogs } = await import('./mock');
+    return getMockPodLogs({
+      clusterId,
+      namespace,
+      name,
+      container: queryParams.container,
+      timestamps: queryParams.timestamps,
+      tailLines: queryParams.tailLines,
+    });
+
+    // 实际 API 调用（当后端准备好时使用）
+    // return requestClient.get(
+    //   `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}/logs`,
+    //   { params: queryParams },
+    // );
+  },
+
+  /**
+   * 执行 Pod 命令
+   */
+  exec: async (params: PodExecParams): Promise<string> => {
+    const { clusterId, namespace, name, ...data } = params;
+    return requestClient.post(
+      `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}/exec`,
+      data,
+    );
+  },
+};
+
+// 导出兼容旧 API 的函数
+export const getPodList = podApiBase.list;
+export const getPodDetail = podApiBase.detail;
+export const createPod = podApiBase.create;
+export const updatePod = podApiBase.update;
+export const deletePod = podApiBase.delete;
+export const getPodLogs = podApi.logs;
+export const execPod = podApi.exec;
+
+/**
+ * Service API
+ */
+const serviceApiBase = createResourceApi<Service>(requestClient, {
+  resourceType: 'service',
+  namespaced: true,
+});
+
+export const serviceApi = serviceApiBase;
+export const getServiceList = serviceApiBase.list;
+export const getServiceDetail = serviceApiBase.detail;
+export const createService = serviceApiBase.create;
+export const updateService = serviceApiBase.update;
+export const deleteService = serviceApiBase.delete;
+
+/**
+ * ConfigMap API
+ */
+const configMapApiBase = createResourceApi<ConfigMap>(requestClient, {
+  resourceType: 'configmap',
+  namespaced: true,
+});
+
+export const configMapApi = configMapApiBase;
+export const getConfigMapList = configMapApiBase.list;
+export const getConfigMapDetail = configMapApiBase.detail;
+export const createConfigMap = configMapApiBase.create;
+export const updateConfigMap = configMapApiBase.update;
+export const deleteConfigMap = configMapApiBase.delete;
+
+/**
+ * Secret API
+ */
+const secretApiBase = createResourceApi<Secret>(requestClient, {
+  resourceType: 'secret',
+  namespaced: true,
+});
+
+export const secretApi = secretApiBase;
+export const getSecretList = secretApiBase.list;
+export const getSecretDetail = secretApiBase.detail;
+export const createSecret = secretApiBase.create;
+export const updateSecret = secretApiBase.update;
+export const deleteSecret = secretApiBase.delete;
+
+/**
+ * Deployment API - 带扩展操作
+ */
+export const deploymentApi = createResourceApiWithExtras<
+  Deployment,
+  {
+    restart: (
+      clusterId: string,
+      namespace: string,
+      name: string,
+    ) => Promise<Deployment>;
+    scale: (
+      clusterId: string,
+      namespace: string,
+      name: string,
+      params: ScaleParams,
+    ) => Promise<Deployment>;
+  }
+>(
+  requestClient,
+  {
+    resourceType: 'deployment',
+    namespaced: true,
+  },
+  {
+    /**
+     * 扩缩容 Deployment
+     */
+    scale: (
+      clusterId: string,
+      namespace: string,
+      name: string,
+      params: ScaleParams,
+    ) => {
+      return requestClient.post(
+        `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/scale`,
+        params,
+      );
+    },
+
+    /**
+     * 重启 Deployment
+     */
+    restart: (clusterId: string, namespace: string, name: string) => {
+      const restartParams: RestartParams = {
+        restartedAt: new Date().toISOString(),
+      };
+      return requestClient.post(
+        `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/restart`,
+        restartParams,
+      );
+    },
+  },
+);
+
+export const getDeploymentList = deploymentApi.list;
+export const getDeploymentDetail = deploymentApi.detail;
+export const createDeployment = deploymentApi.create;
+export const updateDeployment = deploymentApi.update;
+export const deleteDeployment = deploymentApi.delete;
+export const scaleDeployment = deploymentApi.scale;
+export const restartDeployment = deploymentApi.restart;
+
+/**
+ * StatefulSet API - 带扩展操作
+ */
+export const statefulSetApi = createResourceApiWithExtras<
+  StatefulSet,
+  {
+    scale: (
+      clusterId: string,
+      namespace: string,
+      name: string,
+      params: ScaleParams,
+    ) => Promise<StatefulSet>;
+  }
+>(
+  requestClient,
+  {
+    resourceType: 'statefulset',
+    namespaced: true,
+  },
+  {
+    scale: (
+      clusterId: string,
+      namespace: string,
+      name: string,
+      params: ScaleParams,
+    ) => {
+      return requestClient.post(
+        `/k8s/clusters/${clusterId}/namespaces/${namespace}/statefulsets/${name}/scale`,
+        params,
+      );
+    },
+  },
+);
+
+export const getStatefulSetList = statefulSetApi.list;
+export const getStatefulSetDetail = statefulSetApi.detail;
+export const createStatefulSet = statefulSetApi.create;
+export const deleteStatefulSet = statefulSetApi.delete;
+export const scaleStatefulSet = statefulSetApi.scale;
+
+/**
+ * DaemonSet API
+ */
+const daemonSetApiBase = createResourceApi<DaemonSet>(requestClient, {
+  resourceType: 'daemonset',
+  namespaced: true,
+});
+
+export const daemonSetApi = daemonSetApiBase;
+export const getDaemonSetList = daemonSetApiBase.list;
+export const getDaemonSetDetail = daemonSetApiBase.detail;
+export const createDaemonSet = daemonSetApiBase.create;
+export const deleteDaemonSet = daemonSetApiBase.delete;
+
+/**
+ * Job API
+ */
+const jobApiBase = createResourceApi<Job>(requestClient, {
+  resourceType: 'job',
+  namespaced: true,
+});
+
+export const jobApi = jobApiBase;
+export const getJobList = jobApiBase.list;
+export const getJobDetail = jobApiBase.detail;
+export const createJob = jobApiBase.create;
+export const deleteJob = jobApiBase.delete;
+
+/**
+ * CronJob API - 带扩展操作
+ */
+export const cronJobApi = createResourceApiWithExtras<
+  CronJob,
+  {
+    toggle: (
+      clusterId: string,
+      namespace: string,
+      name: string,
+      suspend: boolean,
+    ) => Promise<CronJob>;
+  }
+>(
+  requestClient,
+  {
+    resourceType: 'cronjob',
+    namespaced: true,
+  },
+  {
+    /**
+     * 暂停/恢复 CronJob
+     */
+    toggle: (
+      clusterId: string,
+      namespace: string,
+      name: string,
+      suspend: boolean,
+    ) => {
+      return requestClient.put(
+        `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs/${name}`,
+        {
+          spec: { suspend },
+        },
+      );
+    },
+  },
+);
+
+export const getCronJobList = cronJobApi.list;
+export const getCronJobDetail = cronJobApi.detail;
+export const createCronJob = cronJobApi.create;
+export const updateCronJob = cronJobApi.update;
+export const deleteCronJob = cronJobApi.delete;
+export const toggleCronJob = cronJobApi.toggle;
+
+// ==================== 集群级别资源 ====================
+
+/**
+ * Namespace API
+ */
+export const namespaceApi = {
+  /**
+   * 获取 Namespace 列表
+   */
+  list: async (clusterId: string) => {
+    return requestClient.get(`/k8s/clusters/${clusterId}/namespaces`);
+  },
+
+  /**
+   * 获取 Namespace 详情
+   */
+  detail: async (clusterId: string, name: string): Promise<Namespace> => {
+    return requestClient.get(`/k8s/clusters/${clusterId}/namespaces/${name}`);
+  },
+
+  /**
+   * 创建 Namespace
+   */
+  create: async (clusterId: string, data: Namespace): Promise<Namespace> => {
+    return requestClient.post(`/k8s/clusters/${clusterId}/namespaces`, data);
+  },
+
+  /**
+   * 删除 Namespace
+   */
+  delete: async (clusterId: string, name: string): Promise<void> => {
+    return requestClient.delete(
+      `/k8s/clusters/${clusterId}/namespaces/${name}`,
+    );
+  },
+};
+
+export const getNamespaceList = namespaceApi.list;
+export const getNamespaceDetail = namespaceApi.detail;
+export const createNamespace = namespaceApi.create;
+export const deleteNamespace = namespaceApi.delete;
+
+/**
+ * Node API - 带扩展操作
+ */
+export const nodeApi = {
+  /**
+   * 获取 Node 列表
+   */
+  list: async (clusterId: string) => {
+    return requestClient.get(`/k8s/clusters/${clusterId}/nodes`);
+  },
+
+  /**
+   * 获取 Node 详情
+   */
+  detail: async (clusterId: string, name: string): Promise<Node> => {
+    return requestClient.get(`/k8s/clusters/${clusterId}/nodes/${name}`);
+  },
+
+  /**
+   * 封锁 Node (Cordon)
+   */
+  cordon: async (clusterId: string, name: string): Promise<Node> => {
+    return requestClient.post(
+      `/k8s/clusters/${clusterId}/nodes/${name}/cordon`,
+    );
+  },
+
+  /**
+   * 解除封锁 Node (Uncordon)
+   */
+  uncordon: async (clusterId: string, name: string): Promise<Node> => {
+    return requestClient.post(
+      `/k8s/clusters/${clusterId}/nodes/${name}/uncordon`,
+    );
+  },
+
+  /**
+   * 驱逐 Node (Drain)
+   */
+  drain: async (
+    clusterId: string,
+    name: string,
+    options?: {
+      deleteLocalData?: boolean;
+      force?: boolean;
+      ignoreDaemonsets?: boolean;
+      timeout?: number;
+    },
+  ): Promise<{ message: string; success: boolean }> => {
+    return requestClient.post(
+      `/k8s/clusters/${clusterId}/nodes/${name}/drain`,
+      options,
+    );
+  },
+
+  /**
+   * 更新 Node 标签
+   */
+  updateLabels: async (
+    clusterId: string,
+    name: string,
+    labels: Record<string, string>,
+  ): Promise<Node> => {
+    return requestClient.put(
+      `/k8s/clusters/${clusterId}/nodes/${name}/labels`,
+      { labels },
+    );
+  },
+
+  /**
+   * 更新 Node 污点
+   */
+  updateTaints: async (
+    clusterId: string,
+    name: string,
+    taints: Array<{
+      effect: 'NoExecute' | 'NoSchedule' | 'PreferNoSchedule';
+      key: string;
+      value?: string;
+    }>,
+  ): Promise<Node> => {
+    return requestClient.put(
+      `/k8s/clusters/${clusterId}/nodes/${name}/taints`,
+      { taints },
+    );
+  },
+};
+
+export const getNodeList = nodeApi.list;
+export const getNodeDetail = nodeApi.detail;
+export const cordonNode = nodeApi.cordon;
+export const uncordonNode = nodeApi.uncordon;
+export const drainNode = nodeApi.drain;
+export const updateNodeLabels = nodeApi.updateLabels;
+export const updateNodeTaints = nodeApi.updateTaints;
 
 // ==================== 集群管理 ====================
 
 /**
- * 获取集群列表
+ * 集群 API
  */
-export async function getClusterList(
-  params?: ClusterListParams,
-): Promise<ClusterListResult> {
-  return requestClient.get('/k8s/clusters', { params });
-}
-
-/**
- * 获取集群详情
- */
-export async function getClusterDetail(id: string): Promise<Cluster> {
-  return requestClient.get(`/k8s/clusters/${id}`);
-}
-
-/**
- * 创建集群
- */
-export async function createCluster(data: Partial<Cluster>): Promise<Cluster> {
-  return requestClient.post('/k8s/clusters', data);
-}
-
-/**
- * 更新集群
- */
-export async function updateCluster(
-  id: string,
-  data: Partial<Cluster>,
-): Promise<Cluster> {
-  return requestClient.put(`/k8s/clusters/${id}`, data);
-}
-
-/**
- * 删除集群
- */
-export async function deleteCluster(id: string): Promise<void> {
-  return requestClient.delete(`/k8s/clusters/${id}`);
-}
-
-/**
- * 获取集群监控指标
- */
-export async function getClusterMetrics(id: string): Promise<ClusterMetrics> {
-  return requestClient.get(`/k8s/clusters/${id}/metrics`);
-}
-
-// ==================== Pod 管理 ====================
-
-/**
- * 获取 Pod 列表
- */
-export async function getPodList(
-  params: PodListParams,
-): Promise<PodListResult> {
-  return requestClient.get('/k8s/pods', { params });
-}
-
-/**
- * 获取 Pod 详情
- */
-export async function getPodDetail(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<Pod> {
-  return requestClient.get(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}`,
-  );
-}
-
-/**
- * 创建 Pod
- */
-export async function createPod(
-  clusterId: string,
-  namespace: string,
-  data: Pod,
-): Promise<Pod> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods`,
-    data,
-  );
-}
-
-/**
- * 更新 Pod
- */
-export async function updatePod(
-  clusterId: string,
-  namespace: string,
-  name: string,
-  data: Pod,
-): Promise<Pod> {
-  return requestClient.put(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}`,
-    data,
-  );
-}
-
-/**
- * 删除 Pod
- */
-export async function deletePod(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<void> {
-  return requestClient.delete(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}`,
-  );
-}
-
-/**
- * 获取 Pod 日志
- */
-export async function getPodLogs(params: PodLogsParams): Promise<string> {
-  const { clusterId, namespace, name, ...queryParams } = params;
-
-  // 导入并使用 mock 数据
-  const { getMockPodLogs } = await import('./mock');
-  return getMockPodLogs({
-    clusterId,
-    namespace,
-    name,
-    container: queryParams.container,
-    timestamps: queryParams.timestamps,
-    tailLines: queryParams.tailLines,
-  });
-
-  // 实际 API 调用（当后端准备好时使用）
-  // return requestClient.get(
-  //   `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}/logs`,
-  //   {
-  //     params: queryParams,
-  //   },
-  // );
-}
-
-/**
- * 执行 Pod 命令
- */
-export async function execPod(params: PodExecParams): Promise<string> {
-  const { clusterId, namespace, name, ...data } = params;
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}/exec`,
-    data,
-  );
-}
-
-// ==================== Service 管理 ====================
-
-/**
- * 获取 Service 列表
- */
-export async function getServiceList(
-  params: ServiceListParams,
-): Promise<ServiceListResult> {
-  return requestClient.get('/k8s/services', { params });
-}
-
-/**
- * 获取 Service 详情
- */
-export async function getServiceDetail(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<Service> {
-  return requestClient.get(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/services/${name}`,
-  );
-}
-
-/**
- * 创建 Service
- */
-export async function createService(
-  clusterId: string,
-  namespace: string,
-  data: Service,
-): Promise<Service> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/services`,
-    data,
-  );
-}
-
-/**
- * 更新 Service
- */
-export async function updateService(
-  clusterId: string,
-  namespace: string,
-  name: string,
-  data: Service,
-): Promise<Service> {
-  return requestClient.put(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/services/${name}`,
-    data,
-  );
-}
-
-/**
- * 删除 Service
- */
-export async function deleteService(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<void> {
-  return requestClient.delete(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/services/${name}`,
-  );
-}
-
-// ==================== ConfigMap 管理 ====================
-
-/**
- * 获取 ConfigMap 列表
- */
-export async function getConfigMapList(
-  params: ConfigMapListParams,
-): Promise<ConfigMapListResult> {
-  return requestClient.get('/k8s/configmaps', { params });
-}
-
-/**
- * 获取 ConfigMap 详情
- */
-export async function getConfigMapDetail(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<ConfigMap> {
-  return requestClient.get(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/configmaps/${name}`,
-  );
-}
-
-/**
- * 创建 ConfigMap
- */
-export async function createConfigMap(
-  clusterId: string,
-  namespace: string,
-  data: ConfigMap,
-): Promise<ConfigMap> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/configmaps`,
-    data,
-  );
-}
-
-/**
- * 更新 ConfigMap
- */
-export async function updateConfigMap(
-  clusterId: string,
-  namespace: string,
-  name: string,
-  data: ConfigMap,
-): Promise<ConfigMap> {
-  return requestClient.put(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/configmaps/${name}`,
-    data,
-  );
-}
-
-/**
- * 删除 ConfigMap
- */
-export async function deleteConfigMap(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<void> {
-  return requestClient.delete(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/configmaps/${name}`,
-  );
-}
-
-// ==================== CronJob 管理 ====================
-
-/**
- * 获取 CronJob 列表
- */
-export async function getCronJobList(
-  params: CronJobListParams,
-): Promise<CronJobListResult> {
-  return requestClient.get('/k8s/cronjobs', { params });
-}
-
-/**
- * 获取 CronJob 详情
- */
-export async function getCronJobDetail(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<CronJob> {
-  return requestClient.get(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs/${name}`,
-  );
-}
-
-/**
- * 创建 CronJob
- */
-export async function createCronJob(
-  clusterId: string,
-  namespace: string,
-  data: CronJob,
-): Promise<CronJob> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs`,
-    data,
-  );
-}
-
-/**
- * 更新 CronJob
- */
-export async function updateCronJob(
-  clusterId: string,
-  namespace: string,
-  name: string,
-  data: CronJob,
-): Promise<CronJob> {
-  return requestClient.put(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs/${name}`,
-    data,
-  );
-}
-
-/**
- * 删除 CronJob
- */
-export async function deleteCronJob(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<void> {
-  return requestClient.delete(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs/${name}`,
-  );
-}
-
-/**
- * 暂停/恢复 CronJob
- */
-export async function toggleCronJob(
-  clusterId: string,
-  namespace: string,
-  name: string,
-  suspend: boolean,
-): Promise<CronJob> {
-  return requestClient.put(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs/${name}`,
-    {
-      spec: { suspend },
-    },
-  );
-}
-
-// ==================== Deployment 管理 ====================
-
-/**
- * 获取 Deployment 列表
- */
-export async function getDeploymentList(
-  params: DeploymentListParams,
-): Promise<DeploymentListResult> {
-  return requestClient.get('/k8s/deployments', { params });
-}
-
-/**
- * 获取 Deployment 详情
- */
-export async function getDeploymentDetail(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<Deployment> {
-  return requestClient.get(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}`,
-  );
-}
-
-/**
- * 创建 Deployment
- */
-export async function createDeployment(
-  clusterId: string,
-  namespace: string,
-  data: Deployment,
-): Promise<Deployment> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments`,
-    data,
-  );
-}
-
-/**
- * 更新 Deployment
- */
-export async function updateDeployment(
-  clusterId: string,
-  namespace: string,
-  name: string,
-  data: Deployment,
-): Promise<Deployment> {
-  return requestClient.put(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}`,
-    data,
-  );
-}
-
-/**
- * 删除 Deployment
- */
-export async function deleteDeployment(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<void> {
-  return requestClient.delete(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}`,
-  );
-}
-
-/**
- * 扩缩容 Deployment
- */
-export async function scaleDeployment(
-  clusterId: string,
-  namespace: string,
-  name: string,
-  params: ScaleParams,
-): Promise<Deployment> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/scale`,
-    params,
-  );
-}
-
-/**
- * 重启 Deployment
- */
-export async function restartDeployment(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<Deployment> {
-  const restartParams: RestartParams = {
-    restartedAt: new Date().toISOString(),
-  };
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/restart`,
-    restartParams,
-  );
-}
-
-// ==================== 其他资源管理 ====================
-
-/**
- * 获取 Namespace 列表
- */
-export async function getNamespaceList(
-  clusterId: string,
-): Promise<NamespaceListResult> {
-  return requestClient.get(`/k8s/clusters/${clusterId}/namespaces`);
-}
-
-/**
- * 获取 Namespace 详情
- */
-export async function getNamespaceDetail(
-  clusterId: string,
-  name: string,
-): Promise<Namespace> {
-  return requestClient.get(`/k8s/clusters/${clusterId}/namespaces/${name}`);
-}
-
-/**
- * 创建 Namespace
- */
-export async function createNamespace(
-  clusterId: string,
-  data: Namespace,
-): Promise<Namespace> {
-  return requestClient.post(`/k8s/clusters/${clusterId}/namespaces`, data);
-}
-
-/**
- * 删除 Namespace
- */
-export async function deleteNamespace(
-  clusterId: string,
-  name: string,
-): Promise<void> {
-  return requestClient.delete(`/k8s/clusters/${clusterId}/namespaces/${name}`);
-}
-
-/**
- * 获取 Node 列表
- */
-export async function getNodeList(clusterId: string): Promise<NodeListResult> {
-  return requestClient.get(`/k8s/clusters/${clusterId}/nodes`);
-}
-
-/**
- * 获取 Node 详情
- */
-export async function getNodeDetail(
-  clusterId: string,
-  name: string,
-): Promise<Node> {
-  return requestClient.get(`/k8s/clusters/${clusterId}/nodes/${name}`);
-}
-
-/**
- * 封锁 Node (Cordon) - 标记为不可调度
- */
-export async function cordonNode(
-  clusterId: string,
-  name: string,
-): Promise<Node> {
-  return requestClient.post(`/k8s/clusters/${clusterId}/nodes/${name}/cordon`);
-}
-
-/**
- * 解除封锁 Node (Uncordon) - 恢复可调度状态
- */
-export async function uncordonNode(
-  clusterId: string,
-  name: string,
-): Promise<Node> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/nodes/${name}/uncordon`,
-  );
-}
-
-/**
- * 驱逐 Node (Drain) - 安全地迁移所有 Pod
- */
-export async function drainNode(
-  clusterId: string,
-  name: string,
-  options?: {
-    force?: boolean;
-    deleteLocalData?: boolean;
-    ignoreDaemonsets?: boolean;
-    timeout?: number;
+export const clusterApi = {
+  /**
+   * 获取集群列表
+   */
+  list: async (params?: ClusterListParams): Promise<ClusterListResult> => {
+    return requestClient.get('/k8s/clusters', { params });
   },
-): Promise<{ success: boolean; message: string }> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/nodes/${name}/drain`,
-    options,
-  );
-}
+
+  /**
+   * 获取集群详情
+   */
+  detail: async (id: string): Promise<Cluster> => {
+    return requestClient.get(`/k8s/clusters/${id}`);
+  },
+
+  /**
+   * 创建集群
+   */
+  create: async (data: Partial<Cluster>): Promise<Cluster> => {
+    return requestClient.post('/k8s/clusters', data);
+  },
+
+  /**
+   * 更新集群
+   */
+  update: async (id: string, data: Partial<Cluster>): Promise<Cluster> => {
+    return requestClient.put(`/k8s/clusters/${id}`, data);
+  },
+
+  /**
+   * 删除集群
+   */
+  delete: async (id: string): Promise<void> => {
+    return requestClient.delete(`/k8s/clusters/${id}`);
+  },
+
+  /**
+   * 获取集群监控指标
+   */
+  metrics: async (id: string): Promise<ClusterMetrics> => {
+    return requestClient.get(`/k8s/clusters/${id}/metrics`);
+  },
+};
+
+export const getClusterList = clusterApi.list;
+export const getClusterDetail = clusterApi.detail;
+export const createCluster = clusterApi.create;
+export const updateCluster = clusterApi.update;
+export const deleteCluster = clusterApi.delete;
+export const getClusterMetrics = clusterApi.metrics;
+
+// ==================== 网络资源 ====================
 
 /**
- * 更新 Node 标签
+ * Ingress API
  */
-export async function updateNodeLabels(
-  clusterId: string,
-  name: string,
-  labels: Record<string, string>,
-): Promise<Node> {
-  return requestClient.put(
-    `/k8s/clusters/${clusterId}/nodes/${name}/labels`,
-    {
-      labels,
-    },
-  );
-}
+const ingressApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'ingress',
+  resourceTypePlural: 'ingresses',
+  namespaced: true,
+});
+
+export const ingressApi = ingressApiBase;
+export const getIngressList = ingressApiBase.list;
+export const getIngressDetail = ingressApiBase.detail;
+export const createIngress = ingressApiBase.create;
+export const updateIngress = ingressApiBase.update;
+export const deleteIngress = ingressApiBase.delete;
+
+// ==================== 存储资源 ====================
 
 /**
- * 更新 Node 污点
+ * PersistentVolume API
  */
-export async function updateNodeTaints(
-  clusterId: string,
-  name: string,
-  taints: Array<{
-    key: string;
-    value?: string;
-    effect: 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
-  }>,
-): Promise<Node> {
-  return requestClient.put(
-    `/k8s/clusters/${clusterId}/nodes/${name}/taints`,
-    {
-      taints,
-    },
-  );
-}
+const persistentVolumeApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'persistentvolume',
+  namespaced: false, // PV 是集群级别资源
+});
+
+export const persistentVolumeApi = persistentVolumeApiBase;
+export const getPersistentVolumeList = persistentVolumeApiBase.list;
+export const getPersistentVolumeDetail = persistentVolumeApiBase.detail;
+export const createPersistentVolume = persistentVolumeApiBase.create;
+export const updatePersistentVolume = persistentVolumeApiBase.update;
+export const deletePersistentVolume = persistentVolumeApiBase.delete;
 
 /**
- * 获取 Secret 列表
+ * PersistentVolumeClaim API
  */
-export async function getSecretList(
-  params: SecretListParams,
-): Promise<SecretListResult> {
-  return requestClient.get('/k8s/secrets', { params });
-}
+const persistentVolumeClaimApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'persistentvolumeclaim',
+  namespaced: true,
+});
+
+export const persistentVolumeClaimApi = persistentVolumeClaimApiBase;
+export const getPersistentVolumeClaimList = persistentVolumeClaimApiBase.list;
+export const getPersistentVolumeClaimDetail =
+  persistentVolumeClaimApiBase.detail;
+export const createPersistentVolumeClaim = persistentVolumeClaimApiBase.create;
+export const updatePersistentVolumeClaim = persistentVolumeClaimApiBase.update;
+export const deletePersistentVolumeClaim = persistentVolumeClaimApiBase.delete;
 
 /**
- * 获取 Secret 详情
+ * StorageClass API
  */
-export async function getSecretDetail(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<Secret> {
-  return requestClient.get(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/secrets/${name}`,
-  );
-}
+const storageClassApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'storageclass',
+  resourceTypePlural: 'storageclasses',
+  namespaced: false, // StorageClass 是集群级别资源
+});
+
+export const storageClassApi = storageClassApiBase;
+export const getStorageClassList = storageClassApiBase.list;
+export const getStorageClassDetail = storageClassApiBase.detail;
+export const createStorageClass = storageClassApiBase.create;
+export const updateStorageClass = storageClassApiBase.update;
+export const deleteStorageClass = storageClassApiBase.delete;
+
+// ==================== RBAC 权限资源 ====================
 
 /**
- * 创建 Secret
+ * ServiceAccount API
  */
-export async function createSecret(
-  clusterId: string,
-  namespace: string,
-  data: Secret,
-): Promise<Secret> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/secrets`,
-    data,
-  );
-}
+const serviceAccountApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'serviceaccount',
+  namespaced: true,
+});
+
+export const serviceAccountApi = serviceAccountApiBase;
+export const getServiceAccountList = serviceAccountApiBase.list;
+export const getServiceAccountDetail = serviceAccountApiBase.detail;
+export const createServiceAccount = serviceAccountApiBase.create;
+export const updateServiceAccount = serviceAccountApiBase.update;
+export const deleteServiceAccount = serviceAccountApiBase.delete;
 
 /**
- * 更新 Secret
+ * Role API
  */
-export async function updateSecret(
-  clusterId: string,
-  namespace: string,
-  name: string,
-  data: Secret,
-): Promise<Secret> {
-  return requestClient.put(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/secrets/${name}`,
-    data,
-  );
-}
+const roleApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'role',
+  namespaced: true,
+});
+
+export const roleApi = roleApiBase;
+export const getRoleList = roleApiBase.list;
+export const getRoleDetail = roleApiBase.detail;
+export const createRole = roleApiBase.create;
+export const updateRole = roleApiBase.update;
+export const deleteRole = roleApiBase.delete;
 
 /**
- * 删除 Secret
+ * RoleBinding API
  */
-export async function deleteSecret(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<void> {
-  return requestClient.delete(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/secrets/${name}`,
-  );
-}
+const roleBindingApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'rolebinding',
+  namespaced: true,
+});
+
+export const roleBindingApi = roleBindingApiBase;
+export const getRoleBindingList = roleBindingApiBase.list;
+export const getRoleBindingDetail = roleBindingApiBase.detail;
+export const createRoleBinding = roleBindingApiBase.create;
+export const updateRoleBinding = roleBindingApiBase.update;
+export const deleteRoleBinding = roleBindingApiBase.delete;
 
 /**
- * 获取 StatefulSet 列表
+ * ClusterRole API
  */
-export async function getStatefulSetList(
-  params: StatefulSetListParams,
-): Promise<StatefulSetListResult> {
-  return requestClient.get('/k8s/statefulsets', { params });
-}
+const clusterRoleApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'clusterrole',
+  namespaced: false,
+});
+
+export const clusterRoleApi = clusterRoleApiBase;
+export const getClusterRoleList = clusterRoleApiBase.list;
+export const getClusterRoleDetail = clusterRoleApiBase.detail;
+export const createClusterRole = clusterRoleApiBase.create;
+export const updateClusterRole = clusterRoleApiBase.update;
+export const deleteClusterRole = clusterRoleApiBase.delete;
 
 /**
- * 获取 StatefulSet 详情
+ * ClusterRoleBinding API
  */
-export async function getStatefulSetDetail(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<StatefulSet> {
-  return requestClient.get(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/statefulsets/${name}`,
-  );
-}
+const clusterRoleBindingApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'clusterrolebinding',
+  namespaced: false,
+});
+
+export const clusterRoleBindingApi = clusterRoleBindingApiBase;
+export const getClusterRoleBindingList = clusterRoleBindingApiBase.list;
+export const getClusterRoleBindingDetail = clusterRoleBindingApiBase.detail;
+export const createClusterRoleBinding = clusterRoleBindingApiBase.create;
+export const updateClusterRoleBinding = clusterRoleBindingApiBase.update;
+export const deleteClusterRoleBinding = clusterRoleBindingApiBase.delete;
+
+// ==================== 资源配额 ====================
 
 /**
- * 创建 StatefulSet
+ * ResourceQuota API
  */
-export async function createStatefulSet(
-  clusterId: string,
-  namespace: string,
-  data: StatefulSet,
-): Promise<StatefulSet> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/statefulsets`,
-    data,
-  );
-}
+const resourceQuotaApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'resourcequota',
+  namespaced: true,
+});
+
+export const resourceQuotaApi = resourceQuotaApiBase;
+export const getResourceQuotaList = resourceQuotaApiBase.list;
+export const getResourceQuotaDetail = resourceQuotaApiBase.detail;
+export const createResourceQuota = resourceQuotaApiBase.create;
+export const updateResourceQuota = resourceQuotaApiBase.update;
+export const deleteResourceQuota = resourceQuotaApiBase.delete;
 
 /**
- * 删除 StatefulSet
+ * LimitRange API
  */
-export async function deleteStatefulSet(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<void> {
-  return requestClient.delete(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/statefulsets/${name}`,
-  );
-}
+const limitRangeApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'limitrange',
+  namespaced: true,
+});
+
+export const limitRangeApi = limitRangeApiBase;
+export const getLimitRangeList = limitRangeApiBase.list;
+export const getLimitRangeDetail = limitRangeApiBase.detail;
+export const createLimitRange = limitRangeApiBase.create;
+export const updateLimitRange = limitRangeApiBase.update;
+export const deleteLimitRange = limitRangeApiBase.delete;
+
+// ==================== 事件 ====================
 
 /**
- * 扩缩容 StatefulSet
+ * Event API
  */
-export async function scaleStatefulSet(
-  clusterId: string,
-  namespace: string,
-  name: string,
-  params: ScaleParams,
-): Promise<StatefulSet> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/statefulsets/${name}/scale`,
-    params,
-  );
-}
+const eventApiBase = createResourceApi<any>(requestClient, {
+  resourceType: 'event',
+  namespaced: true,
+});
 
-/**
- * 获取 DaemonSet 列表
- */
-export async function getDaemonSetList(
-  params: DaemonSetListParams,
-): Promise<DaemonSetListResult> {
-  return requestClient.get('/k8s/daemonsets', { params });
-}
-
-/**
- * 获取 DaemonSet 详情
- */
-export async function getDaemonSetDetail(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<DaemonSet> {
-  return requestClient.get(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/daemonsets/${name}`,
-  );
-}
-
-/**
- * 创建 DaemonSet
- */
-export async function createDaemonSet(
-  clusterId: string,
-  namespace: string,
-  data: DaemonSet,
-): Promise<DaemonSet> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/daemonsets`,
-    data,
-  );
-}
-
-/**
- * 删除 DaemonSet
- */
-export async function deleteDaemonSet(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<void> {
-  return requestClient.delete(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/daemonsets/${name}`,
-  );
-}
-
-/**
- * 获取 Job 列表
- */
-export async function getJobList(
-  params: JobListParams,
-): Promise<JobListResult> {
-  return requestClient.get('/k8s/jobs', { params });
-}
-
-/**
- * 获取 Job 详情
- */
-export async function getJobDetail(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<Job> {
-  return requestClient.get(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/jobs/${name}`,
-  );
-}
-
-/**
- * 创建 Job
- */
-export async function createJob(
-  clusterId: string,
-  namespace: string,
-  data: Job,
-): Promise<Job> {
-  return requestClient.post(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/jobs`,
-    data,
-  );
-}
-
-/**
- * 删除 Job
- */
-export async function deleteJob(
-  clusterId: string,
-  namespace: string,
-  name: string,
-): Promise<void> {
-  return requestClient.delete(
-    `/k8s/clusters/${clusterId}/namespaces/${namespace}/jobs/${name}`,
-  );
-}
+export const eventApi = eventApiBase;
+export const getEventList = eventApiBase.list;
+export const getEventDetail = eventApiBase.detail;

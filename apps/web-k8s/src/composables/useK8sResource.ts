@@ -9,7 +9,7 @@ import type {
   ResourceListResult,
 } from '#/types/k8s-resource-base';
 
-import { ref, watch } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 
 import { useDebounceFn } from '@vueuse/core';
 
@@ -22,6 +22,8 @@ export interface UseK8sResourceOptions {
   defaultClusterId?: string;
   /** 防抖延迟（毫秒） */
   debounceDelay?: number;
+  /** 模拟延迟（毫秒），开发环境可用，生产环境自动设为 0 */
+  mockDelay?: number;
 }
 
 export function useK8sResource(options: UseK8sResourceOptions) {
@@ -30,7 +32,11 @@ export function useK8sResource(options: UseK8sResourceOptions) {
     filters = {},
     defaultClusterId = 'cluster-prod-01',
     debounceDelay = 300,
+    mockDelay,
   } = options;
+
+  // 根据环境自动设置模拟延迟
+  const effectiveMockDelay = import.meta.env.DEV ? (mockDelay ?? 100) : 0;
 
   const {
     showClusterSelector = true,
@@ -53,6 +59,16 @@ export function useK8sResource(options: UseK8sResourceOptions) {
   let abortController: AbortController | null = null;
 
   /**
+   * 组件卸载时清理资源
+   */
+  onBeforeUnmount(() => {
+    if (abortController) {
+      abortController.abort();
+      abortController = null;
+    }
+  });
+
+  /**
    * 获取资源数据
    */
   async function fetchResourceData(params: {
@@ -69,14 +85,18 @@ export function useK8sResource(options: UseK8sResourceOptions) {
     try {
       loading.value = true;
 
-      // 模拟 API 延迟
-      await new Promise((resolve, reject) => {
-        const timeoutId = setTimeout(resolve, 100);
-        abortController!.signal.addEventListener('abort', () => {
-          clearTimeout(timeoutId);
-          reject(new Error('Request aborted'));
+      // 模拟 API 延迟（仅在配置了延迟时才执行）
+      if (effectiveMockDelay > 0) {
+        await new Promise<void>((resolve, reject) => {
+          const timeoutId = setTimeout(resolve, effectiveMockDelay);
+          if (abortController) {
+            abortController.signal.addEventListener('abort', () => {
+              clearTimeout(timeoutId);
+              reject(new Error('Request aborted'));
+            });
+          }
         });
-      });
+      }
 
       const requestParams: ResourceListParams = {
         clusterId: selectedClusterId.value,
@@ -102,6 +122,7 @@ export function useK8sResource(options: UseK8sResourceOptions) {
       throw error;
     } finally {
       loading.value = false;
+      abortController = null; // 请求完成后清理引用
     }
   }
 

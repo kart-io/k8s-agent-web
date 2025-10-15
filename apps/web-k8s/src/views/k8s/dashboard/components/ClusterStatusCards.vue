@@ -7,15 +7,15 @@ import type { Cluster } from '#/api/k8s/types';
 
 import { onMounted, ref } from 'vue';
 
-import { Card, Col, message, Progress, Row, Tag } from 'ant-design-vue';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
-  QuestionCircleOutlined,
-  ClusterOutlined,
   CloudServerOutlined,
+  ClusterOutlined,
   DatabaseOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons-vue';
+import { Card, Col, message, Progress, Row, Tag } from 'ant-design-vue';
 
 import { getMockClusterList } from '#/api/k8s/mock';
 
@@ -28,13 +28,15 @@ const clusters = ref<Cluster[]>([]);
 /**
  * 加载集群列表
  */
-async function loadClusters() {
+function loadClusters() {
   loading.value = true;
   try {
     const result = getMockClusterList({ pageSize: 100 });
-    clusters.value = result.items;
+    // 使用 splice 或直接赋值来确保响应式更新
+    clusters.value = result.items || [];
   } catch (error: any) {
     message.error(`加载集群列表失败: ${error.message}`);
+    clusters.value = [];
   } finally {
     loading.value = false;
   }
@@ -45,28 +47,18 @@ async function loadClusters() {
  */
 function getStatusColor(status: string): string {
   switch (status) {
-    case 'healthy':
+    case 'healthy': {
       return 'success';
-    case 'unhealthy':
+    }
+    case 'unhealthy': {
       return 'error';
-    case 'warning':
+    }
+    case 'warning': {
       return 'warning';
-    default:
+    }
+    default: {
       return 'default';
-  }
-}
-
-/**
- * 获取状态图标
- */
-function getStatusIcon(status: string) {
-  switch (status) {
-    case 'healthy':
-      return CheckCircleOutlined;
-    case 'unhealthy':
-      return CloseCircleOutlined;
-    default:
-      return QuestionCircleOutlined;
+    }
   }
 }
 
@@ -75,14 +67,18 @@ function getStatusIcon(status: string) {
  */
 function getStatusText(status: string): string {
   switch (status) {
-    case 'healthy':
+    case 'healthy': {
       return '健康';
-    case 'unhealthy':
+    }
+    case 'unhealthy': {
       return '异常';
-    case 'warning':
+    }
+    case 'warning': {
       return '警告';
-    default:
+    }
+    default: {
       return '未知';
+    }
   }
 }
 
@@ -92,13 +88,6 @@ function getStatusText(status: string): string {
 function getUsagePercent(used: number, total: number): number {
   if (total === 0) return 0;
   return Math.round((used / total) * 100);
-}
-
-/**
- * 格式化资源值
- */
-function formatResource(value: string | number): string {
-  return String(value);
 }
 
 // 组件挂载时加载数据
@@ -113,7 +102,7 @@ onMounted(() => {
     <Row :gutter="[16, 16]">
       <Col
         v-for="cluster in clusters"
-        :key="cluster.metadata.uid"
+        :key="cluster.id"
         :xs="24"
         :sm="12"
         :lg="8"
@@ -124,10 +113,18 @@ onMounted(() => {
           <div class="cluster-header">
             <div class="cluster-name-wrapper">
               <ClusterOutlined class="cluster-icon" />
-              <span class="cluster-name">{{ cluster.metadata.name }}</span>
+              <span class="cluster-name">{{ cluster.name }}</span>
             </div>
             <Tag :color="getStatusColor(cluster.status)">
-              <component :is="getStatusIcon(cluster.status)" class="status-icon" />
+              <CheckCircleOutlined
+                v-if="cluster.status === 'healthy'"
+                class="status-icon"
+              />
+              <CloseCircleOutlined
+                v-else-if="cluster.status === 'unhealthy'"
+                class="status-icon"
+              />
+              <QuestionCircleOutlined v-else class="status-icon" />
               {{ getStatusText(cluster.status) }}
             </Tag>
           </div>
@@ -156,12 +153,17 @@ onMounted(() => {
               <div class="resource-header">
                 <span class="resource-label">CPU</span>
                 <span class="resource-usage">
-                  {{ formatResource(cluster.resources.cpu.used) }} /
-                  {{ formatResource(cluster.resources.cpu.total) }}
+                  {{ String(cluster.resources.cpu.used) }} /
+                  {{ String(cluster.resources.cpu.total) }}
                 </span>
               </div>
               <Progress
-                :percent="getUsagePercent(cluster.resources.cpu.used, cluster.resources.cpu.total)"
+                :percent="
+                  getUsagePercent(
+                    cluster.resources.cpu.used,
+                    cluster.resources.cpu.total,
+                  )
+                "
                 :show-info="false"
                 :stroke-color="{
                   '0%': '#108ee9',
@@ -175,12 +177,17 @@ onMounted(() => {
               <div class="resource-header">
                 <span class="resource-label">内存</span>
                 <span class="resource-usage">
-                  {{ formatResource(cluster.resources.memory.used) }} /
-                  {{ formatResource(cluster.resources.memory.total) }}
+                  {{ String(cluster.resources.memory.used) }} /
+                  {{ String(cluster.resources.memory.total) }}
                 </span>
               </div>
               <Progress
-                :percent="getUsagePercent(cluster.resources.memory.used, cluster.resources.memory.total)"
+                :percent="
+                  getUsagePercent(
+                    cluster.resources.memory.used,
+                    cluster.resources.memory.total,
+                  )
+                "
                 :show-info="false"
                 :stroke-color="{
                   '0%': '#108ee9',
@@ -210,29 +217,29 @@ onMounted(() => {
 
 .cluster-card {
   height: 100%;
-  transition: all 0.3s ease;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .cluster-card:hover {
-  transform: translateY(-4px);
   box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+  transform: translateY(-4px);
 }
 
 .cluster-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  justify-content: space-between;
   padding-bottom: 12px;
+  margin-bottom: 16px;
   border-bottom: 1px solid var(--vben-border-color);
 }
 
 .cluster-name-wrapper {
   display: flex;
-  align-items: center;
-  gap: 8px;
   flex: 1;
+  gap: 8px;
+  align-items: center;
 }
 
 .cluster-icon {
@@ -241,12 +248,12 @@ onMounted(() => {
 }
 
 .cluster-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 14px;
   font-weight: 600;
   color: var(--vben-text-color);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .status-icon {
@@ -262,8 +269,8 @@ onMounted(() => {
 
 .info-item {
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
   font-size: 13px;
 }
 
@@ -295,8 +302,8 @@ onMounted(() => {
 
 .resource-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 
 .resource-label {

@@ -13,10 +13,11 @@ import { computed } from 'vue';
 
 import {
   DeleteOutlined,
+  DownOutlined,
   EditOutlined,
   EyeOutlined,
 } from '@ant-design/icons-vue';
-import { Button, Space } from 'ant-design-vue';
+import { Button, Dropdown, Menu, Space } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { useK8sResource } from '#/composables/useK8sResource';
@@ -28,9 +29,16 @@ import StatusTag from './StatusTag.vue';
 interface Props {
   /** 资源列表配置 */
   config: ResourceListConfig<any>;
+  /** 操作列显示模式：all=全部显示, dropdown=下拉菜单, auto=自动（超过3个使用下拉） */
+  actionMode?: 'all' | 'auto' | 'dropdown';
+  /** 使用下拉菜单时，独立显示的主要操作（默认为第一个操作） */
+  primaryActions?: string[];
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  actionMode: 'auto',
+  primaryActions: () => [],
+});
 
 // 使用资源管理 composable
 const resourceState = useK8sResource({
@@ -92,7 +100,49 @@ const gridOptions = computed<VxeGridProps<any>>(() => {
 
 // 计算操作列宽度
 function calculateActionsWidth(actions: ResourceActionConfig[]): number {
-  return Math.max(150, actions.length * 60);
+  // 基础宽度：边距 + 间距
+  let totalWidth = 40;
+
+  // 判断是否使用下拉模式
+  const willUseDropdown =
+    props.actionMode === 'dropdown' ||
+    (props.actionMode === 'auto' && actions.length > 3);
+
+  if (willUseDropdown) {
+    // 下拉模式：计算主要操作 + "更多"按钮
+    const primaryCount =
+      props.primaryActions.length > 0 ? props.primaryActions.length : 1;
+    const primaryActions = actions.slice(0, primaryCount);
+
+    primaryActions.forEach((action) => {
+      const iconWidth = action.icon === false ? 0 : 20;
+      const labelText =
+        typeof action.label === 'string' ? action.label : '操作';
+      const textWidth = [...labelText].reduce((width, char) => {
+        return width + (/[\u4E00-\u9FA5]/.test(char) ? 14 : 8);
+      }, 0);
+      const padding = 16;
+      totalWidth += iconWidth + textWidth + padding + 8;
+    });
+
+    // 添加"更多"按钮的宽度（"更多" + 图标 = 约 70px）
+    totalWidth += 70;
+
+    return Math.max(150, Math.ceil(totalWidth));
+  }
+
+  // 全部显示模式：计算所有操作
+  actions.forEach((action) => {
+    const iconWidth = action.icon === false ? 0 : 20;
+    const labelText = typeof action.label === 'string' ? action.label : '操作';
+    const textWidth = [...labelText].reduce((width, char) => {
+      return width + (/[\u4E00-\u9FA5]/.test(char) ? 14 : 8);
+    }, 0);
+    const padding = 16;
+    totalWidth += iconWidth + textWidth + padding + 8; // 8px 间距
+  });
+
+  return Math.max(150, Math.ceil(totalWidth));
 }
 
 // 创建 Grid
@@ -157,6 +207,49 @@ function getActionLabel(action: ResourceActionConfig, row: any): string {
   }
   return action.label;
 }
+
+// 判断是否使用下拉菜单模式
+const useDropdown = computed(() => {
+  if (!props.config.actions || props.config.actions.length === 0) return false;
+
+  if (props.actionMode === 'all') return false;
+  if (props.actionMode === 'dropdown') return true;
+
+  // auto 模式：超过3个操作使用下拉
+  return props.config.actions.length > 3;
+});
+
+// 获取主要操作（独立显示的按钮）
+function getPrimaryActions(_row: any): ResourceActionConfig[] {
+  if (!props.config.actions) return [];
+  if (!useDropdown.value) return props.config.actions;
+
+  // 如果指定了 primaryActions，使用指定的
+  if (props.primaryActions.length > 0) {
+    return props.config.actions.filter((action) =>
+      props.primaryActions.includes(action.action),
+    );
+  }
+
+  // 默认第一个操作为主要操作
+  return props.config.actions.slice(0, 1);
+}
+
+// 获取下拉菜单中的操作
+function getDropdownActions(_row: any): ResourceActionConfig[] {
+  if (!props.config.actions) return [];
+  if (!useDropdown.value) return [];
+
+  // 如果指定了 primaryActions，其余的放入下拉
+  if (props.primaryActions.length > 0) {
+    return props.config.actions.filter(
+      (action) => !props.primaryActions.includes(action.action),
+    );
+  }
+
+  // 默认除第一个外的操作放入下拉
+  return props.config.actions.slice(1);
+}
 </script>
 
 <template>
@@ -201,10 +294,12 @@ function getActionLabel(action: ResourceActionConfig, row: any): string {
 
         <!-- 操作列插槽 -->
         <template v-if="config.actions" #actions-slot="{ row }">
-          <Space :size="4">
+          <Space :size="8">
+            <!-- 主要操作按钮 -->
             <Button
-              v-for="action in config.actions"
+              v-for="action in getPrimaryActions(row)"
               :key="action.action"
+              v-show="!action.show || action.show(row)"
               size="small"
               type="link"
               :danger="action.danger"
@@ -216,6 +311,38 @@ function getActionLabel(action: ResourceActionConfig, row: any): string {
               />
               {{ getActionLabel(action, row) }}
             </Button>
+
+            <!-- 下拉菜单（更多操作） -->
+            <Dropdown v-if="useDropdown && getDropdownActions(row).length > 0">
+              <Button size="small" type="link"> 更多<DownOutlined /> </Button>
+              <template #overlay>
+                <Menu>
+                  <template
+                    v-for="(action, index) in getDropdownActions(row)"
+                    :key="action.action"
+                  >
+                    <Menu.Item
+                      v-show="!action.show || action.show(row)"
+                      :danger="action.danger"
+                      @click="executeAction(action, row)"
+                    >
+                      <component
+                        :is="getActionIcon(action.action)"
+                        v-if="action.icon !== false"
+                      />
+                      {{ getActionLabel(action, row) }}
+                    </Menu.Item>
+                    <!-- 如果操作有 divider 属性，添加分隔线 -->
+                    <Menu.Divider
+                      v-if="
+                        action.divider &&
+                        index < getDropdownActions(row).length - 1
+                      "
+                    />
+                  </template>
+                </Menu>
+              </template>
+            </Dropdown>
           </Space>
         </template>
 

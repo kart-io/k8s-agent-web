@@ -43,6 +43,16 @@ export interface Cluster {
   createdAt: string;
   updatedAt: string;
   kubeconfig?: string;
+  resources?: {
+    cpu: {
+      total: number;
+      used: number;
+    };
+    memory: {
+      total: number;
+      used: number;
+    };
+  };
 }
 
 export interface ClusterMetrics {
@@ -80,9 +90,14 @@ export interface PodCondition {
 export interface ContainerStatus {
   name: string;
   state: {
-    waiting?: { reason: string; message?: string };
     running?: { startedAt: string };
-    terminated?: { exitCode: number; reason: string; startedAt: string; finishedAt: string };
+    terminated?: {
+      exitCode: number;
+      finishedAt: string;
+      reason: string;
+      startedAt: string;
+    };
+    waiting?: { message?: string; reason: string };
   };
   ready: boolean;
   restartCount: number;
@@ -92,7 +107,7 @@ export interface ContainerStatus {
 }
 
 export interface PodStatus {
-  phase: 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Unknown';
+  phase: 'Failed' | 'Pending' | 'Running' | 'Succeeded' | 'Unknown';
   conditions: PodCondition[];
   hostIP?: string;
   podIP?: string;
@@ -106,8 +121,8 @@ export interface Container {
   name: string;
   image: string;
   ports?: Array<{
-    name?: string;
     containerPort: number;
+    name?: string;
     protocol?: string;
   }>;
   env?: Array<{
@@ -120,8 +135,8 @@ export interface Container {
     requests?: { cpu?: string; memory?: string };
   };
   volumeMounts?: Array<{
-    name: string;
     mountPath: string;
+    name: string;
     readOnly?: boolean;
   }>;
 }
@@ -170,7 +185,7 @@ export interface ServicePort {
 }
 
 export interface ServiceSpec {
-  type: 'ClusterIP' | 'NodePort' | 'LoadBalancer' | 'ExternalName';
+  type: 'ClusterIP' | 'ExternalName' | 'LoadBalancer' | 'NodePort';
   clusterIP?: string;
   clusterIPs?: string[];
   externalIPs?: string[];
@@ -184,8 +199,8 @@ export interface ServiceSpec {
 export interface ServiceStatus {
   loadBalancer?: {
     ingress?: Array<{
-      ip?: string;
       hostname?: string;
+      ip?: string;
     }>;
   };
 }
@@ -244,13 +259,13 @@ export interface ConfigMapListResult {
 export interface JobTemplateSpec {
   metadata?: K8sMetadata;
   spec: {
+    backoffLimit?: number;
+    completions?: number;
+    parallelism?: number;
     template: {
       metadata?: K8sMetadata;
       spec: PodSpec;
     };
-    backoffLimit?: number;
-    completions?: number;
-    parallelism?: number;
   };
 }
 
@@ -297,7 +312,7 @@ export interface CronJobListResult {
 // ==================== Deployment 管理 ====================
 
 export interface DeploymentStrategy {
-  type: 'RollingUpdate' | 'Recreate';
+  type: 'Recreate' | 'RollingUpdate';
   rollingUpdate?: {
     maxSurge?: number | string;
     maxUnavailable?: number | string;
@@ -307,8 +322,8 @@ export interface DeploymentStrategy {
 export interface DeploymentSpec {
   replicas: number;
   selector: {
-    matchLabels: Record<string, string>;
     matchExpressions?: any[];
+    matchLabels: Record<string, string>;
   };
   template: {
     metadata: K8sMetadata;
@@ -389,7 +404,7 @@ export interface NamespaceListResult {
 
 // Node
 export interface NodeAddress {
-  type: 'InternalIP' | 'ExternalIP' | 'Hostname';
+  type: 'ExternalIP' | 'Hostname' | 'InternalIP';
   address: string;
 }
 
@@ -408,16 +423,16 @@ export interface NodeStatus {
   conditions?: NodeCondition[];
   addresses?: NodeAddress[];
   nodeInfo?: {
-    machineID: string;
-    systemUUID: string;
+    architecture: string;
     bootID: string;
-    kernelVersion: string;
-    osImage: string;
     containerRuntimeVersion: string;
+    kernelVersion: string;
     kubeletVersion: string;
     kubeProxyVersion: string;
+    machineID: string;
     operatingSystem: string;
-    architecture: string;
+    osImage: string;
+    systemUUID: string;
   };
 }
 
@@ -479,6 +494,7 @@ export interface StatefulSet {
   kind: 'StatefulSet';
   metadata: K8sMetadata;
   spec: {
+    podManagementPolicy?: string;
     replicas: number;
     selector: {
       matchLabels: Record<string, string>;
@@ -488,19 +504,18 @@ export interface StatefulSet {
       metadata: K8sMetadata;
       spec: PodSpec;
     };
-    volumeClaimTemplates?: any[];
-    podManagementPolicy?: string;
     updateStrategy?: any;
+    volumeClaimTemplates?: any[];
   };
   status?: {
-    observedGeneration?: number;
-    replicas?: number;
-    readyReplicas?: number;
-    currentReplicas?: number;
-    updatedReplicas?: number;
-    currentRevision?: string;
-    updateRevision?: string;
     collisionCount?: number;
+    currentReplicas?: number;
+    currentRevision?: string;
+    observedGeneration?: number;
+    readyReplicas?: number;
+    replicas?: number;
+    updatedReplicas?: number;
+    updateRevision?: string;
   };
 }
 
@@ -525,6 +540,8 @@ export interface DaemonSet {
   kind: 'DaemonSet';
   metadata: K8sMetadata;
   spec: {
+    minReadySeconds?: number;
+    revisionHistoryLimit?: number;
     selector: {
       matchLabels: Record<string, string>;
     };
@@ -533,18 +550,16 @@ export interface DaemonSet {
       spec: PodSpec;
     };
     updateStrategy?: any;
-    minReadySeconds?: number;
-    revisionHistoryLimit?: number;
   };
   status?: {
     currentNumberScheduled: number;
-    numberMisscheduled: number;
     desiredNumberScheduled: number;
+    numberAvailable?: number;
+    numberMisscheduled: number;
     numberReady: number;
+    numberUnavailable?: number;
     observedGeneration?: number;
     updatedNumberScheduled?: number;
-    numberAvailable?: number;
-    numberUnavailable?: number;
   };
 }
 
@@ -569,29 +584,29 @@ export interface Job {
   kind: 'Job';
   metadata: K8sMetadata;
   spec: {
+    activeDeadlineSeconds?: number;
+    backoffLimit?: number;
+    completions?: number;
+    parallelism?: number;
     template: {
       metadata?: K8sMetadata;
       spec: PodSpec;
     };
-    parallelism?: number;
-    completions?: number;
-    backoffLimit?: number;
-    activeDeadlineSeconds?: number;
   };
   status?: {
+    active?: number;
+    completionTime?: string;
     conditions?: Array<{
-      type: string;
-      status: string;
       lastProbeTime?: string;
       lastTransitionTime?: string;
-      reason?: string;
       message?: string;
+      reason?: string;
+      status: string;
+      type: string;
     }>;
-    startTime?: string;
-    completionTime?: string;
-    active?: number;
-    succeeded?: number;
     failed?: number;
+    startTime?: string;
+    succeeded?: number;
   };
 }
 
@@ -613,7 +628,7 @@ export interface JobListResult {
 // ==================== 操作相关类型 ====================
 
 export interface K8sResourceAction {
-  type: 'create' | 'update' | 'delete' | 'scale' | 'restart' | 'logs' | 'exec';
+  type: 'create' | 'delete' | 'exec' | 'logs' | 'restart' | 'scale' | 'update';
   resource: string;
   namespace?: string;
   name?: string;
@@ -661,18 +676,23 @@ export interface PersistentVolumeSpec {
   capacity: {
     storage: string;
   };
-  accessModes: ('ReadWriteOnce' | 'ReadOnlyMany' | 'ReadWriteMany' | 'ReadWriteOncePod')[];
-  persistentVolumeReclaimPolicy?: 'Retain' | 'Recycle' | 'Delete';
+  accessModes: (
+    | 'ReadOnlyMany'
+    | 'ReadWriteMany'
+    | 'ReadWriteOnce'
+    | 'ReadWriteOncePod'
+  )[];
+  persistentVolumeReclaimPolicy?: 'Delete' | 'Recycle' | 'Retain';
   storageClassName?: string;
-  volumeMode?: 'Filesystem' | 'Block';
+  volumeMode?: 'Block' | 'Filesystem';
   mountOptions?: string[];
   claimRef?: {
-    kind: string;
-    namespace: string;
-    name: string;
-    uid: string;
     apiVersion: string;
+    kind: string;
+    name: string;
+    namespace: string;
     resourceVersion: string;
+    uid: string;
   };
   nodeAffinity?: {
     required?: {
@@ -691,17 +711,18 @@ export interface PersistentVolumeSpec {
     type?: string;
   };
   nfs?: {
-    server: string;
     path: string;
     readOnly?: boolean;
+    server: string;
   };
   csi?: {
-    driver: string;
-    volumeHandle: string;
-    readOnly?: boolean;
-    fsType?: string;
-    volumeAttributes?: Record<string, string>;
     controllerPublishSecretRef?: {
+      name: string;
+      namespace: string;
+    };
+    driver: string;
+    fsType?: string;
+    nodePublishSecretRef?: {
       name: string;
       namespace: string;
     };
@@ -709,35 +730,34 @@ export interface PersistentVolumeSpec {
       name: string;
       namespace: string;
     };
-    nodePublishSecretRef?: {
-      name: string;
-      namespace: string;
-    };
+    readOnly?: boolean;
+    volumeAttributes?: Record<string, string>;
+    volumeHandle: string;
   };
   awsElasticBlockStore?: {
-    volumeID: string;
     fsType?: string;
     partition?: number;
     readOnly?: boolean;
+    volumeID: string;
   };
   gcePersistentDisk?: {
-    pdName: string;
     fsType?: string;
     partition?: number;
+    pdName: string;
     readOnly?: boolean;
   };
   azureDisk?: {
+    cachingMode?: string;
     diskName: string;
     diskURI: string;
-    cachingMode?: string;
     fsType?: string;
-    readOnly?: boolean;
     kind?: string;
+    readOnly?: boolean;
   };
 }
 
 export interface PersistentVolumeStatus {
-  phase: 'Pending' | 'Available' | 'Bound' | 'Released' | 'Failed';
+  phase: 'Available' | 'Bound' | 'Failed' | 'Pending' | 'Released';
   message?: string;
   reason?: string;
   lastPhaseTransitionTime?: string;
@@ -770,35 +790,40 @@ export interface PersistentVolumeListResult {
 
 // PersistentVolumeClaim
 export interface PersistentVolumeClaimSpec {
-  accessModes: ('ReadWriteOnce' | 'ReadOnlyMany' | 'ReadWriteMany' | 'ReadWriteOncePod')[];
+  accessModes: (
+    | 'ReadOnlyMany'
+    | 'ReadWriteMany'
+    | 'ReadWriteOnce'
+    | 'ReadWriteOncePod'
+  )[];
   resources: {
-    requests: {
-      storage: string;
-    };
     limits?: {
       storage?: string;
     };
+    requests: {
+      storage: string;
+    };
   };
   storageClassName?: string;
-  volumeMode?: 'Filesystem' | 'Block';
+  volumeMode?: 'Block' | 'Filesystem';
   volumeName?: string;
   selector?: {
-    matchLabels?: Record<string, string>;
     matchExpressions?: Array<{
       key: string;
       operator: string;
       values?: string[];
     }>;
+    matchLabels?: Record<string, string>;
   };
   dataSource?: {
+    apiGroup?: string;
     kind: string;
     name: string;
-    apiGroup?: string;
   };
   dataSourceRef?: {
+    apiGroup?: string;
     kind: string;
     name: string;
-    apiGroup?: string;
     namespace?: string;
   };
 }
@@ -813,7 +838,7 @@ export interface PersistentVolumeClaimCondition {
 }
 
 export interface PersistentVolumeClaimStatus {
-  phase: 'Pending' | 'Bound' | 'Lost';
+  phase: 'Bound' | 'Lost' | 'Pending';
   accessModes?: string[];
   capacity?: {
     storage: string;
@@ -938,8 +963,8 @@ export interface StorageStatsByNamespace {
 export interface PodUsingPVC {
   pod: Pod;
   volumeMounts: Array<{
-    pvcName: string;
     mountPath: string;
+    pvcName: string;
     readOnly: boolean;
   }>;
 }
@@ -970,9 +995,9 @@ export interface IngressRule {
   host?: string;
   http?: {
     paths: Array<{
-      path?: string;
-      pathType: 'Exact' | 'Prefix' | 'ImplementationSpecific';
       backend: IngressBackend;
+      path?: string;
+      pathType: 'Exact' | 'ImplementationSpecific' | 'Prefix';
     }>;
   };
 }
@@ -987,12 +1012,12 @@ export interface IngressSpec {
 export interface IngressStatus {
   loadBalancer?: {
     ingress?: Array<{
-      ip?: string;
       hostname?: string;
+      ip?: string;
       ports?: Array<{
+        error?: string;
         port: number;
         protocol: string;
-        error?: string;
       }>;
     }>;
   };
@@ -1040,12 +1065,12 @@ export interface K8sEvent {
   metadata: K8sMetadata;
   involvedObject: {
     apiVersion?: string;
+    fieldPath?: string;
     kind: string;
     name: string;
     namespace?: string;
-    uid?: string;
     resourceVersion?: string;
-    fieldPath?: string;
+    uid?: string;
   };
   reason: string;
   message: string;
@@ -1066,7 +1091,7 @@ export interface EventListParams {
   namespace?: string;
   involvedObjectKind?: string;
   involvedObjectName?: string;
-  type?: 'Normal' | 'Warning' | '';
+  type?: '' | 'Normal' | 'Warning';
   page?: number;
   pageSize?: number;
 }
@@ -1139,12 +1164,12 @@ export interface ClusterRole {
   rules: PolicyRule[];
   aggregationRule?: {
     clusterRoleSelectors?: Array<{
-      matchLabels?: Record<string, string>;
       matchExpressions?: Array<{
         key: string;
         operator: string;
         values?: string[];
       }>;
+      matchLabels?: Record<string, string>;
     }>;
   };
 }
@@ -1180,7 +1205,7 @@ export interface ClusterRoleListResult {
 
 // RoleBinding & ClusterRoleBinding
 export interface Subject {
-  kind: 'User' | 'Group' | 'ServiceAccount';
+  kind: 'Group' | 'ServiceAccount' | 'User';
   name: string;
   namespace?: string;
   apiGroup?: string;
@@ -1188,7 +1213,7 @@ export interface Subject {
 
 export interface RoleRef {
   apiGroup: string;
-  kind: 'Role' | 'ClusterRole';
+  kind: 'ClusterRole' | 'Role';
   name: string;
 }
 
@@ -1243,12 +1268,17 @@ export interface ClusterRoleBindingListResult {
 export interface ResourceQuotaSpec {
   hard?: Record<string, string>; // 硬限制
   scopes?: Array<
-    'Terminating' | 'NotTerminating' | 'BestEffort' | 'NotBestEffort' | 'PriorityClass' | 'CrossNamespacePodAffinity'
+    | 'BestEffort'
+    | 'CrossNamespacePodAffinity'
+    | 'NotBestEffort'
+    | 'NotTerminating'
+    | 'PriorityClass'
+    | 'Terminating'
   >;
   scopeSelector?: {
     matchExpressions?: Array<{
+      operator: 'DoesNotExist' | 'Exists' | 'In' | 'NotIn';
       scopeName: string;
-      operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist';
       values?: string[];
     }>;
   };
@@ -1284,7 +1314,7 @@ export interface ResourceQuotaListResult {
 
 // LimitRange
 export interface LimitRangeItem {
-  type: 'Container' | 'Pod' | 'PersistentVolumeClaim';
+  type: 'Container' | 'PersistentVolumeClaim' | 'Pod';
   max?: Record<string, string>; // 最大值
   min?: Record<string, string>; // 最小值
   default?: Record<string, string>; // 默认限制值
