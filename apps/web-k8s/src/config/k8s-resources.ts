@@ -8,12 +8,18 @@ import type {
   CronJob,
   DaemonSet,
   Deployment,
+  Endpoints,
+  EndpointSlice,
+  HorizontalPodAutoscaler,
   Ingress,
   Job,
   Namespace,
+  NetworkPolicy,
   PersistentVolume,
   PersistentVolumeClaim,
   Pod,
+  PriorityClass,
+  ReplicaSet,
   Secret,
   Service,
   StatefulSet,
@@ -32,12 +38,18 @@ import {
   getMockCronJobList,
   getMockDaemonSetList,
   getMockDeploymentList,
+  getMockEndpointsList,
+  getMockEndpointSliceList,
+  getMockHPAList,
   getMockIngressList,
   getMockJobList,
   getMockNamespaceList,
+  getMockNetworkPolicyList,
   getMockPodList,
+  getMockPriorityClassList,
   getMockPVCList,
   getMockPVList,
+  getMockReplicaSetList,
   getMockSecretList,
   getMockServiceList,
   getMockStatefulSetList,
@@ -243,6 +255,153 @@ export function createDeploymentConfig(): ResourceListConfig<Deployment> {
       showSearch: true,
       searchPlaceholder: '搜索 Deployment 名称',
     },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 Deployment 名称',
+              rules: [
+                { required: true, message: '请输入 Deployment 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+            {
+              field: 'spec.replicas',
+              label: '副本数',
+              type: 'number',
+              required: true,
+              min: 0,
+              defaultValue: 1,
+              rules: [
+                { required: true, message: '请输入副本数' },
+                { type: 'number', min: 0, message: '最小值为 0' },
+              ],
+            },
+          ],
+        },
+        {
+          title: 'Pod 选择器',
+          fields: [
+            {
+              field: 'spec.selector.matchLabels',
+              label: 'Pod 标签',
+              type: 'labels',
+              help: '用于选择要管理的 Pod',
+            },
+          ],
+        },
+        {
+          title: '容器配置',
+          fields: [
+            {
+              field: 'spec.template.spec.containers[0].name',
+              label: '容器名称',
+              type: 'input',
+              required: true,
+              placeholder: '请输入容器名称',
+              rules: [{ required: true, message: '请输入容器名称' }],
+            },
+            {
+              field: 'spec.template.spec.containers[0].image',
+              label: '镜像',
+              type: 'input',
+              required: true,
+              placeholder: '例如: nginx:1.21',
+              rules: [{ required: true, message: '请输入镜像' }],
+            },
+            {
+              field: 'spec.template.spec.containers[0].ports[0].containerPort',
+              label: '容器端口',
+              type: 'number',
+              min: 1,
+              max: 65535,
+              placeholder: '例如: 80',
+              help: '容器暴露的端口号',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        spec: {
+          replicas: 1,
+          selector: {
+            matchLabels: {},
+          },
+          template: {
+            metadata: {
+              labels: {},
+            },
+            spec: {
+              containers: [
+                {
+                  name: '',
+                  image: '',
+                  ports: [
+                    {
+                      containerPort: 80,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    enableCreate: true,
   };
 }
 
@@ -313,6 +472,151 @@ export function createServiceConfig(): ResourceListConfig<Service> {
         LoadBalancer: { color: 'green' },
       },
     },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 Service 名称',
+              rules: [
+                { required: true, message: '请输入 Service 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+            {
+              field: 'spec.type',
+              label: '服务类型',
+              type: 'select',
+              required: true,
+              options: [
+                { label: 'ClusterIP（集群内部访问）', value: 'ClusterIP' },
+                { label: 'NodePort（节点端口访问）', value: 'NodePort' },
+                { label: 'LoadBalancer（负载均衡器）', value: 'LoadBalancer' },
+              ],
+              rules: [{ required: true, message: '请选择服务类型' }],
+            },
+          ],
+        },
+        {
+          title: 'Pod 选择器',
+          fields: [
+            {
+              field: 'spec.selector',
+              label: 'Pod 标签',
+              type: 'labels',
+              help: '选择要代理的 Pod',
+            },
+          ],
+        },
+        {
+          title: '端口配置',
+          fields: [
+            {
+              field: 'spec.ports[0].port',
+              label: '服务端口',
+              type: 'number',
+              required: true,
+              min: 1,
+              max: 65535,
+              placeholder: '例如: 80',
+              rules: [
+                { required: true, message: '请输入服务端口' },
+                { type: 'number', min: 1, max: 65535, message: '端口范围 1-65535' },
+              ],
+            },
+            {
+              field: 'spec.ports[0].targetPort',
+              label: '目标端口',
+              type: 'number',
+              required: true,
+              min: 1,
+              max: 65535,
+              placeholder: '例如: 8080',
+              rules: [
+                { required: true, message: '请输入目标端口' },
+                { type: 'number', min: 1, max: 65535, message: '端口范围 1-65535' },
+              ],
+              help: '容器的端口号',
+            },
+            {
+              field: 'spec.ports[0].protocol',
+              label: '协议',
+              type: 'select',
+              options: [
+                { label: 'TCP', value: 'TCP' },
+                { label: 'UDP', value: 'UDP' },
+              ],
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'v1',
+        kind: 'Service',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        spec: {
+          type: 'ClusterIP',
+          selector: {},
+          ports: [
+            {
+              port: 80,
+              targetPort: 8080,
+              protocol: 'TCP',
+            },
+          ],
+        },
+      },
+    },
+    enableCreate: true,
   };
 }
 
@@ -368,6 +672,87 @@ export function createConfigMapConfig(): ResourceListConfig<ConfigMap> {
       showSearch: true,
       searchPlaceholder: '搜索 ConfigMap 名称',
     },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 ConfigMap 名称',
+              rules: [
+                { required: true, message: '请输入 ConfigMap 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+          ],
+        },
+        {
+          title: '配置数据',
+          fields: [
+            {
+              field: 'data',
+              label: '数据',
+              type: 'labels',
+              help: '配置数据的键值对',
+            },
+          ],
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        data: {},
+      },
+    },
+    enableCreate: true,
   };
 }
 
@@ -437,6 +822,131 @@ export function createCronJobConfig(): ResourceListConfig<CronJob> {
       showSearch: true,
       searchPlaceholder: '搜索 CronJob 名称',
     },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 CronJob 名称',
+              rules: [
+                { required: true, message: '请输入 CronJob 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+            {
+              field: 'spec.schedule',
+              label: '调度规则',
+              type: 'input',
+              required: true,
+              placeholder: '例如: 0 */6 * * *',
+              rules: [{ required: true, message: '请输入 Cron 表达式' }],
+              help: 'Cron 表达式，例如 "0 */6 * * *" 表示每 6 小时执行一次',
+            },
+            {
+              field: 'spec.suspend',
+              label: '暂停任务',
+              type: 'switch',
+              help: '是否暂停定时任务',
+            },
+          ],
+        },
+        {
+          title: '容器配置',
+          fields: [
+            {
+              field: 'spec.jobTemplate.spec.template.spec.containers[0].name',
+              label: '容器名称',
+              type: 'input',
+              required: true,
+              placeholder: '请输入容器名称',
+              rules: [{ required: true, message: '请输入容器名称' }],
+            },
+            {
+              field: 'spec.jobTemplate.spec.template.spec.containers[0].image',
+              label: '镜像',
+              type: 'input',
+              required: true,
+              placeholder: '例如: busybox:1.28',
+              rules: [{ required: true, message: '请输入镜像' }],
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'batch/v1',
+        kind: 'CronJob',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        spec: {
+          schedule: '0 */6 * * *',
+          suspend: false,
+          jobTemplate: {
+            spec: {
+              template: {
+                spec: {
+                  containers: [
+                    {
+                      name: '',
+                      image: '',
+                    },
+                  ],
+                  restartPolicy: 'OnFailure',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    enableCreate: true,
   };
 }
 
@@ -494,6 +1004,102 @@ export function createSecretConfig(): ResourceListConfig<Secret> {
       showSearch: true,
       searchPlaceholder: '搜索 Secret 名称',
     },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 Secret 名称',
+              rules: [
+                { required: true, message: '请输入 Secret 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+            {
+              field: 'type',
+              label: '类型',
+              type: 'select',
+              required: true,
+              options: [
+                { label: 'Opaque（通用）', value: 'Opaque' },
+                { label: 'kubernetes.io/tls（TLS 证书）', value: 'kubernetes.io/tls' },
+                { label: 'kubernetes.io/dockerconfigjson（Docker 配置）', value: 'kubernetes.io/dockerconfigjson' },
+                { label: 'kubernetes.io/basic-auth（基本认证）', value: 'kubernetes.io/basic-auth' },
+                { label: 'kubernetes.io/ssh-auth（SSH 认证）', value: 'kubernetes.io/ssh-auth' },
+              ],
+              rules: [{ required: true, message: '请选择 Secret 类型' }],
+            },
+          ],
+        },
+        {
+          title: '密钥数据',
+          fields: [
+            {
+              field: 'data',
+              label: '数据',
+              type: 'labels',
+              help: '密钥数据的键值对（值将自动进行 Base64 编码）',
+            },
+          ],
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'v1',
+        kind: 'Secret',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        type: 'Opaque',
+        data: {},
+      },
+    },
+    enableCreate: true,
   };
 }
 
@@ -560,6 +1166,71 @@ export function createNamespaceConfig(): ResourceListConfig<Namespace> {
         Terminating: { color: 'error', label: 'Terminating' },
       },
     },
+    // 表单配置
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 Namespace 名称',
+              help: '名称必须是唯一的，且符合 DNS-1123 规范',
+              rules: [
+                { required: true, message: '请输入 Namespace 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+          ],
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'v1',
+        kind: 'Namespace',
+        metadata: {
+          name: '',
+          labels: {},
+          annotations: {},
+        },
+        status: {
+          phase: 'Active',
+        },
+      },
+    },
+    // 启用创建功能
+    enableCreate: true,
   };
 }
 
@@ -629,6 +1300,163 @@ export function createStatefulSetConfig(): ResourceListConfig<StatefulSet> {
       showSearch: true,
       searchPlaceholder: '搜索 StatefulSet 名称',
     },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 StatefulSet 名称',
+              rules: [
+                { required: true, message: '请输入 StatefulSet 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+            {
+              field: 'spec.serviceName',
+              label: '服务名称',
+              type: 'input',
+              required: true,
+              placeholder: '请输入关联的 Headless Service 名称',
+              rules: [{ required: true, message: '请输入服务名称' }],
+              help: 'StatefulSet 需要关联一个 Headless Service',
+            },
+            {
+              field: 'spec.replicas',
+              label: '副本数',
+              type: 'number',
+              required: true,
+              min: 0,
+              defaultValue: 1,
+              rules: [
+                { required: true, message: '请输入副本数' },
+                { type: 'number', min: 0, message: '最小值为 0' },
+              ],
+            },
+          ],
+        },
+        {
+          title: 'Pod 选择器',
+          fields: [
+            {
+              field: 'spec.selector.matchLabels',
+              label: 'Pod 标签',
+              type: 'labels',
+              help: '用于选择要管理的 Pod',
+            },
+          ],
+        },
+        {
+          title: '容器配置',
+          fields: [
+            {
+              field: 'spec.template.spec.containers[0].name',
+              label: '容器名称',
+              type: 'input',
+              required: true,
+              placeholder: '请输入容器名称',
+              rules: [{ required: true, message: '请输入容器名称' }],
+            },
+            {
+              field: 'spec.template.spec.containers[0].image',
+              label: '镜像',
+              type: 'input',
+              required: true,
+              placeholder: '例如: mysql:8.0',
+              rules: [{ required: true, message: '请输入镜像' }],
+            },
+            {
+              field: 'spec.template.spec.containers[0].ports[0].containerPort',
+              label: '容器端口',
+              type: 'number',
+              min: 1,
+              max: 65535,
+              placeholder: '例如: 3306',
+              help: '容器暴露的端口号',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'apps/v1',
+        kind: 'StatefulSet',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        spec: {
+          serviceName: '',
+          replicas: 1,
+          selector: {
+            matchLabels: {},
+          },
+          template: {
+            metadata: {
+              labels: {},
+            },
+            spec: {
+              containers: [
+                {
+                  name: '',
+                  image: '',
+                  ports: [
+                    {
+                      containerPort: 80,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    enableCreate: true,
   };
 }
 
@@ -695,6 +1523,126 @@ export function createDaemonSetConfig(): ResourceListConfig<DaemonSet> {
       showSearch: true,
       searchPlaceholder: '搜索 DaemonSet 名称',
     },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 DaemonSet 名称',
+              rules: [
+                { required: true, message: '请输入 DaemonSet 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+          ],
+        },
+        {
+          title: 'Pod 选择器',
+          fields: [
+            {
+              field: 'spec.selector.matchLabels',
+              label: 'Pod 标签',
+              type: 'labels',
+              help: '用于选择要管理的 Pod',
+            },
+          ],
+        },
+        {
+          title: '容器配置',
+          fields: [
+            {
+              field: 'spec.template.spec.containers[0].name',
+              label: '容器名称',
+              type: 'input',
+              required: true,
+              placeholder: '请输入容器名称',
+              rules: [{ required: true, message: '请输入容器名称' }],
+            },
+            {
+              field: 'spec.template.spec.containers[0].image',
+              label: '镜像',
+              type: 'input',
+              required: true,
+              placeholder: '例如: fluentd:v1.14',
+              rules: [{ required: true, message: '请输入镜像' }],
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'apps/v1',
+        kind: 'DaemonSet',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        spec: {
+          selector: {
+            matchLabels: {},
+          },
+          template: {
+            metadata: {
+              labels: {},
+            },
+            spec: {
+              containers: [
+                {
+                  name: '',
+                  image: '',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    enableCreate: true,
   };
 }
 
@@ -783,6 +1731,133 @@ export function createJobConfig(): ResourceListConfig<Job> {
       showSearch: true,
       searchPlaceholder: '搜索 Job 名称',
     },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 Job 名称',
+              rules: [
+                { required: true, message: '请输入 Job 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+          ],
+        },
+        {
+          title: '任务设置',
+          fields: [
+            {
+              field: 'spec.completions',
+              label: '完成次数',
+              type: 'number',
+              min: 1,
+              defaultValue: 1,
+              help: '任务需要成功完成的次数',
+            },
+            {
+              field: 'spec.parallelism',
+              label: '并行数',
+              type: 'number',
+              min: 1,
+              defaultValue: 1,
+              help: '并行执行的 Pod 数量',
+            },
+          ],
+        },
+        {
+          title: '容器配置',
+          fields: [
+            {
+              field: 'spec.template.spec.containers[0].name',
+              label: '容器名称',
+              type: 'input',
+              required: true,
+              placeholder: '请输入容器名称',
+              rules: [{ required: true, message: '请输入容器名称' }],
+            },
+            {
+              field: 'spec.template.spec.containers[0].image',
+              label: '镜像',
+              type: 'input',
+              required: true,
+              placeholder: '例如: perl:5.34',
+              rules: [{ required: true, message: '请输入镜像' }],
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'batch/v1',
+        kind: 'Job',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        spec: {
+          completions: 1,
+          parallelism: 1,
+          template: {
+            spec: {
+              containers: [
+                {
+                  name: '',
+                  image: '',
+                },
+              ],
+              restartPolicy: 'OnFailure',
+            },
+          },
+        },
+      },
+    },
+    enableCreate: true,
   };
 }
 
@@ -828,7 +1903,9 @@ export function createPVConfig(): ResourceListConfig<PersistentVolume> {
         field: 'spec.accessModes',
         title: '访问模式',
         width: 180,
-        slots: { default: 'access-modes-slot' },
+        formatter: ({ cellValue }: any) => {
+          return cellValue?.join(', ') || '-';
+        },
       },
       {
         field: 'spec.persistentVolumeReclaimPolicy',
@@ -839,7 +1916,9 @@ export function createPVConfig(): ResourceListConfig<PersistentVolume> {
         field: 'spec.claimRef',
         title: '绑定的 PVC',
         minWidth: 200,
-        slots: { default: 'claim-slot' },
+        formatter: ({ cellValue }: any) => {
+          return cellValue ? `${cellValue.namespace}/${cellValue.name}` : '未绑定';
+        },
       },
       {
         field: 'metadata.creationTimestamp',
@@ -983,7 +2062,9 @@ export function createPVCConfig(): ResourceListConfig<PersistentVolumeClaim> {
         field: 'spec.accessModes',
         title: '访问模式',
         width: 180,
-        slots: { default: 'access-modes-slot' },
+        formatter: ({ cellValue }: any) => {
+          return cellValue?.join(', ') || '-';
+        },
       },
       {
         field: 'metadata.creationTimestamp',
@@ -1084,13 +2165,14 @@ export function createStorageClassConfig(): ResourceListConfig<StorageClass> {
         field: 'volumeBindingMode',
         title: '绑定模式',
         width: 180,
-        slots: { default: 'binding-mode-slot' },
       },
       {
         field: 'allowVolumeExpansion',
         title: '允许扩容',
         width: 120,
-        slots: { default: 'expansion-slot' },
+        formatter: ({ cellValue }: any) => {
+          return cellValue ? '是' : '否';
+        },
       },
       {
         field: 'parameters',
@@ -1157,6 +2239,931 @@ export function createStorageClassConfig(): ResourceListConfig<StorageClass> {
           ],
         },
       ],
+    },
+  };
+}
+
+// ==================== 新增资源配置 ====================
+
+/**
+ * NetworkPolicy 资源配置
+ */
+export function createNetworkPolicyConfig(): ResourceListConfig<NetworkPolicy> {
+  return {
+    resourceType: 'networkpolicy',
+    resourceLabel: 'NetworkPolicy',
+    fetchData: async (params) => {
+      const result = getMockNetworkPolicyList({
+        clusterId: params.clusterId || 'cluster-prod-01',
+        namespace: params.namespace,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items, total: result.total };
+    },
+    columns: [
+      { field: 'metadata.name', title: 'NetworkPolicy 名称', minWidth: 200 },
+      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      {
+        field: 'spec.policyTypes',
+        title: '策略类型',
+        width: 150,
+        formatter: ({ cellValue }: any) => {
+          return cellValue?.join(', ') || '-';
+        },
+      },
+      {
+        field: 'spec.podSelector.matchLabels',
+        title: 'Pod 选择器',
+        minWidth: 200,
+        formatter: ({ cellValue }: any) => {
+          if (!cellValue) return '全部 Pod';
+          return Object.entries(cellValue).map(([k, v]) => `${k}=${v}`).join(', ');
+        },
+      },
+      {
+        field: 'metadata.creationTimestamp',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('NetworkPolicy', (row: NetworkPolicy) => {
+        const policyTypes = row.spec.policyTypes?.join(', ') || '-';
+        const hasIngress = row.spec.ingress && row.spec.ingress.length > 0;
+        const hasEgress = row.spec.egress && row.spec.egress.length > 0;
+
+        return `
+          名称: ${row.metadata.name}
+          命名空间: ${row.metadata.namespace}
+          策略类型: ${policyTypes}
+          Ingress 规则: ${hasIngress ? row.spec.ingress!.length + ' 条' : '无'}
+          Egress 规则: ${hasEgress ? row.spec.egress!.length + ' 条' : '无'}
+          创建时间: ${row.metadata.creationTimestamp}
+        `;
+      }),
+      createDeleteAction('NetworkPolicy'),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: true,
+      showSearch: true,
+      searchPlaceholder: '搜索 NetworkPolicy 名称',
+    },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 NetworkPolicy 名称',
+              rules: [
+                { required: true, message: '请输入 NetworkPolicy 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+          ],
+        },
+        {
+          title: 'Pod 选择器',
+          fields: [
+            {
+              field: 'spec.podSelector.matchLabels',
+              label: 'Pod 标签',
+              type: 'labels',
+              help: '选择应用此策略的 Pod（留空表示选择所有 Pod）',
+            },
+          ],
+        },
+        {
+          title: '策略类型',
+          fields: [
+            {
+              field: 'spec.policyTypes',
+              label: '策略类型',
+              type: 'select',
+              mode: 'multiple',
+              options: [
+                { label: 'Ingress（入站）', value: 'Ingress' },
+                { label: 'Egress（出站）', value: 'Egress' },
+              ],
+              help: '选择入站或出站规则类型',
+            },
+          ],
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'networking.k8s.io/v1',
+        kind: 'NetworkPolicy',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        spec: {
+          podSelector: {
+            matchLabels: {},
+          },
+          policyTypes: ['Ingress'],
+          ingress: [],
+          egress: [],
+        },
+      },
+    },
+    enableCreate: true,
+  };
+}
+
+/**
+ * HorizontalPodAutoscaler (HPA) 资源配置
+ */
+export function createHPAConfig(): ResourceListConfig<HorizontalPodAutoscaler> {
+  return {
+    resourceType: 'hpa',
+    resourceLabel: 'HPA',
+    fetchData: async (params) => {
+      const result = getMockHPAList({
+        clusterId: params.clusterId || 'cluster-prod-01',
+        namespace: params.namespace,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items, total: result.total };
+    },
+    columns: [
+      { field: 'metadata.name', title: 'HPA 名称', minWidth: 200 },
+      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      {
+        field: 'spec.scaleTargetRef',
+        title: '目标资源',
+        minWidth: 200,
+        formatter: ({ cellValue }: any) => {
+          return `${cellValue.kind}/${cellValue.name}`;
+        },
+      },
+      {
+        field: 'spec.minReplicas',
+        title: '最小副本',
+        width: 100,
+      },
+      {
+        field: 'spec.maxReplicas',
+        title: '最大副本',
+        width: 100,
+      },
+      {
+        field: 'status.currentReplicas',
+        title: '当前副本',
+        width: 100,
+      },
+      {
+        field: 'metadata.creationTimestamp',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('HPA', (row: HorizontalPodAutoscaler) => {
+        const targetRef = row.spec.scaleTargetRef;
+        const metricsCount = row.spec.metrics?.length || 0;
+
+        return `
+          名称: ${row.metadata.name}
+          命名空间: ${row.metadata.namespace}
+          目标资源: ${targetRef.kind}/${targetRef.name}
+          最小副本: ${row.spec.minReplicas || 1}
+          最大副本: ${row.spec.maxReplicas}
+          当前副本: ${row.status?.currentReplicas}
+          期望副本: ${row.status?.desiredReplicas}
+          指标数量: ${metricsCount}
+          创建时间: ${row.metadata.creationTimestamp}
+        `;
+      }),
+      createEditAction('HPA'),
+      createDeleteAction('HPA'),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: true,
+      showSearch: true,
+      searchPlaceholder: '搜索 HPA 名称',
+    },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 HPA 名称',
+              rules: [
+                { required: true, message: '请输入 HPA 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+          ],
+        },
+        {
+          title: '扩缩容目标',
+          fields: [
+            {
+              field: 'spec.scaleTargetRef.kind',
+              label: '资源类型',
+              type: 'select',
+              required: true,
+              options: [
+                { label: 'Deployment', value: 'Deployment' },
+                { label: 'StatefulSet', value: 'StatefulSet' },
+                { label: 'ReplicaSet', value: 'ReplicaSet' },
+              ],
+              rules: [{ required: true, message: '请选择资源类型' }],
+            },
+            {
+              field: 'spec.scaleTargetRef.name',
+              label: '资源名称',
+              type: 'input',
+              required: true,
+              placeholder: '请输入目标资源名称',
+              rules: [{ required: true, message: '请输入资源名称' }],
+            },
+          ],
+        },
+        {
+          title: '副本数设置',
+          fields: [
+            {
+              field: 'spec.minReplicas',
+              label: '最小副本数',
+              type: 'number',
+              min: 1,
+              defaultValue: 1,
+              help: '最小保持的副本数量',
+            },
+            {
+              field: 'spec.maxReplicas',
+              label: '最大副本数',
+              type: 'number',
+              required: true,
+              min: 1,
+              rules: [
+                { required: true, message: '请输入最大副本数' },
+                { type: 'number', min: 1, message: '最小值为 1' },
+              ],
+              help: '最大扩展的副本数量',
+            },
+          ],
+        },
+        {
+          title: '目标指标',
+          fields: [
+            {
+              field: 'spec.targetCPUUtilizationPercentage',
+              label: 'CPU 目标使用率 (%)',
+              type: 'number',
+              min: 1,
+              max: 100,
+              help: 'CPU 使用率达到此值时触发扩缩容',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'autoscaling/v2',
+        kind: 'HorizontalPodAutoscaler',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        spec: {
+          scaleTargetRef: {
+            apiVersion: 'apps/v1',
+            kind: 'Deployment',
+            name: '',
+          },
+          minReplicas: 1,
+          maxReplicas: 10,
+          targetCPUUtilizationPercentage: 80,
+        },
+      },
+    },
+    enableCreate: true,
+  };
+}
+
+/**
+ * PriorityClass 资源配置
+ */
+export function createPriorityClassConfig(): ResourceListConfig<PriorityClass> {
+  return {
+    resourceType: 'priorityclass',
+    resourceLabel: 'PriorityClass',
+    fetchData: async (params) => {
+      const result = getMockPriorityClassList({
+        clusterId: params.clusterId || 'cluster-prod-01',
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items, total: result.total };
+    },
+    columns: [
+      { field: 'metadata.name', title: 'PriorityClass 名称', minWidth: 200 },
+      {
+        field: 'value',
+        title: '优先级值',
+        width: 120,
+      },
+      {
+        field: 'globalDefault',
+        title: '全局默认',
+        width: 120,
+        slots: { default: 'default-slot' },
+      },
+      {
+        field: 'preemptionPolicy',
+        title: '抢占策略',
+        width: 180,
+      },
+      {
+        field: 'description',
+        title: '描述',
+        minWidth: 200,
+      },
+      {
+        field: 'metadata.creationTimestamp',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('PriorityClass', (row: PriorityClass) => {
+        return `
+          名称: ${row.metadata.name}
+          优先级值: ${row.value}
+          全局默认: ${row.globalDefault ? '是' : '否'}
+          抢占策略: ${row.preemptionPolicy || 'PreemptLowerPriority'}
+          描述: ${row.description || '-'}
+          创建时间: ${row.metadata.creationTimestamp}
+        `;
+      }),
+      createDeleteAction('PriorityClass'),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: false,
+      showSearch: true,
+      searchPlaceholder: '搜索 PriorityClass 名称',
+    },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 PriorityClass 名称',
+              rules: [
+                { required: true, message: '请输入 PriorityClass 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'value',
+              label: '优先级值',
+              type: 'number',
+              required: true,
+              rules: [
+                { required: true, message: '请输入优先级值' },
+                { type: 'number', message: '必须是数字' },
+              ],
+              help: '整数值，数值越大优先级越高',
+            },
+            {
+              field: 'description',
+              label: '描述',
+              type: 'textarea',
+              placeholder: '请输入描述信息',
+              help: '描述此优先级类的用途',
+            },
+          ],
+        },
+        {
+          title: '策略设置',
+          fields: [
+            {
+              field: 'globalDefault',
+              label: '全局默认',
+              type: 'switch',
+              help: '是否作为未指定 PriorityClass 的 Pod 的默认优先级',
+            },
+            {
+              field: 'preemptionPolicy',
+              label: '抢占策略',
+              type: 'select',
+              options: [
+                { label: 'PreemptLowerPriority（抢占低优先级）', value: 'PreemptLowerPriority' },
+                { label: 'Never（不抢占）', value: 'Never' },
+              ],
+              help: '定义该优先级是否可以抢占其他 Pod',
+            },
+          ],
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'scheduling.k8s.io/v1',
+        kind: 'PriorityClass',
+        metadata: {
+          name: '',
+          labels: {},
+          annotations: {},
+        },
+        value: 1000,
+        globalDefault: false,
+        preemptionPolicy: 'PreemptLowerPriority',
+        description: '',
+      },
+    },
+    enableCreate: true,
+  };
+}
+
+/**
+ * ReplicaSet 资源配置
+ */
+export function createReplicaSetConfig(): ResourceListConfig<ReplicaSet> {
+  return {
+    resourceType: 'replicaset',
+    resourceLabel: 'ReplicaSet',
+    fetchData: async (params) => {
+      const result = getMockReplicaSetList({
+        clusterId: params.clusterId || 'cluster-prod-01',
+        namespace: params.namespace,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items, total: result.total };
+    },
+    columns: [
+      { field: 'metadata.name', title: 'ReplicaSet 名称', minWidth: 200 },
+      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      { field: 'spec.replicas', title: '副本数', width: 100 },
+      {
+        field: 'status.readyReplicas',
+        title: '就绪副本',
+        width: 120,
+        slots: { default: 'ready-slot' },
+      },
+      {
+        field: 'status.availableReplicas',
+        title: '可用副本',
+        width: 120,
+      },
+      {
+        field: 'metadata.creationTimestamp',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('ReplicaSet', (row: ReplicaSet) => {
+        return `
+          名称: ${row.metadata.name}
+          命名空间: ${row.metadata.namespace}
+          副本数: ${row.spec.replicas}
+          就绪副本: ${row.status?.readyReplicas ?? 0}
+          可用副本: ${row.status?.availableReplicas ?? 0}
+          完全标记副本: ${row.status?.fullyLabeledReplicas ?? 0}
+          创建时间: ${row.metadata.creationTimestamp}
+        `;
+      }),
+      {
+        action: 'scale',
+        label: '扩缩容',
+        handler: (row: ReplicaSet) => {
+          message.info(`扩缩容 ReplicaSet "${row.metadata.name}" (功能开发中)`);
+        },
+      },
+      createEditAction('ReplicaSet'),
+      createDeleteAction('ReplicaSet'),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: true,
+      showSearch: true,
+      searchPlaceholder: '搜索 ReplicaSet 名称',
+    },
+    formConfig: {
+      groups: [
+        {
+          title: '基本信息',
+          fields: [
+            {
+              field: 'metadata.name',
+              label: '名称',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入 ReplicaSet 名称',
+              rules: [
+                { required: true, message: '请输入 ReplicaSet 名称' },
+                {
+                  pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
+                  message: '名称只能包含小写字母、数字和连字符',
+                },
+              ],
+            },
+            {
+              field: 'metadata.namespace',
+              label: '命名空间',
+              type: 'input',
+              required: true,
+              disabled: (mode) => mode === 'edit',
+              placeholder: '请输入命名空间',
+              rules: [{ required: true, message: '请输入命名空间' }],
+            },
+            {
+              field: 'spec.replicas',
+              label: '副本数',
+              type: 'number',
+              required: true,
+              min: 0,
+              defaultValue: 1,
+              rules: [
+                { required: true, message: '请输入副本数' },
+                { type: 'number', min: 0, message: '最小值为 0' },
+              ],
+            },
+          ],
+        },
+        {
+          title: 'Pod 选择器',
+          fields: [
+            {
+              field: 'spec.selector.matchLabels',
+              label: 'Pod 标签',
+              type: 'labels',
+              help: '用于选择要管理的 Pod',
+            },
+          ],
+        },
+        {
+          title: '容器配置',
+          fields: [
+            {
+              field: 'spec.template.spec.containers[0].name',
+              label: '容器名称',
+              type: 'input',
+              required: true,
+              placeholder: '请输入容器名称',
+              rules: [{ required: true, message: '请输入容器名称' }],
+            },
+            {
+              field: 'spec.template.spec.containers[0].image',
+              label: '镜像',
+              type: 'input',
+              required: true,
+              placeholder: '例如: nginx:1.21',
+              rules: [{ required: true, message: '请输入镜像' }],
+            },
+            {
+              field: 'spec.template.spec.containers[0].ports[0].containerPort',
+              label: '容器端口',
+              type: 'number',
+              min: 1,
+              max: 65535,
+              placeholder: '例如: 80',
+              help: '容器暴露的端口号',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '标签',
+          fields: [
+            {
+              field: 'metadata.labels',
+              label: '标签',
+              type: 'labels',
+              help: '用于组织和选择资源的键值对',
+            },
+          ],
+          collapsible: true,
+        },
+        {
+          title: '注解',
+          fields: [
+            {
+              field: 'metadata.annotations',
+              label: '注解',
+              type: 'labels',
+              help: '用于附加任意元数据',
+            },
+          ],
+          collapsible: true,
+          defaultCollapsed: true,
+        },
+      ],
+      createInitialValues: {
+        apiVersion: 'apps/v1',
+        kind: 'ReplicaSet',
+        metadata: {
+          name: '',
+          namespace: '',
+          labels: {},
+          annotations: {},
+        },
+        spec: {
+          replicas: 1,
+          selector: {
+            matchLabels: {},
+          },
+          template: {
+            metadata: {
+              labels: {},
+            },
+            spec: {
+              containers: [
+                {
+                  name: '',
+                  image: '',
+                  ports: [
+                    {
+                      containerPort: 80,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    enableCreate: true,
+  };
+}
+
+/**
+ * Endpoints 资源配置
+ */
+export function createEndpointsConfig(): ResourceListConfig<Endpoints> {
+  return {
+    resourceType: 'endpoints',
+    resourceLabel: 'Endpoints',
+    fetchData: async (params) => {
+      const result = getMockEndpointsList({
+        clusterId: params.clusterId || 'cluster-prod-01',
+        namespace: params.namespace,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items, total: result.total };
+    },
+    columns: [
+      { field: 'metadata.name', title: 'Endpoints 名称', minWidth: 200 },
+      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      {
+        field: 'subsets',
+        title: '地址数量',
+        width: 120,
+        formatter: ({ cellValue }: any) => {
+          if (!cellValue || cellValue.length === 0) return 0;
+          return cellValue.reduce((sum: number, subset: any) =>
+            sum + (subset.addresses?.length || 0), 0);
+        },
+      },
+      {
+        field: 'subsets',
+        title: '端口数量',
+        width: 120,
+        formatter: ({ cellValue }: any) => {
+          if (!cellValue || cellValue.length === 0) return 0;
+          return cellValue[0]?.ports?.length || 0;
+        },
+      },
+      {
+        field: 'metadata.creationTimestamp',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('Endpoints', (row: Endpoints) => {
+        const addressCount = row.subsets?.reduce((sum, subset) =>
+          sum + (subset.addresses?.length || 0), 0) || 0;
+        const portCount = row.subsets?.[0]?.ports?.length || 0;
+
+        return `
+          名称: ${row.metadata.name}
+          命名空间: ${row.metadata.namespace}
+          地址数量: ${addressCount}
+          端口数量: ${portCount}
+          创建时间: ${row.metadata.creationTimestamp}
+        `;
+      }),
+      createDeleteAction('Endpoints'),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: true,
+      showSearch: true,
+      searchPlaceholder: '搜索 Endpoints 名称',
+    },
+  };
+}
+
+/**
+ * EndpointSlice 资源配置
+ */
+export function createEndpointSliceConfig(): ResourceListConfig<EndpointSlice> {
+  return {
+    resourceType: 'endpointslice',
+    resourceLabel: 'EndpointSlice',
+    fetchData: async (params) => {
+      const result = getMockEndpointSliceList({
+        clusterId: params.clusterId || 'cluster-prod-01',
+        namespace: params.namespace,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items, total: result.total };
+    },
+    columns: [
+      { field: 'metadata.name', title: 'EndpointSlice 名称', minWidth: 200 },
+      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      {
+        field: 'addressType',
+        title: '地址类型',
+        width: 120,
+      },
+      {
+        field: 'endpoints',
+        title: '端点数量',
+        width: 120,
+        formatter: ({ cellValue }: any) => {
+          return cellValue?.length || 0;
+        },
+      },
+      {
+        field: 'ports',
+        title: '端口数量',
+        width: 120,
+        formatter: ({ cellValue }: any) => {
+          return cellValue?.length || 0;
+        },
+      },
+      {
+        field: 'metadata.creationTimestamp',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('EndpointSlice', (row: EndpointSlice) => {
+        const endpointCount = row.endpoints?.length || 0;
+        const portCount = row.ports?.length || 0;
+        const readyCount = row.endpoints?.filter(ep => ep.conditions?.ready).length || 0;
+
+        return `
+          名称: ${row.metadata.name}
+          命名空间: ${row.metadata.namespace}
+          地址类型: ${row.addressType}
+          端点数量: ${endpointCount}
+          就绪端点: ${readyCount}
+          端口数量: ${portCount}
+          创建时间: ${row.metadata.creationTimestamp}
+        `;
+      }),
+      createDeleteAction('EndpointSlice'),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: true,
+      showSearch: true,
+      searchPlaceholder: '搜索 EndpointSlice 名称',
     },
   };
 }

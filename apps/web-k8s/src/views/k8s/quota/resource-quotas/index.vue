@@ -263,7 +263,7 @@ onMounted(() => {
     <Card class="filter-card" :bordered="false">
       <div class="filter-row">
         <div class="filter-item">
-          <label class="filter-label">命名空间</label>
+          <label class="filter-label">命名空间:</label>
           <Select
             v-model:value="filters.namespace"
             :options="namespaceOptions"
@@ -273,7 +273,7 @@ onMounted(() => {
           />
         </div>
 
-        <Button type="link" @click="resetFilters"> 重置筛选 </Button>
+        <Button @click="resetFilters"> 重置筛选 </Button>
       </div>
     </Card>
 
@@ -497,19 +497,20 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .filter-item {
   display: flex;
-  flex-direction: column;
   gap: 8px;
+  align-items: center;
 }
 
 .filter-label {
   font-size: 14px;
   font-weight: 500;
   color: var(--vben-text-color);
+  white-space: nowrap;
 }
 
 .table-card {

@@ -81,6 +81,56 @@ export interface ResourceColumnConfig
 }
 
 /**
+ * 表单字段类型
+ */
+export type FormFieldType =
+  | 'input' // 文本输入
+  | 'textarea' // 多行文本
+  | 'number' // 数字输入
+  | 'select' // 下拉选择
+  | 'switch' // 开关
+  | 'array' // 数组（可添加/删除项）
+  | 'object' // 对象（嵌套表单）
+  | 'labels'; // 标签编辑器（键值对）
+
+/**
+ * 表单字段配置
+ */
+export interface FormFieldConfig {
+  field: string; // 字段名（支持嵌套路径，如 'metadata.name'）
+  label: string; // 字段标签
+  type: FormFieldType;
+  required?: boolean; // 是否必填
+  disabled?: ((mode: 'create' | 'edit') => boolean) | boolean; // 是否禁用
+  defaultValue?: any; // 默认值
+  placeholder?: string;
+  help?: string; // 帮助文本
+  rules?: any[]; // 验证规则
+  options?: Array<{ label: string; value: any }>; // select类型的选项
+  children?: FormFieldConfig[]; // object/array类型的子字段
+  show?: (formData: any) => boolean; // 动态显示条件
+}
+
+/**
+ * 表单分组配置
+ */
+export interface FormGroupConfig {
+  title: string;
+  fields: FormFieldConfig[];
+  collapsible?: boolean; // 是否可折叠
+  defaultCollapsed?: boolean; // 默认是否折叠
+}
+
+/**
+ * 资源表单配置
+ */
+export interface ResourceFormConfig {
+  groups: FormGroupConfig[]; // 表单分组
+  initialValues?: any; // 初始值
+  createInitialValues?: any; // 创建时的初始值
+}
+
+/**
  * 资源筛选器配置
  */
 export interface ResourceFilterConfig {
@@ -116,6 +166,10 @@ export interface ResourceListConfig<T = any> {
   statusConfig?: ResourceStatusConfig;
   /** Grid 额外配置 */
   gridOptions?: Record<string, any>;
+  /** 表单配置 */
+  formConfig?: ResourceFormConfig;
+  /** 是否支持创建资源 */
+  enableCreate?: boolean;
 }
 
 /**
@@ -203,7 +257,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.WORKLOAD,
     icon: 'lucide:box',
     namespaced: true,
-    path: '/k8s/workloads/pods',
+    path: '/k8s/pods',
   },
   [K8S_RESOURCE_TYPES.DEPLOYMENT]: {
     type: K8S_RESOURCE_TYPES.DEPLOYMENT,
@@ -211,7 +265,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.WORKLOAD,
     icon: 'lucide:rocket',
     namespaced: true,
-    path: '/k8s/workloads/deployments',
+    path: '/k8s/deployments',
   },
   [K8S_RESOURCE_TYPES.STATEFULSET]: {
     type: K8S_RESOURCE_TYPES.STATEFULSET,
@@ -219,7 +273,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.WORKLOAD,
     icon: 'lucide:database',
     namespaced: true,
-    path: '/k8s/workloads/statefulsets',
+    path: '/k8s/statefulsets',
   },
   [K8S_RESOURCE_TYPES.DAEMONSET]: {
     type: K8S_RESOURCE_TYPES.DAEMONSET,
@@ -227,7 +281,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.WORKLOAD,
     icon: 'lucide:layers',
     namespaced: true,
-    path: '/k8s/workloads/daemonsets',
+    path: '/k8s/daemonsets',
   },
   [K8S_RESOURCE_TYPES.JOB]: {
     type: K8S_RESOURCE_TYPES.JOB,
@@ -235,7 +289,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.WORKLOAD,
     icon: 'lucide:briefcase',
     namespaced: true,
-    path: '/k8s/workloads/jobs',
+    path: '/k8s/jobs',
   },
   [K8S_RESOURCE_TYPES.CRONJOB]: {
     type: K8S_RESOURCE_TYPES.CRONJOB,
@@ -243,7 +297,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.WORKLOAD,
     icon: 'lucide:clock',
     namespaced: true,
-    path: '/k8s/workloads/cronjobs',
+    path: '/k8s/cronjobs',
   },
   [K8S_RESOURCE_TYPES.SERVICE]: {
     type: K8S_RESOURCE_TYPES.SERVICE,
@@ -251,7 +305,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.NETWORK,
     icon: 'lucide:network',
     namespaced: true,
-    path: '/k8s/network/services',
+    path: '/k8s/services',
   },
   [K8S_RESOURCE_TYPES.CONFIGMAP]: {
     type: K8S_RESOURCE_TYPES.CONFIGMAP,
@@ -259,7 +313,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.CONFIG,
     icon: 'lucide:file-code',
     namespaced: true,
-    path: '/k8s/config/configmaps',
+    path: '/k8s/configmaps',
   },
   [K8S_RESOURCE_TYPES.SECRET]: {
     type: K8S_RESOURCE_TYPES.SECRET,
@@ -267,7 +321,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.CONFIG,
     icon: 'lucide:key',
     namespaced: true,
-    path: '/k8s/config/secrets',
+    path: '/k8s/secrets',
   },
   [K8S_RESOURCE_TYPES.PERSISTENTVOLUME]: {
     type: K8S_RESOURCE_TYPES.PERSISTENTVOLUME,
@@ -275,7 +329,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.STORAGE,
     icon: 'lucide:hard-drive',
     namespaced: false,
-    path: '/k8s/storage/persistent-volumes',
+    path: '/k8s/persistent-volumes',
   },
   [K8S_RESOURCE_TYPES.PERSISTENTVOLUMECLAIM]: {
     type: K8S_RESOURCE_TYPES.PERSISTENTVOLUMECLAIM,
@@ -283,7 +337,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.STORAGE,
     icon: 'lucide:file-box',
     namespaced: true,
-    path: '/k8s/storage/persistent-volume-claims',
+    path: '/k8s/persistent-volume-claims',
   },
   [K8S_RESOURCE_TYPES.STORAGECLASS]: {
     type: K8S_RESOURCE_TYPES.STORAGECLASS,
@@ -291,7 +345,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.STORAGE,
     icon: 'lucide:database',
     namespaced: false,
-    path: '/k8s/storage/storage-classes',
+    path: '/k8s/storage-classes',
   },
   [K8S_RESOURCE_TYPES.NODE]: {
     type: K8S_RESOURCE_TYPES.NODE,
@@ -299,7 +353,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.CLUSTER,
     icon: 'lucide:server',
     namespaced: false,
-    path: '/k8s/cluster/nodes',
+    path: '/k8s/nodes',
   },
   [K8S_RESOURCE_TYPES.NAMESPACE]: {
     type: K8S_RESOURCE_TYPES.NAMESPACE,
@@ -307,7 +361,7 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.CLUSTER,
     icon: 'lucide:folder',
     namespaced: false,
-    path: '/k8s/cluster/namespaces',
+    path: '/k8s/namespaces',
   },
   [K8S_RESOURCE_TYPES.CLUSTER]: {
     type: K8S_RESOURCE_TYPES.CLUSTER,
@@ -315,6 +369,6 @@ export const RESOURCE_TYPE_METADATA: Record<string, ResourceTypeMetadata> = {
     category: ResourceCategory.CLUSTER,
     icon: 'lucide:server',
     namespaced: false,
-    path: '/k8s/cluster/clusters',
+    path: '/k8s/clusters',
   },
 };

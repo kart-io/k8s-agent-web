@@ -268,9 +268,6 @@ function handleDelete(row: ConfigMap) {
         </template>
 
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="() => gridApi.query()">
-            刷新当前页
-          </Button>
         </template>
       </Grid>
     </div>

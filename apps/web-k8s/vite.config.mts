@@ -4,6 +4,64 @@ export default defineConfig(async () => {
   return {
     application: {},
     vite: {
+      build: {
+        // 优化代码分割
+        rollupOptions: {
+          output: {
+            // 手动分块，将大型依赖分离
+            manualChunks(id) {
+              // Ant Design Vue 单独打包
+              if (id.includes('node_modules/ant-design-vue')) {
+                return 'ant-design-vue';
+              }
+              // VXE Table 单独打包（这是最大的依赖）
+              if (id.includes('node_modules/vxe-table')) {
+                return 'vxe-table';
+              }
+              // ECharts 单独打包
+              if (id.includes('node_modules/echarts')) {
+                return 'echarts';
+              }
+              // Vue 核心库单独打包
+              if (id.includes('node_modules/vue')) {
+                return 'vue';
+              }
+              // K8s 相关组件分组
+              if (id.includes('/views/k8s/')) {
+                // Dashboard 组件
+                if (id.includes('/views/k8s/dashboard/')) {
+                  return 'k8s-dashboard';
+                }
+                // DetailDrawer 组件单独打包
+                if (id.includes('DetailDrawer.vue')) {
+                  return 'k8s-detail-drawers';
+                }
+                // 搜索页面
+                if (id.includes('/views/k8s/search/')) {
+                  return 'k8s-search';
+                }
+                // 其他 K8s 视图
+                return 'k8s-views';
+              }
+              // 其他 node_modules
+              if (id.includes('node_modules')) {
+                return 'vendor';
+              }
+            },
+          },
+        },
+        // 启用压缩
+        minify: 'terser',
+        terserOptions: {
+          compress: {
+            // 生产环境删除 console
+            drop_console: true,
+            drop_debugger: true,
+          },
+        },
+        // 分块大小警告阈值
+        chunkSizeWarningLimit: 1000,
+      },
       server: {
         proxy: {
           '/api': {

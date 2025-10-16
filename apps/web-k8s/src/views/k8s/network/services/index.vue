@@ -1,146 +1,28 @@
 <script lang="ts" setup>
 /**
- * Service 管理页面
- * 使用资源配置工厂，代码从 304 行减少到 ~45 行
+ * Service 资源管理页面 - 使用 GenericResourcePage 模板
+ * 从 ~146 行减少到 ~25 行
  */
-import type { Service } from '#/api/k8s/types';
-
-import { computed, ref } from 'vue';
-
-import { message, Tag } from 'ant-design-vue';
+import { Tag } from 'ant-design-vue';
 
 import { createServiceConfig } from '#/config/k8s-resources';
-import ResourceList from '#/views/k8s/_shared/ResourceList.vue';
-import YAMLEditorModal from '#/views/k8s/_shared/YAMLEditorModal.vue';
+import GenericResourcePage from '#/views/k8s/resources/GenericResourcePage.vue';
 
-import DetailDrawer from './DetailDrawer.vue';
-
-defineOptions({
-  name: 'ServicesManagement',
-});
-
-// 详情抽屉状态
-const detailDrawerVisible = ref(false);
-const selectedService = ref<null | Service>(null);
-
-// YAML 编辑模态框状态
-const yamlEditorVisible = ref(false);
-const editingService = ref<Service | null>(null);
-
-// 列表引用（用于刷新）
-const resourceListRef = ref();
-
-/**
- * 打开详情抽屉
- */
-function openDetailDrawer(service: Service) {
-  selectedService.value = service;
-  detailDrawerVisible.value = true;
-}
-
-/**
- * 打开 YAML 编辑器
- */
-function openYAMLEditor(service: Service) {
-  editingService.value = service;
-  yamlEditorVisible.value = true;
-}
-
-/**
- * 处理 YAML 编辑确认
- */
-async function handleYAMLEditConfirm(updatedResource: any) {
-  try {
-    // TODO: 调用真实 API 更新资源
-    // await updateService(
-    //   updatedResource.metadata.namespace,
-    //   updatedResource.metadata.name,
-    //   updatedResource
-    // );
-
-    message.success(
-      `Service "${updatedResource.metadata.name}" 已成功更新`,
-    );
-
-    // 关闭模态框
-    yamlEditorVisible.value = false;
-
-    // 刷新列表
-    resourceListRef.value?.refresh();
-  } catch (error: any) {
-    message.error(`更新失败: ${error.message}`);
-  }
-}
-
-const config = computed(() => {
-  const baseConfig = createServiceConfig();
-
-  // 覆盖 view 操作，使用详情抽屉
-  // 覆盖 edit 操作，使用 YAML 编辑器
-  if (baseConfig.actions) {
-    const viewActionIndex = baseConfig.actions.findIndex(
-      (a) => a.action === 'view',
-    );
-    if (viewActionIndex !== -1) {
-      baseConfig.actions[viewActionIndex] = {
-        action: 'view',
-        label: '详情',
-        handler: (row: Service) => {
-          openDetailDrawer(row);
-        },
-      };
-    }
-
-    const editActionIndex = baseConfig.actions.findIndex(
-      (a) => a.action === 'edit',
-    );
-    if (editActionIndex !== -1) {
-      baseConfig.actions[editActionIndex] = {
-        action: 'edit',
-        label: '编辑',
-        handler: (row: Service) => {
-          openYAMLEditor(row);
-        },
-      };
-    }
-  }
-
-  return baseConfig;
-});
+defineOptions({ name: 'K8sServices' });
 </script>
 
 <template>
-  <div>
-    <ResourceList ref="resourceListRef" :config="config">
-      <!-- Service 类型标签 -->
-      <template #type-slot="{ row }">
-        <Tag :color="row.spec.type === 'ClusterIP' ? 'blue' : 'green'">
-          {{ row.spec.type }}
-        </Tag>
-      </template>
+  <GenericResourcePage :config-factory="createServiceConfig">
+    <!-- 自定义插槽：Service 类型显示 -->
+    <template #type-slot="{ row }">
+      <Tag :color="row.spec.type === 'ClusterIP' ? 'blue' : 'green'">
+        {{ row.spec.type }}
+      </Tag>
+    </template>
 
-      <!-- 端口列表 -->
-      <template #ports-slot="{ row }">
-        <span>{{
-          row.spec.ports.map((p) => `${p.port}:${p.targetPort}`).join(', ')
-        }}</span>
-      </template>
-    </ResourceList>
-
-    <!-- 详情抽屉 -->
-    <DetailDrawer
-      v-model:visible="detailDrawerVisible"
-      :service="selectedService"
-    />
-
-    <!-- YAML 编辑器模态框 -->
-    <YAMLEditorModal
-      v-if="editingService"
-      v-model:visible="yamlEditorVisible"
-      :resource="editingService"
-      :resource-type="'Service'"
-      :resource-name="editingService.metadata.name"
-      @confirm="handleYAMLEditConfirm"
-    />
-  </div>
+    <!-- 自定义插槽：端口列表显示 -->
+    <template #ports-slot="{ row }">
+      <span>{{ row.spec.ports.map((p) => `${p.port}:${p.targetPort}`).join(', ') }}</span>
+    </template>
+  </GenericResourcePage>
 </template>

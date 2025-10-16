@@ -12,12 +12,18 @@ import type {
   CronJob,
   DaemonSet,
   Deployment,
+  Endpoints,
+  EndpointSlice,
+  HorizontalPodAutoscaler,
   Job,
   Namespace,
+  NetworkPolicy,
   Node,
   Pod,
   PodExecParams,
   PodLogsParams,
+  PriorityClass,
+  ReplicaSet,
   RestartParams,
   ScaleParams,
   Secret,
@@ -694,3 +700,145 @@ const eventApiBase = createResourceApi<any>(requestClient, {
 export const eventApi = eventApiBase;
 export const getEventList = eventApiBase.list;
 export const getEventDetail = eventApiBase.detail;
+
+// ==================== 网络策略 ====================
+
+/**
+ * NetworkPolicy API
+ */
+const networkPolicyApiBase = createResourceApi<NetworkPolicy>(requestClient, {
+  resourceType: 'networkpolicy',
+  resourceTypePlural: 'networkpolicies',
+  namespaced: true,
+});
+
+export const networkPolicyApi = networkPolicyApiBase;
+export const getNetworkPolicyList = networkPolicyApiBase.list;
+export const getNetworkPolicyDetail = networkPolicyApiBase.detail;
+export const createNetworkPolicy = networkPolicyApiBase.create;
+export const updateNetworkPolicy = networkPolicyApiBase.update;
+export const deleteNetworkPolicy = networkPolicyApiBase.delete;
+
+// ==================== 自动扩缩容 ====================
+
+/**
+ * HorizontalPodAutoscaler (HPA) API
+ */
+const horizontalPodAutoscalerApiBase = createResourceApi<HorizontalPodAutoscaler>(
+  requestClient,
+  {
+    resourceType: 'horizontalpodautoscaler',
+    resourceTypePlural: 'horizontalpodautoscalers',
+    namespaced: true,
+  },
+);
+
+export const horizontalPodAutoscalerApi = horizontalPodAutoscalerApiBase;
+export const hpaApi = horizontalPodAutoscalerApiBase; // 简短别名
+export const getHorizontalPodAutoscalerList = horizontalPodAutoscalerApiBase.list;
+export const getHPAList = horizontalPodAutoscalerApiBase.list; // 简短别名
+export const getHorizontalPodAutoscalerDetail = horizontalPodAutoscalerApiBase.detail;
+export const getHPADetail = horizontalPodAutoscalerApiBase.detail; // 简短别名
+export const createHorizontalPodAutoscaler = horizontalPodAutoscalerApiBase.create;
+export const createHPA = horizontalPodAutoscalerApiBase.create; // 简短别名
+export const updateHorizontalPodAutoscaler = horizontalPodAutoscalerApiBase.update;
+export const updateHPA = horizontalPodAutoscalerApiBase.update; // 简短别名
+export const deleteHorizontalPodAutoscaler = horizontalPodAutoscalerApiBase.delete;
+export const deleteHPA = horizontalPodAutoscalerApiBase.delete; // 简短别名
+
+// ==================== 调度与优先级 ====================
+
+/**
+ * PriorityClass API
+ */
+const priorityClassApiBase = createResourceApi<PriorityClass>(requestClient, {
+  resourceType: 'priorityclass',
+  resourceTypePlural: 'priorityclasses',
+  namespaced: false, // PriorityClass 是集群级别资源
+});
+
+export const priorityClassApi = priorityClassApiBase;
+export const getPriorityClassList = priorityClassApiBase.list;
+export const getPriorityClassDetail = priorityClassApiBase.detail;
+export const createPriorityClass = priorityClassApiBase.create;
+export const updatePriorityClass = priorityClassApiBase.update;
+export const deletePriorityClass = priorityClassApiBase.delete;
+
+// ==================== ReplicaSet ====================
+
+/**
+ * ReplicaSet API - 带扩展操作
+ */
+export const replicaSetApi = createResourceApiWithExtras<
+  ReplicaSet,
+  {
+    scale: (
+      clusterId: string,
+      namespace: string,
+      name: string,
+      params: ScaleParams,
+    ) => Promise<ReplicaSet>;
+  }
+>(
+  requestClient,
+  {
+    resourceType: 'replicaset',
+    namespaced: true,
+  },
+  {
+    /**
+     * 扩缩容 ReplicaSet
+     */
+    scale: (
+      clusterId: string,
+      namespace: string,
+      name: string,
+      params: ScaleParams,
+    ) => {
+      return requestClient.post(
+        `/k8s/clusters/${clusterId}/namespaces/${namespace}/replicasets/${name}/scale`,
+        params,
+      );
+    },
+  },
+);
+
+export const getReplicaSetList = replicaSetApi.list;
+export const getReplicaSetDetail = replicaSetApi.detail;
+export const createReplicaSet = replicaSetApi.create;
+export const updateReplicaSet = replicaSetApi.update;
+export const deleteReplicaSet = replicaSetApi.delete;
+export const scaleReplicaSet = replicaSetApi.scale;
+
+// ==================== Endpoints ====================
+
+/**
+ * Endpoints API
+ */
+const endpointsApiBase = createResourceApi<Endpoints>(requestClient, {
+  resourceType: 'endpoints',
+  resourceTypePlural: 'endpoints', // 复数形式相同
+  namespaced: true,
+});
+
+export const endpointsApi = endpointsApiBase;
+export const getEndpointsList = endpointsApiBase.list;
+export const getEndpointsDetail = endpointsApiBase.detail;
+export const createEndpoints = endpointsApiBase.create;
+export const updateEndpoints = endpointsApiBase.update;
+export const deleteEndpoints = endpointsApiBase.delete;
+
+/**
+ * EndpointSlice API
+ */
+const endpointSliceApiBase = createResourceApi<EndpointSlice>(requestClient, {
+  resourceType: 'endpointslice',
+  namespaced: true,
+});
+
+export const endpointSliceApi = endpointSliceApiBase;
+export const getEndpointSliceList = endpointSliceApiBase.list;
+export const getEndpointSliceDetail = endpointSliceApiBase.detail;
+export const createEndpointSlice = endpointSliceApiBase.create;
+export const updateEndpointSlice = endpointSliceApiBase.update;
+export const deleteEndpointSlice = endpointSliceApiBase.delete;

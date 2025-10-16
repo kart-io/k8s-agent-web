@@ -297,9 +297,6 @@ function handleAdd() {
 
         <!-- 工具栏自定义按钮 -->
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="() => gridApi.query()">
-            刷新当前页
-          </Button>
           <Button type="default" @click="() => gridApi.reload()">
             刷新并返回第一页
           </Button>

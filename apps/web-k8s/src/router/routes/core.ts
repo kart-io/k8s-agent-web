@@ -34,7 +34,7 @@ const coreRoutes: RouteRecordRaw[] = [
     },
     name: 'Root',
     path: '/',
-    redirect: '/k8s/cluster/clusters',
+    redirect: '/k8s/clusters',
     children: [],
   },
   {

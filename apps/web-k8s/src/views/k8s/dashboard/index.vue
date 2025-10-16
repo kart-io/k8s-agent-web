@@ -24,9 +24,12 @@ import {
   getMockServiceList,
 } from '#/api/k8s/mock';
 
+import ClusterHealthScore from './components/ClusterHealthScore.vue';
 import ClusterStatusCards from './components/ClusterStatusCards.vue';
+import ProblemResources from './components/ProblemResources.vue';
 import RecentEvents from './components/RecentEvents.vue';
 import ResourceHealthStatus from './components/ResourceHealthStatus.vue';
+import ResourceTrendChart from './components/ResourceTrendChart.vue';
 
 // 当前选中的集群ID
 const currentClusterId = ref('cluster-production-01');
@@ -185,6 +188,23 @@ onMounted(() => {
 
     <!-- 集群状态卡片 -->
     <ClusterStatusCards />
+
+    <!-- 集群健康度评分和问题资源 -->
+    <Row :gutter="[16, 16]" class="content-section">
+      <Col :xs="24" :lg="12">
+        <ClusterHealthScore :cluster-id="currentClusterId" />
+      </Col>
+      <Col :xs="24" :lg="12">
+        <ProblemResources :cluster-id="currentClusterId" />
+      </Col>
+    </Row>
+
+    <!-- 资源使用趋势图表 -->
+    <Row :gutter="[16, 16]" class="content-section">
+      <Col :xs="24">
+        <ResourceTrendChart :cluster-id="currentClusterId" />
+      </Col>
+    </Row>
 
     <!-- 资源健康状态和最近事件 -->
     <Row :gutter="[16, 16]" class="content-section">

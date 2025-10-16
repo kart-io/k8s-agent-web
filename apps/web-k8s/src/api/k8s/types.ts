@@ -1347,3 +1347,442 @@ export interface LimitRangeListResult {
   items: LimitRange[];
   total: number;
 }
+
+// ==================== 网络策略 ====================
+
+// NetworkPolicy
+export interface NetworkPolicyPort {
+  protocol?: 'SCTP' | 'TCP' | 'UDP';
+  port?: number | string;
+  endPort?: number;
+}
+
+export interface NetworkPolicyPeer {
+  podSelector?: {
+    matchExpressions?: Array<{
+      key: string;
+      operator: string;
+      values?: string[];
+    }>;
+    matchLabels?: Record<string, string>;
+  };
+  namespaceSelector?: {
+    matchExpressions?: Array<{
+      key: string;
+      operator: string;
+      values?: string[];
+    }>;
+    matchLabels?: Record<string, string>;
+  };
+  ipBlock?: {
+    cidr: string;
+    except?: string[];
+  };
+}
+
+export interface NetworkPolicyIngressRule {
+  from?: NetworkPolicyPeer[];
+  ports?: NetworkPolicyPort[];
+}
+
+export interface NetworkPolicyEgressRule {
+  to?: NetworkPolicyPeer[];
+  ports?: NetworkPolicyPort[];
+}
+
+export interface NetworkPolicySpec {
+  podSelector: {
+    matchExpressions?: Array<{
+      key: string;
+      operator: string;
+      values?: string[];
+    }>;
+    matchLabels?: Record<string, string>;
+  };
+  policyTypes?: ('Egress' | 'Ingress')[];
+  ingress?: NetworkPolicyIngressRule[];
+  egress?: NetworkPolicyEgressRule[];
+}
+
+export interface NetworkPolicy {
+  apiVersion: string;
+  kind: 'NetworkPolicy';
+  metadata: K8sMetadata;
+  spec: NetworkPolicySpec;
+}
+
+export interface NetworkPolicyListParams {
+  clusterId: string;
+  namespace?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface NetworkPolicyListResult {
+  apiVersion: string;
+  kind: 'NetworkPolicyList';
+  metadata: K8sListMetadata;
+  items: NetworkPolicy[];
+  total: number;
+}
+
+// ==================== 自动扩缩容 ====================
+
+// HorizontalPodAutoscaler (HPA)
+export interface MetricTarget {
+  type: 'AverageValue' | 'Utilization' | 'Value';
+  averageUtilization?: number;
+  averageValue?: string;
+  value?: string;
+}
+
+export interface ResourceMetricSource {
+  name: string;
+  target: MetricTarget;
+}
+
+export interface PodsMetricSource {
+  metric: {
+    name: string;
+    selector?: {
+      matchLabels?: Record<string, string>;
+    };
+  };
+  target: MetricTarget;
+}
+
+export interface ObjectMetricSource {
+  describedObject: {
+    apiVersion: string;
+    kind: string;
+    name: string;
+  };
+  metric: {
+    name: string;
+    selector?: {
+      matchLabels?: Record<string, string>;
+    };
+  };
+  target: MetricTarget;
+}
+
+export interface ExternalMetricSource {
+  metric: {
+    name: string;
+    selector?: {
+      matchLabels?: Record<string, string>;
+    };
+  };
+  target: MetricTarget;
+}
+
+export interface ContainerResourceMetricSource {
+  container: string;
+  name: string;
+  target: MetricTarget;
+}
+
+export interface MetricSpec {
+  type: 'ContainerResource' | 'External' | 'Object' | 'Pods' | 'Resource';
+  resource?: ResourceMetricSource;
+  pods?: PodsMetricSource;
+  object?: ObjectMetricSource;
+  external?: ExternalMetricSource;
+  containerResource?: ContainerResourceMetricSource;
+}
+
+export interface HPAScalingPolicy {
+  type: 'Percent' | 'Pods';
+  value: number;
+  periodSeconds: number;
+}
+
+export interface HPAScalingRules {
+  stabilizationWindowSeconds?: number;
+  selectPolicy?: 'Disabled' | 'Max' | 'Min';
+  policies?: HPAScalingPolicy[];
+}
+
+export interface HPABehavior {
+  scaleDown?: HPAScalingRules;
+  scaleUp?: HPAScalingRules;
+}
+
+export interface HorizontalPodAutoscalerSpec {
+  scaleTargetRef: {
+    apiVersion: string;
+    kind: string;
+    name: string;
+  };
+  minReplicas?: number;
+  maxReplicas: number;
+  metrics?: MetricSpec[];
+  behavior?: HPABehavior;
+}
+
+export interface MetricStatus {
+  type: 'ContainerResource' | 'External' | 'Object' | 'Pods' | 'Resource';
+  resource?: {
+    name: string;
+    current: MetricTarget;
+  };
+  pods?: {
+    metric: {
+      name: string;
+    };
+    current: MetricTarget;
+  };
+  object?: {
+    describedObject: {
+      apiVersion: string;
+      kind: string;
+      name: string;
+    };
+    metric: {
+      name: string;
+    };
+    current: MetricTarget;
+  };
+  external?: {
+    metric: {
+      name: string;
+    };
+    current: MetricTarget;
+  };
+  containerResource?: {
+    container: string;
+    name: string;
+    current: MetricTarget;
+  };
+}
+
+export interface HorizontalPodAutoscalerStatus {
+  currentReplicas: number;
+  desiredReplicas: number;
+  currentMetrics?: MetricStatus[];
+  conditions?: Array<{
+    type: string;
+    status: string;
+    lastTransitionTime?: string;
+    reason?: string;
+    message?: string;
+  }>;
+  observedGeneration?: number;
+  lastScaleTime?: string;
+}
+
+export interface HorizontalPodAutoscaler {
+  apiVersion: string;
+  kind: 'HorizontalPodAutoscaler';
+  metadata: K8sMetadata;
+  spec: HorizontalPodAutoscalerSpec;
+  status?: HorizontalPodAutoscalerStatus;
+}
+
+export interface HorizontalPodAutoscalerListParams {
+  clusterId: string;
+  namespace?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface HorizontalPodAutoscalerListResult {
+  apiVersion: string;
+  kind: 'HorizontalPodAutoscalerList';
+  metadata: K8sListMetadata;
+  items: HorizontalPodAutoscaler[];
+  total: number;
+}
+
+// ==================== 调度与优先级 ====================
+
+// PriorityClass
+export interface PriorityClass {
+  apiVersion: string;
+  kind: 'PriorityClass';
+  metadata: K8sMetadata;
+  value: number; // 优先级值，越高越优先
+  globalDefault?: boolean;
+  description?: string;
+  preemptionPolicy?: 'Never' | 'PreemptLowerPriority';
+}
+
+export interface PriorityClassListParams {
+  clusterId: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PriorityClassListResult {
+  apiVersion: string;
+  kind: 'PriorityClassList';
+  metadata: K8sListMetadata;
+  items: PriorityClass[];
+  total: number;
+}
+
+// ==================== ReplicaSet ====================
+
+export interface ReplicaSetSpec {
+  replicas: number;
+  selector: {
+    matchExpressions?: Array<{
+      key: string;
+      operator: string;
+      values?: string[];
+    }>;
+    matchLabels: Record<string, string>;
+  };
+  template: {
+    metadata: K8sMetadata;
+    spec: PodSpec;
+  };
+  minReadySeconds?: number;
+}
+
+export interface ReplicaSetCondition {
+  type: string;
+  status: string;
+  lastTransitionTime?: string;
+  reason?: string;
+  message?: string;
+}
+
+export interface ReplicaSetStatus {
+  replicas: number;
+  fullyLabeledReplicas?: number;
+  readyReplicas?: number;
+  availableReplicas?: number;
+  observedGeneration?: number;
+  conditions?: ReplicaSetCondition[];
+}
+
+export interface ReplicaSet {
+  apiVersion: string;
+  kind: 'ReplicaSet';
+  metadata: K8sMetadata;
+  spec: ReplicaSetSpec;
+  status?: ReplicaSetStatus;
+}
+
+export interface ReplicaSetListParams {
+  clusterId: string;
+  namespace?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ReplicaSetListResult {
+  apiVersion: string;
+  kind: 'ReplicaSetList';
+  metadata: K8sListMetadata;
+  items: ReplicaSet[];
+  total: number;
+}
+
+// ==================== Endpoints ====================
+
+export interface EndpointAddress {
+  ip: string;
+  hostname?: string;
+  nodeName?: string;
+  targetRef?: {
+    kind: string;
+    name: string;
+    namespace?: string;
+    uid?: string;
+    apiVersion?: string;
+    resourceVersion?: string;
+    fieldPath?: string;
+  };
+}
+
+export interface EndpointPort {
+  name?: string;
+  port: number;
+  protocol?: string;
+  appProtocol?: string;
+}
+
+export interface EndpointSubset {
+  addresses?: EndpointAddress[];
+  notReadyAddresses?: EndpointAddress[];
+  ports?: EndpointPort[];
+}
+
+export interface Endpoints {
+  apiVersion: string;
+  kind: 'Endpoints';
+  metadata: K8sMetadata;
+  subsets?: EndpointSubset[];
+}
+
+export interface EndpointsListParams {
+  clusterId: string;
+  namespace?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface EndpointsListResult {
+  apiVersion: string;
+  kind: 'EndpointsList';
+  metadata: K8sListMetadata;
+  items: Endpoints[];
+  total: number;
+}
+
+// EndpointSlice
+export interface EndpointSliceEndpoint {
+  addresses: string[];
+  conditions?: {
+    ready?: boolean;
+    serving?: boolean;
+    terminating?: boolean;
+  };
+  hostname?: string;
+  targetRef?: {
+    kind: string;
+    name: string;
+    namespace?: string;
+    uid?: string;
+  };
+  nodeName?: string;
+  zone?: string;
+  hints?: {
+    forZones?: Array<{
+      name: string;
+    }>;
+  };
+}
+
+export interface EndpointSlicePort {
+  name?: string;
+  port?: number;
+  protocol?: string;
+  appProtocol?: string;
+}
+
+export interface EndpointSlice {
+  apiVersion: string;
+  kind: 'EndpointSlice';
+  metadata: K8sMetadata;
+  addressType: 'FQDN' | 'IPv4' | 'IPv6';
+  endpoints: EndpointSliceEndpoint[];
+  ports?: EndpointSlicePort[];
+}
+
+export interface EndpointSliceListParams {
+  clusterId: string;
+  namespace?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface EndpointSliceListResult {
+  apiVersion: string;
+  kind: 'EndpointSliceList';
+  metadata: K8sListMetadata;
+  items: EndpointSlice[];
+  total: number;
+}

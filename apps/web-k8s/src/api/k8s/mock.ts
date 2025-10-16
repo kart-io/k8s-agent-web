@@ -17,7 +17,13 @@ import type {
   DaemonSetListResult,
   Deployment,
   DeploymentListResult,
+  Endpoints,
+  EndpointsListResult,
+  EndpointSlice,
+  EndpointSliceListResult,
   EventListResult,
+  HorizontalPodAutoscaler,
+  HorizontalPodAutoscalerListResult,
   Ingress,
   IngressListResult,
   Job,
@@ -27,6 +33,8 @@ import type {
   LimitRangeListResult,
   Namespace,
   NamespaceListResult,
+  NetworkPolicy,
+  NetworkPolicyListResult,
   Node,
   NodeListResult,
   PersistentVolume,
@@ -35,6 +43,10 @@ import type {
   PersistentVolumeListResult,
   Pod,
   PodListResult,
+  PriorityClass,
+  PriorityClassListResult,
+  ReplicaSet,
+  ReplicaSetListResult,
   ResourceQuota,
   ResourceQuotaListResult,
   Role,
@@ -3168,6 +3180,597 @@ export function getMockLimitRangeList(params: {
     kind: 'LimitRangeList',
     metadata: {},
     items: filteredLimitRanges.slice(start, end),
+    total,
+  };
+}
+
+// ==================== NetworkPolicy Mock 数据生成 ====================
+
+const NETWORK_POLICY_TYPES = ['Ingress', 'Egress'] as const;
+const NETWORK_PROTOCOLS = ['TCP', 'UDP', 'SCTP'] as const;
+
+function generateMockNetworkPolicies(count: number): NetworkPolicy[] {
+  const networkPolicies: NetworkPolicy[] = [];
+
+  for (let i = 1; i <= count; i++) {
+    const namespace = randomElement(NAMESPACES);
+    const appName = randomElement(APP_NAMES);
+    const createdDaysAgo = randomInt(1, 180);
+    const hasBothTypes = Math.random() > 0.5;
+    const policyTypes = hasBothTypes ? ['Ingress', 'Egress'] as const : [randomElement(NETWORK_POLICY_TYPES)];
+
+    // 生成 Ingress 规则
+    const ingress = policyTypes.includes('Ingress') ? [
+      {
+        from: [
+          {
+            podSelector: {
+              matchLabels: {
+                app: randomElement(APP_NAMES),
+              },
+            },
+          },
+          {
+            namespaceSelector: {
+              matchLabels: {
+                environment: randomElement(['production', 'staging']),
+              },
+            },
+          },
+        ],
+        ports: [
+          {
+            protocol: randomElement(NETWORK_PROTOCOLS),
+            port: randomInt(3000, 9000),
+          },
+        ],
+      },
+    ] : undefined;
+
+    // 生成 Egress 规则
+    const egress = policyTypes.includes('Egress') ? [
+      {
+        to: [
+          {
+            podSelector: {
+              matchLabels: {
+                app: 'database',
+              },
+            },
+          },
+        ],
+        ports: [
+          {
+            protocol: 'TCP' as const,
+            port: randomElement([3306, 5432, 6379, 27017]),
+          },
+        ],
+      },
+    ] : undefined;
+
+    networkPolicies.push({
+      apiVersion: 'networking.k8s.io/v1',
+      kind: 'NetworkPolicy',
+      metadata: {
+        name: `${appName}-network-policy-${i}`,
+        namespace,
+        uid: `np-${i.toString().padStart(6, '0')}`,
+        creationTimestamp: generateTimestamp(createdDaysAgo),
+        labels: {
+          app: appName,
+        },
+      },
+      spec: {
+        podSelector: {
+          matchLabels: {
+            app: appName,
+          },
+        },
+        policyTypes,
+        ingress,
+        egress,
+      },
+    });
+  }
+
+  return networkPolicies;
+}
+
+const MOCK_NETWORK_POLICIES: NetworkPolicy[] = generateMockNetworkPolicies(60);
+
+export function getMockNetworkPolicyList(params: {
+  clusterId: string;
+  namespace?: string;
+  page?: number;
+  pageSize?: number;
+}): NetworkPolicyListResult {
+  let filteredPolicies = [...MOCK_NETWORK_POLICIES];
+
+  // 命名空间筛选
+  if (params.namespace) {
+    filteredPolicies = filteredPolicies.filter(
+      (np) => np.metadata.namespace === params.namespace,
+    );
+  }
+
+  const total = filteredPolicies.length;
+  const page = params.page || 1;
+  const pageSize = params.pageSize || 10;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+
+  return {
+    apiVersion: 'networking.k8s.io/v1',
+    kind: 'NetworkPolicyList',
+    metadata: {},
+    items: filteredPolicies.slice(start, end),
+    total,
+  };
+}
+
+// ==================== HorizontalPodAutoscaler Mock 数据生成 ====================
+
+const METRIC_TYPES = ['Resource', 'Pods', 'Object'] as const;
+
+function generateMockHPAs(count: number): HorizontalPodAutoscaler[] {
+  const hpas: HorizontalPodAutoscaler[] = [];
+
+  for (let i = 1; i <= count; i++) {
+    const namespace = randomElement(NAMESPACES);
+    const targetKind = randomElement(['Deployment', 'StatefulSet', 'ReplicaSet']);
+    const targetName = `${randomElement(APP_NAMES)}-${targetKind.toLowerCase()}`;
+    const minReplicas = randomInt(1, 3);
+    const maxReplicas = randomInt(5, 20);
+    const currentReplicas = randomInt(minReplicas, maxReplicas);
+    const desiredReplicas = randomInt(minReplicas, maxReplicas);
+    const createdDaysAgo = randomInt(1, 180);
+
+    hpas.push({
+      apiVersion: 'autoscaling/v2',
+      kind: 'HorizontalPodAutoscaler',
+      metadata: {
+        name: `${targetName}-hpa-${i}`,
+        namespace,
+        uid: `hpa-${i.toString().padStart(6, '0')}`,
+        creationTimestamp: generateTimestamp(createdDaysAgo),
+        labels: {
+          target: targetName,
+        },
+      },
+      spec: {
+        scaleTargetRef: {
+          apiVersion: targetKind === 'Deployment' || targetKind === 'StatefulSet' ? 'apps/v1' : 'apps/v1',
+          kind: targetKind,
+          name: targetName,
+        },
+        minReplicas,
+        maxReplicas,
+        metrics: [
+          {
+            type: 'Resource',
+            resource: {
+              name: 'cpu',
+              target: {
+                type: 'Utilization',
+                averageUtilization: randomInt(50, 80),
+              },
+            },
+          },
+          {
+            type: 'Resource',
+            resource: {
+              name: 'memory',
+              target: {
+                type: 'Utilization',
+                averageUtilization: randomInt(60, 85),
+              },
+            },
+          },
+        ],
+      },
+      status: {
+        currentReplicas,
+        desiredReplicas,
+        currentMetrics: [
+          {
+            type: 'Resource',
+            resource: {
+              name: 'cpu',
+              current: {
+                type: 'Utilization',
+                averageUtilization: randomInt(30, 90),
+              },
+            },
+          },
+        ],
+        conditions: [
+          {
+            type: 'AbleToScale',
+            status: 'True',
+            lastTransitionTime: generateTimestamp(randomInt(0, 7)),
+            reason: 'ReadyForNewScale',
+            message: 'recommended size matches current size',
+          },
+        ],
+      },
+    });
+  }
+
+  return hpas;
+}
+
+const MOCK_HPAS: HorizontalPodAutoscaler[] = generateMockHPAs(80);
+
+export function getMockHPAList(params: {
+  clusterId: string;
+  namespace?: string;
+  page?: number;
+  pageSize?: number;
+}): HorizontalPodAutoscalerListResult {
+  let filteredHPAs = [...MOCK_HPAS];
+
+  // 命名空间筛选
+  if (params.namespace) {
+    filteredHPAs = filteredHPAs.filter(
+      (hpa) => hpa.metadata.namespace === params.namespace,
+    );
+  }
+
+  const total = filteredHPAs.length;
+  const page = params.page || 1;
+  const pageSize = params.pageSize || 10;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+
+  return {
+    apiVersion: 'autoscaling/v2',
+    kind: 'HorizontalPodAutoscalerList',
+    metadata: {},
+    items: filteredHPAs.slice(start, end),
+    total,
+  };
+}
+
+// ==================== PriorityClass Mock 数据生成 ====================
+
+const PRIORITY_CLASS_NAMES = [
+  'system-cluster-critical',
+  'system-node-critical',
+  'high-priority',
+  'medium-priority',
+  'low-priority',
+  'best-effort',
+];
+
+function generateMockPriorityClasses(): PriorityClass[] {
+  const priorityClasses: PriorityClass[] = [];
+
+  PRIORITY_CLASS_NAMES.forEach((name, index) => {
+    const value = name.startsWith('system') ? 2000000000 - index * 1000 : 1000000 - index * 100000;
+    const globalDefault = name === 'medium-priority';
+    const preemptionPolicy = name.includes('best-effort') ? 'Never' : 'PreemptLowerPriority';
+
+    priorityClasses.push({
+      apiVersion: 'scheduling.k8s.io/v1',
+      kind: 'PriorityClass',
+      metadata: {
+        name,
+        uid: `pc-${(index + 1).toString().padStart(6, '0')}`,
+        creationTimestamp: generateTimestamp(randomInt(30, 365)),
+      },
+      value,
+      globalDefault,
+      description: `${name} priority class`,
+      preemptionPolicy: preemptionPolicy as 'Never' | 'PreemptLowerPriority',
+    });
+  });
+
+  return priorityClasses;
+}
+
+const MOCK_PRIORITY_CLASSES: PriorityClass[] = generateMockPriorityClasses();
+
+export function getMockPriorityClassList(params: {
+  clusterId: string;
+  page?: number;
+  pageSize?: number;
+}): PriorityClassListResult {
+  const total = MOCK_PRIORITY_CLASSES.length;
+  const page = params.page || 1;
+  const pageSize = params.pageSize || 10;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+
+  return {
+    apiVersion: 'scheduling.k8s.io/v1',
+    kind: 'PriorityClassList',
+    metadata: {},
+    items: MOCK_PRIORITY_CLASSES.slice(start, end),
+    total,
+  };
+}
+
+// ==================== ReplicaSet Mock 数据生成 ====================
+
+function generateMockReplicaSets(count: number): ReplicaSet[] {
+  const replicaSets: ReplicaSet[] = [];
+
+  for (let i = 1; i <= count; i++) {
+    const appName = randomElement(APP_NAMES);
+    const namespace = randomElement(NAMESPACES);
+    const replicas = randomInt(1, 10);
+    const readyReplicas = randomInt(0, replicas);
+    const createdDaysAgo = randomInt(1, 90);
+    const image = randomElement(POD_IMAGES);
+
+    replicaSets.push({
+      apiVersion: 'apps/v1',
+      kind: 'ReplicaSet',
+      metadata: {
+        name: `${appName}-replicaset-${i}`,
+        namespace,
+        uid: `rs-${i.toString().padStart(6, '0')}`,
+        creationTimestamp: generateTimestamp(createdDaysAgo),
+        labels: {
+          app: appName,
+        },
+      },
+      spec: {
+        replicas,
+        selector: {
+          matchLabels: {
+            app: appName,
+          },
+        },
+        template: {
+          metadata: {
+            name: appName,
+            labels: {
+              app: appName,
+            },
+          },
+          spec: {
+            containers: [
+              {
+                name: appName,
+                image,
+                ports: [{ containerPort: randomInt(3000, 9000) }],
+              },
+            ],
+          },
+        },
+      },
+      status: {
+        replicas,
+        fullyLabeledReplicas: replicas,
+        readyReplicas,
+        availableReplicas: readyReplicas,
+      },
+    });
+  }
+
+  return replicaSets;
+}
+
+const MOCK_REPLICASETS: ReplicaSet[] = generateMockReplicaSets(150);
+
+export function getMockReplicaSetList(params: {
+  clusterId: string;
+  namespace?: string;
+  page?: number;
+  pageSize?: number;
+}): ReplicaSetListResult {
+  let filteredRS = [...MOCK_REPLICASETS];
+
+  // 命名空间筛选
+  if (params.namespace) {
+    filteredRS = filteredRS.filter(
+      (rs) => rs.metadata.namespace === params.namespace,
+    );
+  }
+
+  const total = filteredRS.length;
+  const page = params.page || 1;
+  const pageSize = params.pageSize || 10;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+
+  return {
+    apiVersion: 'apps/v1',
+    kind: 'ReplicaSetList',
+    metadata: {},
+    items: filteredRS.slice(start, end),
+    total,
+  };
+}
+
+// ==================== Endpoints Mock 数据生成 ====================
+
+function generateMockEndpoints(count: number): Endpoints[] {
+  const endpoints: Endpoints[] = [];
+
+  for (let i = 1; i <= count; i++) {
+    const serviceName = `${randomElement(APP_NAMES)}-service`;
+    const namespace = randomElement(NAMESPACES);
+    const createdDaysAgo = randomInt(1, 180);
+    const portCount = randomInt(1, 3);
+    const addressCount = randomInt(1, 5);
+
+    const addresses = [];
+    for (let j = 0; j < addressCount; j++) {
+      addresses.push({
+        ip: `10.244.${randomInt(0, 255)}.${randomInt(1, 254)}`,
+        nodeName: `node-${randomInt(1, 10)}`,
+        targetRef: {
+          kind: 'Pod',
+          name: `${randomElement(APP_NAMES)}-pod-${randomInt(1000, 9999)}`,
+          namespace,
+          uid: `pod-${randomInt(100000, 999999)}`,
+        },
+      });
+    }
+
+    const ports = [];
+    for (let k = 0; k < portCount; k++) {
+      ports.push({
+        name: ['http', 'https', 'grpc'][k] || `port-${k}`,
+        port: randomInt(3000, 9000),
+        protocol: randomElement(['TCP', 'UDP']),
+      });
+    }
+
+    endpoints.push({
+      apiVersion: 'v1',
+      kind: 'Endpoints',
+      metadata: {
+        name: serviceName,
+        namespace,
+        uid: `ep-${i.toString().padStart(6, '0')}`,
+        creationTimestamp: generateTimestamp(createdDaysAgo),
+      },
+      subsets: [
+        {
+          addresses,
+          ports,
+        },
+      ],
+    });
+  }
+
+  return endpoints;
+}
+
+const MOCK_ENDPOINTS: Endpoints[] = generateMockEndpoints(100);
+
+export function getMockEndpointsList(params: {
+  clusterId: string;
+  namespace?: string;
+  page?: number;
+  pageSize?: number;
+}): EndpointsListResult {
+  let filteredEP = [...MOCK_ENDPOINTS];
+
+  // 命名空间筛选
+  if (params.namespace) {
+    filteredEP = filteredEP.filter(
+      (ep) => ep.metadata.namespace === params.namespace,
+    );
+  }
+
+  const total = filteredEP.length;
+  const page = params.page || 1;
+  const pageSize = params.pageSize || 10;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+
+  return {
+    apiVersion: 'v1',
+    kind: 'EndpointsList',
+    metadata: {},
+    items: filteredEP.slice(start, end),
+    total,
+  };
+}
+
+// ==================== EndpointSlice Mock 数据生成 ====================
+
+const ADDRESS_TYPES = ['IPv4', 'IPv6', 'FQDN'] as const;
+
+function generateMockEndpointSlices(count: number): EndpointSlice[] {
+  const endpointSlices: EndpointSlice[] = [];
+
+  for (let i = 1; i <= count; i++) {
+    const serviceName = `${randomElement(APP_NAMES)}-service`;
+    const namespace = randomElement(NAMESPACES);
+    const createdDaysAgo = randomInt(1, 180);
+    const addressType = randomElement(ADDRESS_TYPES);
+    const endpointCount = randomInt(1, 5);
+    const portCount = randomInt(1, 3);
+
+    const endpoints_array = [];
+    for (let j = 0; j < endpointCount; j++) {
+      const addresses = addressType === 'IPv4'
+        ? [`10.244.${randomInt(0, 255)}.${randomInt(1, 254)}`]
+        : addressType === 'IPv6'
+        ? [`fd00::${randomInt(1, 255)}:${randomInt(1, 255)}`]
+        : [`pod-${randomInt(1, 100)}.${namespace}.svc.cluster.local`];
+
+      endpoints_array.push({
+        addresses,
+        conditions: {
+          ready: Math.random() > 0.2,
+          serving: Math.random() > 0.1,
+          terminating: Math.random() < 0.1,
+        },
+        nodeName: `node-${randomInt(1, 10)}`,
+        targetRef: {
+          kind: 'Pod',
+          name: `${randomElement(APP_NAMES)}-pod-${randomInt(1000, 9999)}`,
+          namespace,
+          uid: `pod-${randomInt(100000, 999999)}`,
+        },
+        zone: randomElement(['us-west-1a', 'us-west-1b', 'us-west-1c']),
+      });
+    }
+
+    const ports = [];
+    for (let k = 0; k < portCount; k++) {
+      ports.push({
+        name: ['http', 'https', 'grpc'][k] || `port-${k}`,
+        port: randomInt(3000, 9000),
+        protocol: randomElement(['TCP', 'UDP']),
+      });
+    }
+
+    endpointSlices.push({
+      apiVersion: 'discovery.k8s.io/v1',
+      kind: 'EndpointSlice',
+      metadata: {
+        name: `${serviceName}-${Math.random().toString(36).slice(2, 7)}`,
+        namespace,
+        uid: `eps-${i.toString().padStart(6, '0')}`,
+        creationTimestamp: generateTimestamp(createdDaysAgo),
+        labels: {
+          'kubernetes.io/service-name': serviceName,
+        },
+      },
+      addressType,
+      endpoints: endpoints_array,
+      ports,
+    });
+  }
+
+  return endpointSlices;
+}
+
+const MOCK_ENDPOINT_SLICES: EndpointSlice[] = generateMockEndpointSlices(120);
+
+export function getMockEndpointSliceList(params: {
+  clusterId: string;
+  namespace?: string;
+  page?: number;
+  pageSize?: number;
+}): EndpointSliceListResult {
+  let filteredEPS = [...MOCK_ENDPOINT_SLICES];
+
+  // 命名空间筛选
+  if (params.namespace) {
+    filteredEPS = filteredEPS.filter(
+      (eps) => eps.metadata.namespace === params.namespace,
+    );
+  }
+
+  const total = filteredEPS.length;
+  const page = params.page || 1;
+  const pageSize = params.pageSize || 10;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+
+  return {
+    apiVersion: 'discovery.k8s.io/v1',
+    kind: 'EndpointSliceList',
+    metadata: {},
+    items: filteredEPS.slice(start, end),
     total,
   };
 }

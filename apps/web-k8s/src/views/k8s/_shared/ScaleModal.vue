@@ -7,6 +7,7 @@ import { computed, ref, watch } from 'vue';
 
 import {
   Alert,
+  Badge,
   Button,
   Form,
   InputNumber,
@@ -18,17 +19,19 @@ defineOptions({
   name: 'ScaleModal',
 });
 
-const props = defineProps<Props>();
-
-const emit = defineEmits<Emits>();
-
 interface Props {
   visible: boolean;
   resourceName: string;
   resourceType: string;
-  currentReplicas: number;
+  currentReplicas?: number;
   namespace: string;
 }
+
+const props = withDefaults(defineProps<Props>(), {
+  currentReplicas: 0,
+});
+
+const emit = defineEmits<Emits>();
 
 interface Emits {
   (e: 'update:visible', value: boolean): void;
@@ -180,7 +183,7 @@ function handleDecrement() {
         </Form.Item>
 
         <div v-if="replicasDiff !== '0'" class="diff-info">
-          <a-badge
+          <Badge
             :count="replicasDiff"
             :color="diffColor === 'success' ? '#52c41a' : '#faad14'"
           />

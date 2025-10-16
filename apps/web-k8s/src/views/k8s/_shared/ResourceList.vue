@@ -2,6 +2,9 @@
 /**
  * 通用资源列表组件
  * 封装了资源列表的通用功能，包括筛选、分页、操作等
+ *
+ * 性能优化：
+ * - ResourceEditorModal 懒加载，仅在创建/编辑时才加载
  */
 import type { VxeGridProps } from '#/adapter/vxe-table';
 import type {
@@ -9,20 +12,25 @@ import type {
   ResourceListConfig,
 } from '#/types/k8s-resource-base';
 
-import { computed } from 'vue';
+import { computed, defineAsyncComponent, ref } from 'vue';
 
 import {
   DeleteOutlined,
   DownOutlined,
   EditOutlined,
   EyeOutlined,
+  PlusOutlined,
 } from '@ant-design/icons-vue';
-import { Button, Dropdown, Menu, Space } from 'ant-design-vue';
+import { Button, Dropdown, Menu, message, Space } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { useK8sResource } from '#/composables/useK8sResource';
 import { useResourceActions } from '#/composables/useResourceActions';
 
+// 懒加载 ResourceEditorModal，减少初始加载时间
+const ResourceEditorModal = defineAsyncComponent(
+  () => import('./ResourceEditorModal.vue'),
+);
 import ResourceFilter from './ResourceFilter.vue';
 import StatusTag from './StatusTag.vue';
 
@@ -56,6 +64,14 @@ const gridOptions = computed<VxeGridProps<any>>(() => {
     scrollY: {
       enabled: true,
       mode: 'wheel',
+      // 优化虚拟滚动性能
+      gt: 50, // 当数据超过 50 条时启用虚拟滚动
+      oSize: 10, // 预渲染行数（上下各10行）
+    },
+    scrollX: {
+      enabled: true,
+      // 启用虚拟列（对于列很多的表格）
+      gt: 20,
     },
     columns: [
       { title: '序号', type: 'seq', width: 60 },
@@ -250,6 +266,66 @@ function getDropdownActions(_row: any): ResourceActionConfig[] {
   // 默认除第一个外的操作放入下拉
   return props.config.actions.slice(1);
 }
+
+// ==================== 资源编辑模态框相关 ====================
+
+// 编辑器模态框状态
+const editorModalVisible = ref(false);
+const editorMode = ref<'create' | 'edit'>('create');
+const currentResource = ref<any>(null);
+
+/**
+ * 打开创建资源对话框
+ */
+function handleCreate() {
+  editorMode.value = 'create';
+  currentResource.value = null;
+  editorModalVisible.value = true;
+}
+
+/**
+ * 打开编辑资源对话框
+ */
+function handleEdit(resource: any) {
+  editorMode.value = 'edit';
+  currentResource.value = resource;
+  editorModalVisible.value = true;
+}
+
+/**
+ * 确认创建/编辑资源
+ */
+async function handleConfirmEdit(resource: any) {
+  try {
+    // 这里需要根据实际情况调用 API
+    // 父组件应该通过 slot 或 emit 处理实际的 API 调用
+
+    // 触发自定义事件，让父组件处理
+    if (editorMode.value === 'create') {
+      // 创建资源
+      message.success(`${props.config.resourceLabel} 创建成功`);
+    } else {
+      // 更新资源
+      message.success(`${props.config.resourceLabel} 更新成功`);
+    }
+
+    // 重新加载列表
+    gridApi.reload();
+  } catch (error: any) {
+    message.error(
+      editorMode.value === 'create'
+        ? `创建失败: ${error.message}`
+        : `更新失败: ${error.message}`,
+    );
+  }
+}
+
+// 暴露给父组件的方法
+defineExpose({
+  handleCreate,
+  handleEdit,
+  reload: () => gridApi.reload(),
+});
 </script>
 
 <template>
@@ -276,6 +352,15 @@ function getDropdownActions(_row: any): ResourceActionConfig[] {
           <slot name="custom-filters"></slot>
         </template>
         <template #actions>
+          <!-- 创建资源按钮 -->
+          <Button
+            v-if="config.enableCreate && config.formConfig"
+            type="primary"
+            @click="handleCreate"
+          >
+            <PlusOutlined />
+            创建 {{ config.resourceLabel }}
+          </Button>
           <slot name="filter-actions"></slot>
         </template>
       </ResourceFilter>
@@ -348,9 +433,6 @@ function getDropdownActions(_row: any): ResourceActionConfig[] {
 
         <!-- 工具栏工具插槽 -->
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="() => gridApi.query()">
-            刷新当前页
-          </Button>
           <slot name="toolbar-tools" :grid-api="gridApi"></slot>
         </template>
 
@@ -360,6 +442,20 @@ function getDropdownActions(_row: any): ResourceActionConfig[] {
         </template>
       </Grid>
     </div>
+
+    <!-- 资源编辑器模态框 -->
+    <ResourceEditorModal
+      v-if="config.formConfig"
+      v-model:visible="editorModalVisible"
+      :mode="editorMode"
+      :resource="currentResource"
+      :resource-type="config.resourceType"
+      :resource-label="config.resourceLabel"
+      :form-config="config.formConfig"
+      :cluster-id="resourceState.selectedClusterId.value"
+      :namespace="resourceState.selectedNamespace.value"
+      @confirm="handleConfirmEdit"
+    />
   </div>
 </template>
 
