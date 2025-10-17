@@ -51,7 +51,11 @@ const config = computed(() => {
       // 根据操作类型，绑定对应的处理函数
       switch (action.action) {
         case 'view':
-          return { ...action, handler: handleView };
+          // 仅当提供了 detailComponent 时才覆盖处理器
+          // 否则使用配置中原有的处理器（例如 createViewAction 创建的 Modal）
+          return props.detailComponent
+            ? { ...action, handler: handleView }
+            : action;
         case 'edit':
           return { ...action, handler: handleEdit };
         case 'scale':

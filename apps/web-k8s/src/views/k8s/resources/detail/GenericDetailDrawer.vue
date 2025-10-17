@@ -53,6 +53,11 @@ const annotations = computed(() => {
     value: value as string,
   }));
 });
+
+// 判断是否有元数据（标签或注解）
+const hasMetadata = computed(() => {
+  return labels.value.length > 0 || annotations.value.length > 0;
+});
 </script>
 
 <template>
@@ -82,13 +87,14 @@ const annotations = computed(() => {
             <code class="text-xs">{{ resource.metadata?.uid || '-' }}</code>
           </Descriptions.Item>
 
-          <Descriptions.Item label="创建时间">
+          <Descriptions.Item label="创建时间" :span="2">
             {{ formatDateTime(resource.metadata?.creationTimestamp) }}
           </Descriptions.Item>
 
           <Descriptions.Item
             v-if="resource.metadata?.deletionTimestamp"
             label="删除时间"
+            :span="2"
           >
             {{ formatDateTime(resource.metadata.deletionTimestamp) }}
           </Descriptions.Item>
@@ -125,6 +131,10 @@ const annotations = computed(() => {
               {{ resource.status.phase }}
             </Tag>
           </Descriptions.Item>
+          <!-- 资源特定的详情字段插槽 -->
+          <template v-if="$slots['resource-specific']">
+            <slot name="resource-specific" :resource="resource"></slot>
+          </template>
         </Descriptions>
 
         <!-- 自定义概览内容插槽 -->
@@ -134,29 +144,31 @@ const annotations = computed(() => {
       </TabPane>
 
       <!-- 元数据 Tab -->
-      <TabPane key="metadata" tab="元数据">
+      <TabPane v-if="hasMetadata" key="metadata" tab="元数据">
         <div class="metadata-section">
-          <h4>标签 (Labels)</h4>
-          <div v-if="labels.length > 0" class="labels-container">
-            <Tag v-for="item in labels" :key="item.key" color="blue">
-              {{ item.key }}: {{ item.value }}
-            </Tag>
+          <div v-if="labels.length > 0">
+            <h4>标签 (Labels)</h4>
+            <div class="labels-container">
+              <Tag v-for="item in labels" :key="item.key" color="blue">
+                {{ item.key }}: {{ item.value }}
+              </Tag>
+            </div>
           </div>
-          <div v-else class="empty-state">无标签</div>
 
-          <h4 class="mt-4">注解 (Annotations)</h4>
-          <div v-if="annotations.length > 0" class="annotations-container">
-            <Descriptions bordered :column="1" size="small">
-              <Descriptions.Item
-                v-for="item in annotations"
-                :key="item.key"
-                :label="item.key"
-              >
-                <code class="text-xs">{{ item.value }}</code>
-              </Descriptions.Item>
-            </Descriptions>
+          <div v-if="annotations.length > 0">
+            <h4 :class="{ 'mt-4': labels.length > 0 }">注解 (Annotations)</h4>
+            <div class="annotations-container">
+              <Descriptions bordered :column="1" size="small">
+                <Descriptions.Item
+                  v-for="item in annotations"
+                  :key="item.key"
+                  :label="item.key"
+                >
+                  <code class="text-xs">{{ item.value }}</code>
+                </Descriptions.Item>
+              </Descriptions>
+            </div>
           </div>
-          <div v-else class="empty-state">无注解</div>
         </div>
       </TabPane>
 
@@ -195,7 +207,8 @@ const annotations = computed(() => {
 .metadata-section h4 {
   margin-bottom: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.85);
+  color: var(--vben-text-color);
+  transition: color 0.3s ease;
 }
 
 .labels-container,
@@ -212,17 +225,31 @@ const annotations = computed(() => {
 .empty-state {
   padding: 24px;
   text-align: center;
-  color: rgba(0, 0, 0, 0.45);
-  background-color: #fafafa;
-  border: 1px dashed #d9d9d9;
+  color: var(--vben-text-color-secondary);
+  background-color: var(--vben-background-color);
+  border: 1px dashed var(--vben-border-color);
   border-radius: 4px;
+  transition: all 0.3s ease;
 }
 
 code {
   padding: 2px 6px;
-  background-color: #f5f5f5;
-  border: 1px solid #e8e8e8;
+  background-color: var(--vben-code-bg-color);
+  border: 1px solid var(--vben-border-color);
   border-radius: 3px;
   font-family: 'Courier New', Courier, monospace;
+  color: var(--vben-text-color);
+  transition: all 0.3s ease;
+}
+
+/* 深色主题变量 */
+html[data-theme='dark'] {
+  --vben-code-bg-color: #1f1f1f;
+}
+
+/* 浅色主题变量 */
+html[data-theme='light'],
+html:not([data-theme]) {
+  --vben-code-bg-color: #f5f5f5;
 }
 </style>

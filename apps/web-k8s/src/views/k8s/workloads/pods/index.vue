@@ -31,21 +31,17 @@ function openLogDrawer(pod: any) {
   logDrawerVisible.value = true;
 }
 
-// 修改配置工厂，添加日志操作
+// 修改配置工厂，替换日志操作的处理器
 function createPodConfigWithLogs() {
   const config = createPodConfig();
 
-  // 在 view 操作之后插入 logs 操作
-  const viewIndex = config.actions?.findIndex(a => a.action === 'view') ?? -1;
-  if (viewIndex >= 0 && config.actions) {
-    config.actions.splice(viewIndex + 1, 0, {
-      action: 'logs',
-      label: '日志',
-      handler: (pod: any) => {
-        currentClusterId.value = 'cluster-prod-01'; // TODO: 从上下文获取
-        openLogDrawer(pod);
-      },
-    });
+  // 找到现有的 logs 操作并替换其处理器
+  const logsAction = config.actions?.find(a => a.action === 'logs');
+  if (logsAction) {
+    logsAction.handler = (pod: any) => {
+      currentClusterId.value = 'cluster-prod-01'; // TODO: 从上下文获取
+      openLogDrawer(pod);
+    };
   }
 
   return config;

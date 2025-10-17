@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 /**
- * Pod 日志抽屉组件
- * 用于显示 Pod 容器的日志信息
+ * 容器日志抽屉组件
+ * 用于显示 Pod 或 Job 容器的日志信息
  */
-import type { Pod } from '#/api/k8s/types';
+import type { Job, Pod } from '#/api/k8s/types';
 
 import { computed, ref, watch } from 'vue';
 
@@ -24,7 +24,7 @@ import { getPodLogs } from '#/api/k8s/index';
 
 interface LogDrawerProps {
   visible: boolean;
-  pod: null | Pod;
+  pod: Job | null | Pod;
   clusterId: string;
 }
 
@@ -52,7 +52,13 @@ const filterKeyword = ref<string>('');
 // 可选容器列表
 const containers = computed(() => {
   if (!props.pod) return [];
-  return props.pod.spec.containers.map((c) => ({
+
+  // 支持 Pod 和 Job 两种结构
+  // Pod: spec.containers
+  // Job: spec.template.spec.containers
+  const containerList = props.pod.spec?.containers || props.pod.spec?.template?.spec?.containers || [];
+
+  return containerList.map((c) => ({
     label: c.name,
     value: c.name,
   }));
@@ -199,7 +205,7 @@ function handleClose() {
 <template>
   <Drawer
     :open="visible"
-    :title="`Pod 日志 - ${pod?.metadata.name || ''}`"
+    :title="`容器日志 - ${pod?.metadata.name || ''}`"
     width="80%"
     placement="right"
     @close="handleClose"
@@ -271,7 +277,7 @@ function handleClose() {
       </div>
     </div>
 
-    <Empty v-else description="未选择 Pod" />
+    <Empty v-else description="未选择资源" />
   </Drawer>
 </template>
 

@@ -37,21 +37,39 @@ const yamlContent = computed(() => {
 
 <style scoped>
 .yaml-viewer {
-  background-color: #f5f5f5;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  padding: 16px;
-  max-height: 600px;
-  overflow: auto;
+  padding: 12px;
+  background-color: var(--vben-background-color);
+  border: 1px solid var(--vben-border-color);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+  transition: all 0.3s ease;
 }
 
 .yaml-viewer pre {
+  max-height: 600px;
   margin: 0;
+  padding: 16px;
+  overflow: auto;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro',
     monospace;
   font-size: 13px;
   line-height: 1.6;
-  color: #333;
+  color: var(--vben-text-color);
+  background-color: var(--vben-background-color-deep);
+  border: 2px solid #808080;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+/* 深色主题 YAML 内容边框 */
+html[data-theme='dark'] .yaml-viewer pre {
+  border-color: #fff !important;
+}
+
+/* 浅色主题 YAML 内容边框 */
+html[data-theme='light'] .yaml-viewer pre,
+html:not([data-theme]) .yaml-viewer pre {
+  border-color: #808080 !important;
 }
 
 .yaml-viewer code {
@@ -62,22 +80,24 @@ const yamlContent = computed(() => {
 }
 
 /* 滚动条样式 */
-.yaml-viewer::-webkit-scrollbar {
+.yaml-viewer pre::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-.yaml-viewer::-webkit-scrollbar-track {
-  background: #f1f1f1;
+.yaml-viewer pre::-webkit-scrollbar-track {
+  background-color: var(--vben-background-color);
   border-radius: 4px;
+  transition: background-color 0.3s ease;
 }
 
-.yaml-viewer::-webkit-scrollbar-thumb {
-  background: #888;
+.yaml-viewer pre::-webkit-scrollbar-thumb {
+  background-color: var(--vben-border-color);
   border-radius: 4px;
+  transition: background-color 0.3s ease;
 }
 
-.yaml-viewer::-webkit-scrollbar-thumb:hover {
-  background: #555;
+.yaml-viewer pre::-webkit-scrollbar-thumb:hover {
+  background-color: var(--vben-text-color-secondary);
 }
 </style>
