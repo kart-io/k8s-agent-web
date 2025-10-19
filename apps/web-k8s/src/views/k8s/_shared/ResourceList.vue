@@ -27,12 +27,18 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { useK8sResource } from '#/composables/useK8sResource';
 import { useResourceActions } from '#/composables/useResourceActions';
 
+import ResourceFilter from './ResourceFilter.vue';
+import StatusTag from './StatusTag.vue';
+
+const props = withDefaults(defineProps<Props>(), {
+  actionMode: 'auto',
+  primaryActions: () => [],
+});
+
 // 懒加载 ResourceEditorModal，减少初始加载时间
 const ResourceEditorModal = defineAsyncComponent(
   () => import('./ResourceEditorModal.vue'),
 );
-import ResourceFilter from './ResourceFilter.vue';
-import StatusTag from './StatusTag.vue';
 
 interface Props {
   /** 资源列表配置 */
@@ -42,11 +48,6 @@ interface Props {
   /** 使用下拉菜单时，独立显示的主要操作（默认为第一个操作） */
   primaryActions?: string[];
 }
-
-const props = withDefaults(defineProps<Props>(), {
-  actionMode: 'auto',
-  primaryActions: () => [],
-});
 
 // 使用资源管理 composable
 const resourceState = useK8sResource({
@@ -335,6 +336,7 @@ defineExpose({
       <div class="mb-1 text-2xl font-bold">{{ config.resourceLabel }} 管理</div>
 
       <!-- 筛选器 -->
+      <!-- Force refresh: unwrap computed refs -->
       <ResourceFilter
         v-model:cluster-id="resourceState.selectedClusterId.value"
         v-model:namespace="resourceState.selectedNamespace.value"
@@ -343,8 +345,8 @@ defineExpose({
         :show-namespace-selector="resourceState.showNamespaceSelector"
         :show-search="resourceState.showSearch"
         :search-placeholder="resourceState.searchPlaceholder"
-        :cluster-options="resourceState.clusterOptions"
-        :namespace-options="resourceState.namespaceOptions"
+        :cluster-options="resourceState.clusterOptions.value"
+        :namespace-options="resourceState.namespaceOptions.value"
         @search="resourceState.handleSearch"
         @reset="resourceState.handleReset"
       >

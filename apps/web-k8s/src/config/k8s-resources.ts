@@ -7,54 +7,55 @@ import type {
   ConfigMap,
   CronJob,
   DaemonSet,
-  Deployment,
+  DeploymentListItem,
   Endpoints,
   EndpointSlice,
   HorizontalPodAutoscaler,
   Ingress,
   Job,
-  Namespace,
+  NamespaceListItem,
   NetworkPolicy,
   PersistentVolume,
   PersistentVolumeClaim,
-  Pod,
+  PodListItem,
   PriorityClass,
   ReplicaSet,
-  Secret,
-  Service,
+  Role,
+  SecretListItem,
+  ServiceListItem,
   StatefulSet,
   StorageClass,
 } from '#/api/k8s/types';
 import type {
   ResourceActionConfig,
-  ResourceColumnConfig,
   ResourceListConfig,
 } from '#/types/k8s-resource-base';
 
 import { message, Modal } from 'ant-design-vue';
 
 import {
-  getMockConfigMapList,
-  getMockCronJobList,
-  getMockDaemonSetList,
-  getMockDeploymentList,
-  getMockEndpointsList,
-  getMockEndpointSliceList,
-  getMockHPAList,
-  getMockIngressList,
-  getMockJobList,
-  getMockNamespaceList,
-  getMockNetworkPolicyList,
-  getMockPodList,
-  getMockPriorityClassList,
-  getMockPVCList,
-  getMockPVList,
-  getMockReplicaSetList,
-  getMockSecretList,
-  getMockServiceList,
-  getMockStatefulSetList,
-  getMockStorageClassList,
-} from '#/api/k8s/mock';
+  configMapApi,
+  cronJobApi,
+  daemonSetApi,
+  deploymentApi,
+  endpointsApi,
+  endpointSliceApi,
+  hpaApi,
+  ingressApi,
+  jobApi,
+  namespaceApi,
+  networkPolicyApi,
+  podApi,
+  priorityClassApi,
+  pvApi,
+  pvcApi,
+  replicaSetApi,
+  roleApi,
+  secretApi,
+  serviceApi,
+  statefulSetApi,
+  storageClassApi,
+} from '#/api/k8s';
 
 /**
  * 创建通用的查看操作
@@ -79,7 +80,9 @@ export function createViewAction(
 /**
  * 创建通用的删除操作
  */
-export function createDeleteAction(resourceLabel: string): ResourceActionConfig {
+export function createDeleteAction(
+  resourceLabel: string,
+): ResourceActionConfig {
   return {
     action: 'delete',
     label: '删除',
@@ -112,54 +115,57 @@ export function createEditAction(resourceLabel: string): ResourceActionConfig {
 /**
  * Pod 资源配置
  */
-export function createPodConfig(): ResourceListConfig<Pod> {
+export function createPodConfig(): ResourceListConfig<PodListItem> {
   return {
     resourceType: 'pod',
     resourceLabel: 'Pod',
     fetchData: async (params) => {
-      const result = getMockPodList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await podApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'Pod 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      { field: 'name', title: 'Pod 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
       {
-        field: 'status.phase',
+        field: 'status',
         title: '状态',
         width: 120,
         slots: { default: 'status-slot' },
       },
-      { field: 'status.podIP', title: 'Pod IP', width: 150 },
-      { field: 'spec.nodeName', title: '节点', width: 150 },
+      { field: 'podIP', title: 'Pod IP', width: 150 },
+      { field: 'nodeName', title: '节点', width: 150 },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
       },
     ],
     actions: [
-      createViewAction('Pod', (row: Pod) => {
+      createViewAction('Pod', (row: PodListItem) => {
         return `
-          名称: ${row.metadata.name}
-          命名空间: ${row.metadata.namespace}
-          状态: ${row.status.phase}
-          Pod IP: ${row.status.podIP}
-          节点: ${row.spec.nodeName}
-          容器数量: ${row.spec.containers.length}
-          创建时间: ${row.metadata.creationTimestamp}
+          名称: ${row.name}
+          命名空间: ${row.namespace}
+          状态: ${row.status}
+          Pod IP: ${row.podIP || '-'}
+          节点: ${row.nodeName || '-'}
+          容器数量: ${row.containerCount || 0}
+          创建时间: ${row.createdAt}
         `;
       }),
       {
         action: 'logs',
         label: '日志',
-        handler: (row: Pod) => {
-          message.info(`查看 Pod "${row.metadata.name}" 日志 (功能开发中)`);
+        handler: (row: PodListItem) => {
+          message.info(`查看 Pod "${row.name}" 日志 (功能开发中)`);
         },
       },
       createDeleteAction('Pod'),
@@ -171,7 +177,7 @@ export function createPodConfig(): ResourceListConfig<Pod> {
       searchPlaceholder: '搜索 Pod 名称',
     },
     statusConfig: {
-      field: 'status.phase',
+      field: 'status',
       statusMap: {
         Running: { color: 'success', label: 'Running' },
         Pending: { color: 'warning', label: 'Pending' },
@@ -185,63 +191,66 @@ export function createPodConfig(): ResourceListConfig<Pod> {
 /**
  * Deployment 资源配置
  */
-export function createDeploymentConfig(): ResourceListConfig<Deployment> {
+export function createDeploymentConfig(): ResourceListConfig<DeploymentListItem> {
   return {
     resourceType: 'deployment',
     resourceLabel: 'Deployment',
     fetchData: async (params) => {
-      const result = getMockDeploymentList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await deploymentApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'Deployment 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
-      { field: 'spec.replicas', title: '副本数', width: 100 },
+      { field: 'name', title: 'Deployment 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
+      { field: 'replicas', title: '副本数', width: 100 },
       {
-        field: 'status.readyReplicas',
+        field: 'readyReplicas',
         title: '就绪副本',
         width: 120,
         slots: { default: 'ready-slot' },
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
       },
     ],
     actions: [
-      createViewAction('Deployment', (row: Deployment) => {
+      createViewAction('Deployment', (row: DeploymentListItem) => {
         return `
-          名称: ${row.metadata.name}
-          命名空间: ${row.metadata.namespace}
-          副本数: ${row.spec.replicas}
-          就绪副本: ${row.status?.readyReplicas ?? 0}
-          可用副本: ${row.status?.availableReplicas ?? 0}
-          创建时间: ${row.metadata.creationTimestamp}
+          名称: ${row.name}
+          命名空间: ${row.namespace}
+          副本数: ${row.replicas}
+          就绪副本: ${row.readyReplicas ?? 0}
+          可用副本: ${row.availableReplicas ?? 0}
+          创建时间: ${row.createdAt}
         `;
       }),
       {
         action: 'scale',
         label: '扩缩容',
-        handler: (row: Deployment) => {
-          message.info(`扩缩容 Deployment "${row.metadata.name}" (功能开发中)`);
+        handler: (row: DeploymentListItem) => {
+          message.info(`扩缩容 Deployment "${row.name}" (功能开发中)`);
         },
       },
       {
         action: 'restart',
         label: '重启',
-        handler: (row: Deployment) => {
+        handler: (row: DeploymentListItem) => {
           Modal.confirm({
             title: '确认重启',
-            content: `确定要重启 Deployment "${row.metadata.name}" 吗？`,
+            content: `确定要重启 Deployment "${row.name}" 吗？`,
             onOk() {
-              message.success(`Deployment "${row.metadata.name}" 重启成功`);
+              message.success(`Deployment "${row.name}" 重启成功`);
             },
           });
         },
@@ -333,7 +342,7 @@ export function createDeploymentConfig(): ResourceListConfig<Deployment> {
               label: '容器端口',
               type: 'number',
               min: 1,
-              max: 65535,
+              max: 65_535,
               placeholder: '例如: 80',
               help: '容器暴露的端口号',
             },
@@ -408,51 +417,54 @@ export function createDeploymentConfig(): ResourceListConfig<Deployment> {
 /**
  * Service 资源配置
  */
-export function createServiceConfig(): ResourceListConfig<Service> {
+export function createServiceConfig(): ResourceListConfig<ServiceListItem> {
   return {
     resourceType: 'service',
     resourceLabel: 'Service',
     fetchData: async (params) => {
-      const result = getMockServiceList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await serviceApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'Service 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      { field: 'name', title: 'Service 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
       {
-        field: 'spec.type',
+        field: 'type',
         title: '类型',
         width: 150,
         slots: { default: 'type-slot' },
       },
-      { field: 'spec.clusterIP', title: 'Cluster IP', width: 150 },
+      { field: 'clusterIP', title: 'Cluster IP', width: 150 },
       {
-        field: 'spec.ports',
+        field: 'ports',
         title: '端口',
         width: 150,
         slots: { default: 'ports-slot' },
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
       },
     ],
     actions: [
-      createViewAction('Service', (row: Service) => {
+      createViewAction('Service', (row: ServiceListItem) => {
         return `
-          名称: ${row.metadata.name}
-          命名空间: ${row.metadata.namespace}
-          类型: ${row.spec.type}
-          Cluster IP: ${row.spec.clusterIP}
-          端口: ${row.spec.ports.map((p) => `${p.port}:${p.targetPort}`).join(', ')}
-          创建时间: ${row.metadata.creationTimestamp}
+          名称: ${row.name}
+          命名空间: ${row.namespace}
+          类型: ${row.type}
+          Cluster IP: ${row.clusterIP}
+          端口: ${row.ports.map((p) => `${p.port}:${p.targetPort}`).join(', ')}
+          创建时间: ${row.createdAt}
         `;
       }),
       createEditAction('Service'),
@@ -465,7 +477,7 @@ export function createServiceConfig(): ResourceListConfig<Service> {
       searchPlaceholder: '搜索 Service 名称',
     },
     statusConfig: {
-      field: 'spec.type',
+      field: 'type',
       statusMap: {
         ClusterIP: { color: 'blue' },
         NodePort: { color: 'green' },
@@ -535,11 +547,16 @@ export function createServiceConfig(): ResourceListConfig<Service> {
               type: 'number',
               required: true,
               min: 1,
-              max: 65535,
+              max: 65_535,
               placeholder: '例如: 80',
               rules: [
                 { required: true, message: '请输入服务端口' },
-                { type: 'number', min: 1, max: 65535, message: '端口范围 1-65535' },
+                {
+                  type: 'number',
+                  min: 1,
+                  max: 65_535,
+                  message: '端口范围 1-65535',
+                },
               ],
             },
             {
@@ -548,11 +565,16 @@ export function createServiceConfig(): ResourceListConfig<Service> {
               type: 'number',
               required: true,
               min: 1,
-              max: 65535,
+              max: 65_535,
               placeholder: '例如: 8080',
               rules: [
                 { required: true, message: '请输入目标端口' },
-                { type: 'number', min: 1, max: 65535, message: '端口范围 1-65535' },
+                {
+                  type: 'number',
+                  min: 1,
+                  max: 65_535,
+                  message: '端口范围 1-65535',
+                },
               ],
               help: '容器的端口号',
             },
@@ -628,17 +650,20 @@ export function createConfigMapConfig(): ResourceListConfig<ConfigMap> {
     resourceType: 'configmap',
     resourceLabel: 'ConfigMap',
     fetchData: async (params) => {
-      const result = getMockConfigMapList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await configMapApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'ConfigMap 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      { field: 'name', title: 'ConfigMap 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
       {
         field: 'data',
         title: '键数量',
@@ -646,7 +671,7 @@ export function createConfigMapConfig(): ResourceListConfig<ConfigMap> {
         slots: { default: 'keys-slot' },
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
@@ -656,11 +681,11 @@ export function createConfigMapConfig(): ResourceListConfig<ConfigMap> {
       createViewAction('ConfigMap', (row: ConfigMap) => {
         const dataKeys = row.data ? Object.keys(row.data) : [];
         return `
-          名称: ${row.metadata.name}
-          命名空间: ${row.metadata.namespace}
+          名称: ${row.name}
+          命名空间: ${row.namespace}
           键数量: ${dataKeys.length}
           键列表: ${dataKeys.join(', ')}
-          创建时间: ${row.metadata.creationTimestamp}
+          创建时间: ${row.createdAt}
         `;
       }),
       createEditAction('ConfigMap'),
@@ -764,13 +789,16 @@ export function createCronJobConfig(): ResourceListConfig<CronJob> {
     resourceType: 'cronjob',
     resourceLabel: 'CronJob',
     fetchData: async (params) => {
-      const result = getMockCronJobList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await cronJobApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
       { field: 'metadata.name', title: 'CronJob 名称', minWidth: 200 },
@@ -808,7 +836,7 @@ export function createCronJobConfig(): ResourceListConfig<CronJob> {
       }),
       {
         action: 'edit',
-        label: row => (row.spec.suspend ? '启用' : '暂停'),
+        label: (row) => (row.spec.suspend ? '启用' : '暂停'),
         handler: (row: CronJob) => {
           const action = row.spec.suspend ? '启用' : '暂停';
           message.info(`${action} CronJob "${row.metadata.name}" (功能开发中)`);
@@ -953,46 +981,64 @@ export function createCronJobConfig(): ResourceListConfig<CronJob> {
 /**
  * Secret 资源配置
  */
-export function createSecretConfig(): ResourceListConfig<Secret> {
+export function createSecretConfig(): ResourceListConfig<SecretListItem> {
   return {
     resourceType: 'secret',
     resourceLabel: 'Secret',
     fetchData: async (params) => {
-      const result = getMockSecretList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId || !params.namespace) {
+        return { items: [], total: 0 };
+      }
+      const result = await secretApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+
+      // 后端已经返回扁平化的 SecretInfo 数据，转换为 SecretListItem
+      const flattenedItems: SecretListItem[] = (result.items || []).map(
+        (secret: any) => ({
+          name: secret.name,
+          namespace: secret.namespace || '',
+          type: secret.type,
+          data: secret.data,
+          keysCount: secret.data ? Object.keys(secret.data).length : 0,
+          createdAt: secret.createdAt || '',
+          labels: secret.labels,
+          immutable: secret.immutable,
+        }),
+      );
+
+      return { items: flattenedItems, total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'Secret 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      { field: 'name', title: 'Secret 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
       { field: 'type', title: '类型', width: 250 },
       {
-        field: 'data',
+        field: 'keysCount',
         title: '键数量',
         width: 120,
         slots: { default: 'keys-slot' },
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
       },
     ],
     actions: [
-      createViewAction('Secret', (row: Secret) => {
+      createViewAction('Secret', (row: SecretListItem) => {
         const dataKeys = row.data ? Object.keys(row.data) : [];
         return `
-          名称: ${row.metadata.name}
-          命名空间: ${row.metadata.namespace}
+          名称: ${row.name}
+          命名空间: ${row.namespace}
           类型: ${row.type}
-          键数量: ${dataKeys.length}
+          键数量: ${row.keysCount}
           键列表: ${dataKeys.join(', ')}
-          创建时间: ${row.metadata.creationTimestamp}
+          创建时间: ${row.createdAt}
         `;
       }),
       createEditAction('Secret'),
@@ -1040,10 +1086,22 @@ export function createSecretConfig(): ResourceListConfig<Secret> {
               required: true,
               options: [
                 { label: 'Opaque（通用）', value: 'Opaque' },
-                { label: 'kubernetes.io/tls（TLS 证书）', value: 'kubernetes.io/tls' },
-                { label: 'kubernetes.io/dockerconfigjson（Docker 配置）', value: 'kubernetes.io/dockerconfigjson' },
-                { label: 'kubernetes.io/basic-auth（基本认证）', value: 'kubernetes.io/basic-auth' },
-                { label: 'kubernetes.io/ssh-auth（SSH 认证）', value: 'kubernetes.io/ssh-auth' },
+                {
+                  label: 'kubernetes.io/tls（TLS 证书）',
+                  value: 'kubernetes.io/tls',
+                },
+                {
+                  label: 'kubernetes.io/dockerconfigjson（Docker 配置）',
+                  value: 'kubernetes.io/dockerconfigjson',
+                },
+                {
+                  label: 'kubernetes.io/basic-auth（基本认证）',
+                  value: 'kubernetes.io/basic-auth',
+                },
+                {
+                  label: 'kubernetes.io/ssh-auth（SSH 认证）',
+                  value: 'kubernetes.io/ssh-auth',
+                },
               ],
               rules: [{ required: true, message: '请选择 Secret 类型' }],
             },
@@ -1106,48 +1164,45 @@ export function createSecretConfig(): ResourceListConfig<Secret> {
 /**
  * Namespace 资源配置
  */
-export function createNamespaceConfig(): ResourceListConfig<Namespace> {
+export function createNamespaceConfig(): ResourceListConfig<NamespaceListItem> {
   return {
     resourceType: 'namespace',
     resourceLabel: 'Namespace',
     fetchData: async (params) => {
-      const result = getMockNamespaceList({
-        clusterId: params.clusterId || 'cluster-prod-01',
-        page: params.page,
-        pageSize: params.pageSize,
-      });
-      return { items: result.items, total: result.total };
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await namespaceApi.list(params.clusterId);
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'Namespace 名称', minWidth: 200 },
+      { field: 'name', title: 'Namespace 名称', minWidth: 200 },
       {
-        field: 'status.phase',
+        field: 'status',
         title: '状态',
         width: 120,
         slots: { default: 'status-slot' },
       },
       {
-        field: 'metadata.labels',
+        field: 'environment',
         title: '环境',
         width: 150,
-        formatter: ({ cellValue }: any) => {
-          return cellValue?.environment || '-';
-        },
+        slots: { default: 'environment-slot' },
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
       },
     ],
     actions: [
-      createViewAction('Namespace', (row: Namespace) => {
+      createViewAction('Namespace', (row: NamespaceListItem) => {
         return `
-          名称: ${row.metadata.name}
-          状态: ${row.status.phase}
-          环境: ${row.metadata.labels?.environment || '-'}
-          创建时间: ${row.metadata.creationTimestamp}
+          名称: ${row.name}
+          状态: ${row.status}
+          环境: ${row.labels?.environment || '-'}
+          创建时间: ${row.createdAt}
         `;
       }),
       createEditAction('Namespace'),
@@ -1160,7 +1215,7 @@ export function createNamespaceConfig(): ResourceListConfig<Namespace> {
       searchPlaceholder: '搜索 Namespace 名称',
     },
     statusConfig: {
-      field: 'status.phase',
+      field: 'status',
       statusMap: {
         Active: { color: 'success', label: 'Active' },
         Terminating: { color: 'error', label: 'Terminating' },
@@ -1242,31 +1297,34 @@ export function createStatefulSetConfig(): ResourceListConfig<StatefulSet> {
     resourceType: 'statefulset',
     resourceLabel: 'StatefulSet',
     fetchData: async (params) => {
-      const result = getMockStatefulSetList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await statefulSetApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'StatefulSet 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
-      { field: 'spec.replicas', title: '副本数', width: 100 },
+      { field: 'name', title: 'StatefulSet 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
+      { field: 'replicas', title: '副本数', width: 100 },
       {
-        field: 'status.readyReplicas',
+        field: 'readyReplicas',
         title: '就绪副本',
         width: 120,
         slots: { default: 'ready-slot' },
       },
       {
-        field: 'spec.serviceName',
+        field: 'serviceName',
         title: '服务名称',
         width: 150,
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
@@ -1288,7 +1346,9 @@ export function createStatefulSetConfig(): ResourceListConfig<StatefulSet> {
         action: 'scale',
         label: '扩缩容',
         handler: (row: StatefulSet) => {
-          message.info(`扩缩容 StatefulSet "${row.metadata.name}" (功能开发中)`);
+          message.info(
+            `扩缩容 StatefulSet "${row.metadata.name}" (功能开发中)`,
+          );
         },
       },
       createEditAction('StatefulSet'),
@@ -1387,7 +1447,7 @@ export function createStatefulSetConfig(): ResourceListConfig<StatefulSet> {
               label: '容器端口',
               type: 'number',
               min: 1,
-              max: 65535,
+              max: 65_535,
               placeholder: '例如: 3306',
               help: '容器暴露的端口号',
             },
@@ -1468,35 +1528,38 @@ export function createDaemonSetConfig(): ResourceListConfig<DaemonSet> {
     resourceType: 'daemonset',
     resourceLabel: 'DaemonSet',
     fetchData: async (params) => {
-      const result = getMockDaemonSetList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await daemonSetApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'DaemonSet 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      { field: 'name', title: 'DaemonSet 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
       {
-        field: 'status.desiredNumberScheduled',
+        field: 'desiredNumberScheduled',
         title: '期望节点数',
         width: 120,
       },
       {
-        field: 'status.numberReady',
+        field: 'numberReady',
         title: '就绪节点数',
         width: 120,
         slots: { default: 'ready-slot' },
       },
       {
-        field: 'status.numberAvailable',
+        field: 'numberAvailable',
         title: '可用节点数',
         width: 120,
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
@@ -1654,13 +1717,16 @@ export function createJobConfig(): ResourceListConfig<Job> {
     resourceType: 'job',
     resourceLabel: 'Job',
     fetchData: async (params) => {
-      const result = getMockJobList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await jobApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
       { field: 'metadata.name', title: 'Job 名称', minWidth: 200 },
@@ -1871,36 +1937,39 @@ export function createPVConfig(): ResourceListConfig<PersistentVolume> {
     resourceType: 'persistentvolume',
     resourceLabel: 'PersistentVolume',
     fetchData: async (params) => {
-      const result = getMockPVList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await pvApi.list({
+        clusterId: params.clusterId,
         storageClass: params.storageClass,
         status: params.status,
         accessMode: params.accessMode,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'PV 名称', minWidth: 200 },
+      { field: 'name', title: 'PV 名称', minWidth: 200 },
       {
-        field: 'status.phase',
+        field: 'status',
         title: '状态',
         width: 120,
         slots: { default: 'status-slot' },
       },
       {
-        field: 'spec.capacity.storage',
+        field: 'capacity',
         title: '容量',
         width: 100,
       },
       {
-        field: 'spec.storageClassName',
+        field: 'storageClassName',
         title: '存储类',
         width: 150,
       },
       {
-        field: 'spec.accessModes',
+        field: 'accessModes',
         title: '访问模式',
         width: 180,
         formatter: ({ cellValue }: any) => {
@@ -1908,20 +1977,17 @@ export function createPVConfig(): ResourceListConfig<PersistentVolume> {
         },
       },
       {
-        field: 'spec.persistentVolumeReclaimPolicy',
+        field: 'reclaimPolicy',
         title: '回收策略',
         width: 120,
       },
       {
-        field: 'spec.claimRef',
+        field: 'claim',
         title: '绑定的 PVC',
         minWidth: 200,
-        formatter: ({ cellValue }: any) => {
-          return cellValue ? `${cellValue.namespace}/${cellValue.name}` : '未绑定';
-        },
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
@@ -1929,26 +1995,15 @@ export function createPVConfig(): ResourceListConfig<PersistentVolume> {
     ],
     actions: [
       createViewAction('PersistentVolume', (row: PersistentVolume) => {
-        const backendType = row.spec.nfs
-          ? 'NFS'
-          : row.spec.hostPath
-            ? 'HostPath'
-            : row.spec.csi
-              ? 'CSI'
-              : row.spec.awsElasticBlockStore
-                ? 'AWS EBS'
-                : '其他';
-
         return `
-          名称: ${row.metadata.name}
-          状态: ${row.status?.phase}
-          容量: ${row.spec.capacity.storage}
-          存储类: ${row.spec.storageClassName || '-'}
-          访问模式: ${row.spec.accessModes.join(', ')}
-          回收策略: ${row.spec.persistentVolumeReclaimPolicy}
-          存储后端: ${backendType}
-          绑定的 PVC: ${row.spec.claimRef ? `${row.spec.claimRef.namespace}/${row.spec.claimRef.name}` : '未绑定'}
-          创建时间: ${row.metadata.creationTimestamp}
+          名称: ${row.name}
+          状态: ${row.status}
+          容量: ${row.capacity}
+          存储类: ${row.storageClassName || '-'}
+          访问模式: ${row.accessModes?.join(', ') || '-'}
+          回收策略: ${row.reclaimPolicy}
+          绑定的 PVC: ${row.claim || '未绑定'}
+          创建时间: ${row.createdAt}
         `;
       }),
       createDeleteAction('PersistentVolume'),
@@ -2019,47 +2074,45 @@ export function createPVCConfig(): ResourceListConfig<PersistentVolumeClaim> {
     resourceType: 'persistentvolumeclaim',
     resourceLabel: 'PersistentVolumeClaim',
     fetchData: async (params) => {
-      const result = getMockPVCList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await pvcApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         storageClass: params.storageClass,
         status: params.status,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'PVC 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      { field: 'name', title: 'PVC 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
       {
-        field: 'status.phase',
+        field: 'status',
         title: '状态',
         width: 120,
         slots: { default: 'status-slot' },
       },
       {
-        field: 'spec.volumeName',
+        field: 'volume',
         title: '绑定的 PV',
         minWidth: 200,
       },
       {
-        field: 'spec.resources.requests.storage',
-        title: '请求容量',
+        field: 'capacity',
+        title: '容量',
         width: 120,
       },
       {
-        field: 'status.capacity.storage',
-        title: '实际容量',
-        width: 120,
-      },
-      {
-        field: 'spec.storageClassName',
+        field: 'storageClassName',
         title: '存储类',
         width: 150,
       },
       {
-        field: 'spec.accessModes',
+        field: 'accessModes',
         title: '访问模式',
         width: 180,
         formatter: ({ cellValue }: any) => {
@@ -2067,26 +2120,28 @@ export function createPVCConfig(): ResourceListConfig<PersistentVolumeClaim> {
         },
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
       },
     ],
     actions: [
-      createViewAction('PersistentVolumeClaim', (row: PersistentVolumeClaim) => {
-        return `
-          名称: ${row.metadata.name}
-          命名空间: ${row.metadata.namespace}
-          状态: ${row.status?.phase}
-          绑定的 PV: ${row.spec.volumeName || '未绑定'}
-          请求容量: ${row.spec.resources.requests.storage}
-          实际容量: ${row.status?.capacity?.storage || '-'}
-          存储类: ${row.spec.storageClassName || '-'}
-          访问模式: ${row.spec.accessModes.join(', ')}
-          创建时间: ${row.metadata.creationTimestamp}
+      createViewAction(
+        'PersistentVolumeClaim',
+        (row: PersistentVolumeClaim) => {
+          return `
+          名称: ${row.name}
+          命名空间: ${row.namespace}
+          状态: ${row.status}
+          绑定的 PV: ${row.volume || '未绑定'}
+          容量: ${row.capacity}
+          存储类: ${row.storageClassName || '-'}
+          访问模式: ${row.accessModes?.join(', ') || '-'}
+          创建时间: ${row.createdAt}
         `;
-      }),
+        },
+      ),
       createDeleteAction('PersistentVolumeClaim'),
     ],
     filters: {
@@ -2140,17 +2195,21 @@ export function createStorageClassConfig(): ResourceListConfig<StorageClass> {
     resourceType: 'storageclass',
     resourceLabel: 'StorageClass',
     fetchData: async (params) => {
-      const result = getMockStorageClassList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await storageClassApi.list({
+        clusterId: params.clusterId,
         provisioner: params.provisioner,
         reclaimPolicy: params.reclaimPolicy,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      // 后端返回扁平化的 StorageClassInfo 数据
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: '存储类名称', minWidth: 200 },
+      { field: 'name', title: '存储类名称', minWidth: 200 },
       {
         field: 'provisioner',
         title: 'Provisioner',
@@ -2183,28 +2242,27 @@ export function createStorageClassConfig(): ResourceListConfig<StorageClass> {
         },
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
       },
     ],
     actions: [
-      createViewAction('StorageClass', (row: StorageClass) => {
-        const isDefault = row.metadata.annotations?.['storageclass.kubernetes.io/is-default-class'] === 'true';
-        const paramsCount = row.parameters ? Object.keys(row.parameters).length : 0;
-        const mountOptionsCount = row.mountOptions ? row.mountOptions.length : 0;
+      createViewAction('StorageClass', (row: any) => {
+        // 后端返回扁平化数据，直接访问字段
+        const paramsCount = row.parameters
+          ? Object.keys(row.parameters).length
+          : 0;
 
         return `
-          名称: ${row.metadata.name}
+          名称: ${row.name}
           Provisioner: ${row.provisioner}
           回收策略: ${row.reclaimPolicy || 'Delete'}
           绑定模式: ${row.volumeBindingMode || 'Immediate'}
           允许扩容: ${row.allowVolumeExpansion ? '是' : '否'}
-          默认存储类: ${isDefault ? '是' : '否'}
           参数数量: ${paramsCount}
-          挂载选项数量: ${mountOptionsCount}
-          创建时间: ${row.metadata.creationTimestamp}
+          创建时间: ${row.createdAt}
         `;
       }),
     ],
@@ -2253,13 +2311,16 @@ export function createNetworkPolicyConfig(): ResourceListConfig<NetworkPolicy> {
     resourceType: 'networkpolicy',
     resourceLabel: 'NetworkPolicy',
     fetchData: async (params) => {
-      const result = getMockNetworkPolicyList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await networkPolicyApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
       { field: 'metadata.name', title: 'NetworkPolicy 名称', minWidth: 200 },
@@ -2278,7 +2339,9 @@ export function createNetworkPolicyConfig(): ResourceListConfig<NetworkPolicy> {
         minWidth: 200,
         formatter: ({ cellValue }: any) => {
           if (!cellValue) return '全部 Pod';
-          return Object.entries(cellValue).map(([k, v]) => `${k}=${v}`).join(', ');
+          return Object.entries(cellValue)
+            .map(([k, v]) => `${k}=${v}`)
+            .join(', ');
         },
       },
       {
@@ -2298,8 +2361,8 @@ export function createNetworkPolicyConfig(): ResourceListConfig<NetworkPolicy> {
           名称: ${row.metadata.name}
           命名空间: ${row.metadata.namespace}
           策略类型: ${policyTypes}
-          Ingress 规则: ${hasIngress ? row.spec.ingress!.length + ' 条' : '无'}
-          Egress 规则: ${hasEgress ? row.spec.egress!.length + ' 条' : '无'}
+          Ingress 规则: ${hasIngress ? `${row.spec.ingress!.length} 条` : '无'}
+          Egress 规则: ${hasEgress ? `${row.spec.egress!.length} 条` : '无'}
           创建时间: ${row.metadata.creationTimestamp}
         `;
       }),
@@ -2426,13 +2489,16 @@ export function createHPAConfig(): ResourceListConfig<HorizontalPodAutoscaler> {
     resourceType: 'hpa',
     resourceLabel: 'HPA',
     fetchData: async (params) => {
-      const result = getMockHPAList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await hpaApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
       { field: 'metadata.name', title: 'HPA 名称', minWidth: 200 },
@@ -2647,15 +2713,18 @@ export function createPriorityClassConfig(): ResourceListConfig<PriorityClass> {
     resourceType: 'priorityclass',
     resourceLabel: 'PriorityClass',
     fetchData: async (params) => {
-      const result = getMockPriorityClassList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await priorityClassApi.list({
+        clusterId: params.clusterId,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'PriorityClass 名称', minWidth: 200 },
+      { field: 'name', title: 'PriorityClass 名称', minWidth: 200 },
       {
         field: 'value',
         title: '优先级值',
@@ -2678,7 +2747,7 @@ export function createPriorityClassConfig(): ResourceListConfig<PriorityClass> {
         minWidth: 200,
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
@@ -2687,12 +2756,12 @@ export function createPriorityClassConfig(): ResourceListConfig<PriorityClass> {
     actions: [
       createViewAction('PriorityClass', (row: PriorityClass) => {
         return `
-          名称: ${row.metadata.name}
+          名称: ${row.name}
           优先级值: ${row.value}
           全局默认: ${row.globalDefault ? '是' : '否'}
           抢占策略: ${row.preemptionPolicy || 'PreemptLowerPriority'}
           描述: ${row.description || '-'}
-          创建时间: ${row.metadata.creationTimestamp}
+          创建时间: ${row.createdAt}
         `;
       }),
       createDeleteAction('PriorityClass'),
@@ -2757,7 +2826,10 @@ export function createPriorityClassConfig(): ResourceListConfig<PriorityClass> {
               label: '抢占策略',
               type: 'select',
               options: [
-                { label: 'PreemptLowerPriority（抢占低优先级）', value: 'PreemptLowerPriority' },
+                {
+                  label: 'PreemptLowerPriority（抢占低优先级）',
+                  value: 'PreemptLowerPriority',
+                },
                 { label: 'Never（不抢占）', value: 'Never' },
               ],
               help: '定义该优先级是否可以抢占其他 Pod',
@@ -2809,6 +2881,60 @@ export function createPriorityClassConfig(): ResourceListConfig<PriorityClass> {
 }
 
 /**
+ * Role 资源配置
+ */
+export function createRoleConfig(): ResourceListConfig<Role> {
+  return {
+    resourceType: 'role',
+    resourceLabel: 'Role',
+    fetchData: async (params) => {
+      if (!params.clusterId || !params.namespace) {
+        return { items: [], total: 0 };
+      }
+      const result = await roleApi.list({
+        clusterId: params.clusterId,
+        namespace: params.namespace,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      return { items: result.items || [], total: result.total || 0 };
+    },
+    columns: [
+      { field: 'name', title: 'Role 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
+      {
+        field: 'ruleCount',
+        title: '规则数量',
+        width: 120,
+      },
+      {
+        field: 'createdAt',
+        title: '创建时间',
+        width: 180,
+        formatter: 'formatDateTime',
+      },
+    ],
+    actions: [
+      createViewAction('Role', (row: any) => {
+        return `
+          名称: ${row.name}
+          命名空间: ${row.namespace}
+          规则数量: ${row.ruleCount}
+          创建时间: ${row.createdAt}
+        `;
+      }),
+      createDeleteAction('Role'),
+    ],
+    filters: {
+      showClusterSelector: true,
+      showNamespaceSelector: true,
+      showSearch: true,
+      searchPlaceholder: '搜索 Role 名称',
+    },
+  };
+}
+
+/**
  * ReplicaSet 资源配置
  */
 export function createReplicaSetConfig(): ResourceListConfig<ReplicaSet> {
@@ -2816,31 +2942,34 @@ export function createReplicaSetConfig(): ResourceListConfig<ReplicaSet> {
     resourceType: 'replicaset',
     resourceLabel: 'ReplicaSet',
     fetchData: async (params) => {
-      const result = getMockReplicaSetList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await replicaSetApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'ReplicaSet 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
-      { field: 'spec.replicas', title: '副本数', width: 100 },
+      { field: 'name', title: 'ReplicaSet 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
+      { field: 'replicas', title: '副本数', width: 100 },
       {
-        field: 'status.readyReplicas',
+        field: 'readyReplicas',
         title: '就绪副本',
         width: 120,
         slots: { default: 'ready-slot' },
       },
       {
-        field: 'status.availableReplicas',
+        field: 'availableReplicas',
         title: '可用副本',
         width: 120,
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
@@ -2952,7 +3081,7 @@ export function createReplicaSetConfig(): ResourceListConfig<ReplicaSet> {
               label: '容器端口',
               type: 'number',
               min: 1,
-              max: 65535,
+              max: 65_535,
               placeholder: '例如: 80',
               help: '容器暴露的端口号',
             },
@@ -3032,25 +3161,30 @@ export function createEndpointsConfig(): ResourceListConfig<Endpoints> {
     resourceType: 'endpoints',
     resourceLabel: 'Endpoints',
     fetchData: async (params) => {
-      const result = getMockEndpointsList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await endpointsApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'Endpoints 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      { field: 'name', title: 'Endpoints 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
       {
         field: 'subsets',
         title: '地址数量',
         width: 120,
         formatter: ({ cellValue }: any) => {
           if (!cellValue || cellValue.length === 0) return 0;
-          return cellValue.reduce((sum: number, subset: any) =>
-            sum + (subset.addresses?.length || 0), 0);
+          return cellValue.reduce(
+            (sum: number, subset: any) => sum + (subset.addresses?.length || 0),
+            0,
+          );
         },
       },
       {
@@ -3063,7 +3197,7 @@ export function createEndpointsConfig(): ResourceListConfig<Endpoints> {
         },
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
@@ -3071,16 +3205,19 @@ export function createEndpointsConfig(): ResourceListConfig<Endpoints> {
     ],
     actions: [
       createViewAction('Endpoints', (row: Endpoints) => {
-        const addressCount = row.subsets?.reduce((sum, subset) =>
-          sum + (subset.addresses?.length || 0), 0) || 0;
+        const addressCount =
+          row.subsets?.reduce(
+            (sum, subset) => sum + (subset.addresses?.length || 0),
+            0,
+          ) || 0;
         const portCount = row.subsets?.[0]?.ports?.length || 0;
 
         return `
-          名称: ${row.metadata.name}
-          命名空间: ${row.metadata.namespace}
+          名称: ${row.name}
+          命名空间: ${row.namespace}
           地址数量: ${addressCount}
           端口数量: ${portCount}
-          创建时间: ${row.metadata.creationTimestamp}
+          创建时间: ${row.createdAt}
         `;
       }),
       createDeleteAction('Endpoints'),
@@ -3102,40 +3239,37 @@ export function createEndpointSliceConfig(): ResourceListConfig<EndpointSlice> {
     resourceType: 'endpointslice',
     resourceLabel: 'EndpointSlice',
     fetchData: async (params) => {
-      const result = getMockEndpointSliceList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await endpointSliceApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
-      { field: 'metadata.name', title: 'EndpointSlice 名称', minWidth: 200 },
-      { field: 'metadata.namespace', title: '命名空间', width: 150 },
+      { field: 'name', title: 'EndpointSlice 名称', minWidth: 200 },
+      { field: 'namespace', title: '命名空间', width: 150 },
       {
         field: 'addressType',
         title: '地址类型',
         width: 120,
       },
       {
-        field: 'endpoints',
+        field: 'endpointCount',
         title: '端点数量',
         width: 120,
-        formatter: ({ cellValue }: any) => {
-          return cellValue?.length || 0;
-        },
       },
       {
-        field: 'ports',
+        field: 'portCount',
         title: '端口数量',
         width: 120,
-        formatter: ({ cellValue }: any) => {
-          return cellValue?.length || 0;
-        },
       },
       {
-        field: 'metadata.creationTimestamp',
+        field: 'createdAt',
         title: '创建时间',
         width: 180,
         formatter: 'formatDateTime',
@@ -3143,18 +3277,13 @@ export function createEndpointSliceConfig(): ResourceListConfig<EndpointSlice> {
     ],
     actions: [
       createViewAction('EndpointSlice', (row: EndpointSlice) => {
-        const endpointCount = row.endpoints?.length || 0;
-        const portCount = row.ports?.length || 0;
-        const readyCount = row.endpoints?.filter(ep => ep.conditions?.ready).length || 0;
-
         return `
-          名称: ${row.metadata.name}
-          命名空间: ${row.metadata.namespace}
+          名称: ${row.name}
+          命名空间: ${row.namespace}
           地址类型: ${row.addressType}
-          端点数量: ${endpointCount}
-          就绪端点: ${readyCount}
-          端口数量: ${portCount}
-          创建时间: ${row.metadata.creationTimestamp}
+          端点数量: ${row.endpointCount}
+          端口数量: ${row.portCount}
+          创建时间: ${row.createdAt}
         `;
       }),
       createDeleteAction('EndpointSlice'),
@@ -3178,14 +3307,17 @@ export function createIngressConfig(): ResourceListConfig<Ingress> {
     resourceType: 'ingress',
     resourceLabel: 'Ingress',
     fetchData: async (params) => {
-      const result = getMockIngressList({
-        clusterId: params.clusterId || 'cluster-prod-01',
+      if (!params.clusterId) {
+        return { items: [], total: 0 };
+      }
+      const result = await ingressApi.list({
+        clusterId: params.clusterId,
         namespace: params.namespace,
         ingressClass: params.ingressClass,
         page: params.page,
         pageSize: params.pageSize,
       });
-      return { items: result.items, total: result.total };
+      return { items: result.items || [], total: result.total || 0 };
     },
     columns: [
       { field: 'metadata.name', title: 'Ingress 名称', minWidth: 200 },
@@ -3222,13 +3354,23 @@ export function createIngressConfig(): ResourceListConfig<Ingress> {
     ],
     actions: [
       createViewAction('Ingress', (row: Ingress) => {
-        const hosts = row.spec.rules?.map(r => r.host).filter(Boolean).join(', ') || '-';
+        const hosts =
+          row.spec.rules
+            ?.map((r) => r.host)
+            .filter(Boolean)
+            .join(', ') || '-';
         const hasTLS = row.spec.tls && row.spec.tls.length > 0;
         const tlsHosts = hasTLS ? row.spec.tls![0].hosts.join(', ') : '-';
         const ruleCount = row.spec.rules?.length || 0;
-        const pathCount = row.spec.rules?.reduce((sum, rule) => sum + (rule.http?.paths.length || 0), 0) || 0;
-        const lbIP = row.status?.loadBalancer?.ingress?.[0]?.ip ||
-                     row.status?.loadBalancer?.ingress?.[0]?.hostname || '-';
+        const pathCount =
+          row.spec.rules?.reduce(
+            (sum, rule) => sum + (rule.http?.paths.length || 0),
+            0,
+          ) || 0;
+        const lbIP =
+          row.status?.loadBalancer?.ingress?.[0]?.ip ||
+          row.status?.loadBalancer?.ingress?.[0]?.hostname ||
+          '-';
 
         return `
           名称: ${row.metadata.name}

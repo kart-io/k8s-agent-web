@@ -28,7 +28,7 @@ import {
   Tooltip,
 } from 'ant-design-vue';
 
-import { getMockRoleBindingList } from '#/api/k8s/mock';
+import { roleBindingApi } from '#/api/k8s';
 
 // 当前选中的集群ID（暂时使用固定值）
 const currentClusterId = ref('cluster-production-01');
@@ -107,9 +107,9 @@ async function loadRoleBindings() {
       ...filters.value,
     };
 
-    const result = getMockRoleBindingList(params);
-    roleBindings.value = result.items;
-    total.value = result.total;
+    const result = await roleBindingApi.list(params);
+    roleBindings.value = result.items || [];
+    total.value = result.total || 0;
   } catch (error: any) {
     message.error(`加载 RoleBindings 失败: ${error.message}`);
   } finally {

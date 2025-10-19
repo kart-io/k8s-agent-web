@@ -17,8 +17,8 @@ import { computed, ref } from 'vue';
 import { message } from 'ant-design-vue';
 
 import ResourceList from './ResourceList.vue';
-import YAMLEditorModal from './YAMLEditorModal.vue';
 import ScaleModal from './ScaleModal.vue';
+import YAMLEditorModal from './YAMLEditorModal.vue';
 
 interface Props {
   /** 资源配置工厂函数 */
@@ -50,19 +50,23 @@ const config = computed(() => {
     baseConfig.actions = baseConfig.actions.map((action) => {
       // 根据操作类型，绑定对应的处理函数
       switch (action.action) {
-        case 'view':
+        case 'edit': {
+          return { ...action, handler: handleEdit };
+        }
+        case 'scale': {
+          return { ...action, handler: handleScale };
+        }
+        case 'view': {
           // 仅当提供了 detailComponent 时才覆盖处理器
           // 否则使用配置中原有的处理器（例如 createViewAction 创建的 Modal）
           return props.detailComponent
             ? { ...action, handler: handleView }
             : action;
-        case 'edit':
-          return { ...action, handler: handleEdit };
-        case 'scale':
-          return { ...action, handler: handleScale };
-        default:
+        }
+        default: {
           // 其他操作保持原有处理器（如 delete, restart 等）
           return action;
+        }
       }
     });
   }
@@ -104,14 +108,16 @@ function handleScale(resource: any) {
 async function handleYAMLUpdate(updatedResource: any) {
   try {
     // TODO: 调用真实 API 更新资源
+    const resourceName =
+      updatedResource.name || updatedResource.metadata?.name || '';
     // await updateResource(
     //   config.value.resourceType,
-    //   updatedResource.metadata.namespace,
-    //   updatedResource.metadata.name,
+    //   updatedResource.namespace || updatedResource.metadata?.namespace,
+    //   resourceName,
     //   updatedResource
     // );
 
-    message.success(`${config.value.resourceLabel} "${updatedResource.metadata.name}" 更新成功`);
+    message.success(`${config.value.resourceLabel} "${resourceName}" 更新成功`);
     yamlEditorVisible.value = false;
     currentResource.value = null;
 
@@ -129,16 +135,23 @@ async function handleScaleConfirm(replicas: number) {
   if (!currentResource.value) return;
 
   try {
+    const resourceName =
+      currentResource.value.name || currentResource.value.metadata?.name || '';
+    const namespace =
+      currentResource.value.namespace ||
+      currentResource.value.metadata?.namespace ||
+      '';
+
     // TODO: 调用真实 API 更新副本数
     // await scaleResource(
     //   config.value.resourceType,
-    //   currentResource.value.metadata.namespace,
-    //   currentResource.value.metadata.name,
+    //   namespace,
+    //   resourceName,
     //   replicas
     // );
 
     message.success(
-      `${config.value.resourceLabel} "${currentResource.value.metadata.name}" 副本数已更新为 ${replicas}`,
+      `${config.value.resourceLabel} "${resourceName}" 副本数已更新为 ${replicas}`,
     );
     scaleModalVisible.value = false;
     currentResource.value = null;
@@ -182,7 +195,9 @@ defineExpose({
       v-model:visible="yamlEditorVisible"
       :resource="currentResource"
       :resource-type="config.resourceType"
-      :resource-name="currentResource.metadata?.name"
+      :resource-name="
+        currentResource.name || currentResource.metadata?.name || ''
+      "
       @confirm="handleYAMLUpdate"
     />
 
@@ -190,10 +205,16 @@ defineExpose({
     <ScaleModal
       v-if="scalable && currentResource"
       v-model:visible="scaleModalVisible"
-      :resource-name="currentResource.metadata?.name"
+      :resource-name="
+        currentResource.name || currentResource.metadata?.name || ''
+      "
       :resource-type="config.resourceType"
-      :current-replicas="currentResource.spec?.replicas"
-      :namespace="currentResource.metadata?.namespace"
+      :current-replicas="
+        currentResource.replicas || currentResource.spec?.replicas
+      "
+      :namespace="
+        currentResource.namespace || currentResource.metadata?.namespace || ''
+      "
       @confirm="handleScaleConfirm"
     />
   </div>

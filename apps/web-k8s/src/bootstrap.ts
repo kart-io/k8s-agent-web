@@ -10,6 +10,7 @@ import '@vben/styles/antd';
 import { useTitle } from '@vueuse/core';
 
 import { $t, setupI18n } from '#/locales';
+import { clusterStore } from '#/stores/clusterStore';
 
 import { initComponentAdapter } from './adapter/component';
 import { initSetupVbenForm } from './adapter/form';
@@ -45,6 +46,9 @@ async function bootstrap(namespace: string) {
 
   // 配置 pinia-tore
   await initStores(app, { namespace });
+
+  // 初始化全局集群选项（在进入系统时加载）
+  await clusterStore.init();
 
   // 安装权限指令
   registerAccessDirective(app);

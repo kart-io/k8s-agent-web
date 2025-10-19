@@ -1,9 +1,8 @@
 <script lang="ts" setup>
+import type { Cluster, ClusterMetrics } from '#/api/k8s/types';
+
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-
-import { getClusterDetail, getClusterMetrics } from '#/api/k8s';
-import type { Cluster, ClusterMetrics } from '#/api/k8s/types';
 
 import {
   Card,
@@ -16,6 +15,8 @@ import {
   Statistic,
   Tag,
 } from 'ant-design-vue';
+
+import { getClusterDetail, getClusterMetrics } from '#/api/k8s';
 
 const route = useRoute();
 const loading = ref(false);
@@ -85,7 +86,7 @@ onMounted(() => {
             </Tag>
           </DescriptionsItem>
           <DescriptionsItem label="API Server">
-            {{ cluster.apiServer }}
+            {{ cluster.endpoint }}
           </DescriptionsItem>
           <DescriptionsItem label="版本">
             {{ cluster.version }}
@@ -111,7 +112,9 @@ onMounted(() => {
                 title="CPU 使用率"
                 :value="metrics.cpuUsage"
                 suffix="%"
-                :value-style="{ color: metrics.cpuUsage > 80 ? '#cf1322' : '#3f8600' }"
+                :value-style="{
+                  color: metrics.cpuUsage > 80 ? '#cf1322' : '#3f8600',
+                }"
               />
             </Card>
           </Col>
@@ -133,7 +136,9 @@ onMounted(() => {
                 title="磁盘使用率"
                 :value="metrics.diskUsage"
                 suffix="%"
-                :value-style="{ color: metrics.diskUsage > 80 ? '#cf1322' : '#3f8600' }"
+                :value-style="{
+                  color: metrics.diskUsage > 80 ? '#cf1322' : '#3f8600',
+                }"
               />
             </Card>
           </Col>

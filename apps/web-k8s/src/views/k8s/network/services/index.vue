@@ -15,14 +15,16 @@ defineOptions({ name: 'K8sServices' });
   <GenericResourcePage :config-factory="createServiceConfig">
     <!-- 自定义插槽：Service 类型显示 -->
     <template #type-slot="{ row }">
-      <Tag :color="row.spec.type === 'ClusterIP' ? 'blue' : 'green'">
-        {{ row.spec.type }}
+      <Tag :color="row.type === 'ClusterIP' ? 'blue' : 'green'">
+        {{ row.type }}
       </Tag>
     </template>
 
     <!-- 自定义插槽：端口列表显示 -->
     <template #ports-slot="{ row }">
-      <span>{{ row.spec.ports.map((p) => `${p.port}:${p.targetPort}`).join(', ') }}</span>
+      <span>{{
+        row.ports?.map((p) => `${p.port}:${p.targetPort}`).join(', ') || '-'
+      }}</span>
     </template>
   </GenericResourcePage>
 </template>

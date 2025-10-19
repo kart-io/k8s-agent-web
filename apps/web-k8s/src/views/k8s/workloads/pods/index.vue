@@ -13,10 +13,10 @@ import { Tag } from 'ant-design-vue';
 import { createPodConfig } from '#/config/k8s-resources';
 import GenericResourcePage from '#/views/k8s/resources/GenericResourcePage.vue';
 
+defineOptions({ name: 'K8sPods' });
+
 // 懒加载 LogDrawer 组件
 const LogDrawer = defineAsyncComponent(() => import('./LogDrawer.vue'));
-
-defineOptions({ name: 'K8sPods' });
 
 // 日志抽屉状态
 const logDrawerVisible = ref(false);
@@ -36,7 +36,7 @@ function createPodConfigWithLogs() {
   const config = createPodConfig();
 
   // 找到现有的 logs 操作并替换其处理器
-  const logsAction = config.actions?.find(a => a.action === 'logs');
+  const logsAction = config.actions?.find((a) => a.action === 'logs');
   if (logsAction) {
     logsAction.handler = (pod: any) => {
       currentClusterId.value = 'cluster-prod-01'; // TODO: 从上下文获取
@@ -53,8 +53,18 @@ function createPodConfigWithLogs() {
     <GenericResourcePage :config-factory="createPodConfigWithLogs">
       <!-- 自定义插槽：状态显示 -->
       <template #status-slot="{ row }">
-        <Tag :color="row.status?.phase === 'Running' ? 'success' : row.status?.phase === 'Pending' ? 'warning' : row.status?.phase === 'Failed' ? 'error' : 'default'">
-          {{ row.status?.phase || 'Unknown' }}
+        <Tag
+          :color="
+            row.status === 'Running'
+              ? 'success'
+              : row.status === 'Pending'
+                ? 'warning'
+                : row.status === 'Failed'
+                  ? 'error'
+                  : 'default'
+          "
+        >
+          {{ row.status || 'Unknown' }}
         </Tag>
       </template>
     </GenericResourcePage>

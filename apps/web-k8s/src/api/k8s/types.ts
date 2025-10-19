@@ -33,16 +33,20 @@ export interface K8sStatus {
 export interface Cluster {
   id: string;
   name: string;
-  description?: string;
-  apiServer: string;
+  description: string;
+  endpoint: string;
   version: string;
   status: 'healthy' | 'unhealthy' | 'unknown';
-  nodeCount: number;
-  podCount: number;
-  namespaceCount: number;
+  region: string;
+  provider: string;
+  labels: null | Record<string, string>;
   createdAt: string;
   updatedAt: string;
   kubeconfig?: string;
+  // Cluster statistics (returned by detail API)
+  nodeCount?: number;
+  podCount?: number;
+  namespaceCount?: number;
   resources?: {
     cpu: {
       total: number;
@@ -74,6 +78,21 @@ export interface ClusterListParams {
 export interface ClusterListResult {
   items: Cluster[];
   total: number;
+}
+
+export interface ClusterOption {
+  label: string;
+  value: string;
+}
+
+export interface CreateClusterRequest {
+  name: string;
+  description?: string;
+  endpoint: string;
+  kubeconfig: string;
+  region?: string;
+  provider?: string;
+  labels?: Record<string, string>;
 }
 
 // ==================== Pod 管理 ====================
@@ -157,6 +176,32 @@ export interface Pod {
   status: PodStatus;
 }
 
+/**
+ * Pod 列表项 - 扁平化数据结构（用于列表显示）
+ */
+export interface PodListItem {
+  /** Pod 名称 */
+  name: string;
+  /** 命名空间 */
+  namespace: string;
+  /** 状态 */
+  status: 'Failed' | 'Pending' | 'Running' | 'Succeeded' | 'Unknown';
+  /** Pod IP */
+  podIP?: string;
+  /** 节点名称 */
+  nodeName?: string;
+  /** 重启次数 */
+  restartCount?: number;
+  /** 容器数量 */
+  containerCount?: number;
+  /** 就绪容器数量 */
+  readyCount?: number;
+  /** 创建时间 */
+  createdAt: string;
+  /** 标签 */
+  labels?: Record<string, string>;
+}
+
 export interface PodListParams {
   clusterId: string;
   namespace?: string;
@@ -228,15 +273,38 @@ export interface ServiceListResult {
   total: number;
 }
 
+/**
+ * Service 列表项（扁平化结构，用于列表展示）
+ */
+export interface ServiceListItem {
+  /** Service 名称 */
+  name: string;
+  /** 命名空间 */
+  namespace: string;
+  /** 服务类型 */
+  type: 'ClusterIP' | 'ExternalName' | 'LoadBalancer' | 'NodePort';
+  /** Cluster IP */
+  clusterIP?: string;
+  /** 端口列表 */
+  ports: ServicePort[];
+  /** 创建时间 */
+  createdAt: string;
+  /** 标签 */
+  labels?: Record<string, string>;
+}
+
 // ==================== ConfigMap 管理 ====================
 
+// ConfigMap - 扁平数据结构（匹配后端返回）
 export interface ConfigMap {
-  apiVersion: string;
-  kind: 'ConfigMap';
-  metadata: K8sMetadata;
-  data?: Record<string, string>;
-  binaryData?: Record<string, string>;
-  immutable?: boolean;
+  name: string; // ConfigMap 名称
+  namespace: string; // 命名空间
+  data?: Record<string, string>; // 配置数据（键值对）
+  binaryData?: Record<string, string>; // 二进制数据（base64 编码）
+  labels?: Record<string, string>; // 标签
+  annotations?: Record<string, string>; // 注解
+  immutable?: boolean; // 是否不可变
+  createdAt: string; // 创建时间
 }
 
 export interface ConfigMapListParams {
@@ -364,6 +432,28 @@ export interface Deployment {
   status?: DeploymentStatus;
 }
 
+/**
+ * Deployment 列表项 - 扁平化数据结构（用于列表显示）
+ */
+export interface DeploymentListItem {
+  /** Deployment 名称 */
+  name: string;
+  /** 命名空间 */
+  namespace: string;
+  /** 副本数 */
+  replicas: number;
+  /** 就绪副本数 */
+  readyReplicas?: number;
+  /** 可用副本数 */
+  availableReplicas?: number;
+  /** 更新的副本数 */
+  updatedReplicas?: number;
+  /** 创建时间 */
+  createdAt: string;
+  /** 标签 */
+  labels?: Record<string, string>;
+}
+
 export interface DeploymentListParams {
   clusterId: string;
   namespace?: string;
@@ -391,6 +481,29 @@ export interface Namespace {
   };
   status?: {
     phase: 'Active' | 'Terminating';
+  };
+}
+
+/**
+ * Namespace 列表项 - 扁平化数据结构（用于列表显示）
+ */
+export interface NamespaceListItem {
+  /** 命名空间名称 */
+  name: string;
+  /** 状态 */
+  status: 'Active' | 'Terminating';
+  /** 标签 */
+  labels?: Record<string, string>;
+  /** 注解 */
+  annotations?: Record<string, string>;
+  /** 创建时间 */
+  createdAt: string;
+  /** Pod 数量 */
+  podCount?: number;
+  /** 资源配额 */
+  resourceQuota?: {
+    hard?: Record<string, string>;
+    used?: Record<string, string>;
   };
 }
 
@@ -436,15 +549,57 @@ export interface NodeStatus {
   };
 }
 
+export interface NodeSpec {
+  podCIDR?: string;
+  podCIDRs?: string[];
+  providerID?: string;
+  unschedulable?: boolean;
+  taints?: Array<{
+    effect: 'NoExecute' | 'NoSchedule' | 'PreferNoSchedule';
+    key: string;
+    timeAdded?: string;
+    value?: string;
+  }>;
+}
+
+// 简化的 Node 列表项（后端返回的扁平化结构）
+export interface NodeListItem {
+  name: string;
+  status: string;
+  roles: string[];
+  version: string;
+  internalIP: string;
+  externalIP: string;
+  osImage: string;
+  kernelVersion: string;
+  containerRuntime: string;
+  capacity: Record<string, string>;
+  allocatable: Record<string, string>;
+  conditions: Array<{
+    message: string;
+    reason: string;
+    status: string;
+    type: string;
+  }>;
+  labels: Record<string, string>;
+  annotations: Record<string, string>;
+  taints: Array<{
+    effect: string;
+    key: string;
+    value?: string;
+  }>;
+  createdAt: string;
+  // 可选的使用率字段（如果后端计算）
+  cpuUsagePercent?: number;
+  memoryUsagePercent?: number;
+}
+
+// 标准 K8s Node 对象（用于详情等场景）
 export interface Node {
   apiVersion: string;
   kind: 'Node';
   metadata: K8sMetadata;
-  spec?: {
-    podCIDR?: string;
-    podCIDRs?: string[];
-    taints?: any[];
-  };
+  spec?: NodeSpec;
   status?: NodeStatus;
 }
 
@@ -455,11 +610,10 @@ export interface NodeListParams {
 }
 
 export interface NodeListResult {
-  apiVersion: string;
-  kind: 'NodeList';
-  metadata: K8sListMetadata;
-  items: Node[];
+  items: NodeListItem[];
   total: number;
+  page?: number;
+  pageSize?: number;
 }
 
 // Secret
@@ -470,6 +624,28 @@ export interface Secret {
   type: string;
   data?: Record<string, string>;
   stringData?: Record<string, string>;
+  immutable?: boolean;
+}
+
+/**
+ * Secret 列表项（扁平化结构，用于列表显示）
+ */
+export interface SecretListItem {
+  /** Secret 名称 */
+  name: string;
+  /** 命名空间 */
+  namespace: string;
+  /** Secret 类型 */
+  type: string;
+  /** 数据键值对 */
+  data?: Record<string, string>;
+  /** 键数量 */
+  keysCount: number;
+  /** 创建时间 */
+  createdAt: string;
+  /** 标签 */
+  labels?: Record<string, string>;
+  /** 是否不可变 */
   immutable?: boolean;
 }
 
@@ -763,12 +939,17 @@ export interface PersistentVolumeStatus {
   lastPhaseTransitionTime?: string;
 }
 
+// PersistentVolume - 扁平数据结构（匹配后端返回）
 export interface PersistentVolume {
-  apiVersion: string;
-  kind: 'PersistentVolume';
-  metadata: K8sMetadata;
-  spec: PersistentVolumeSpec;
-  status?: PersistentVolumeStatus;
+  name: string; // PV 名称
+  status: string; // 状态：Bound | Available | Released | Failed
+  claim: string; // 绑定的 PVC（格式：namespace/name）
+  capacity: string; // 容量（如 "5Gi"）
+  accessModes: string[]; // 访问模式
+  storageClassName: string; // 存储类名称
+  reclaimPolicy: string; // 回收策略：Delete | Retain | Recycle
+  labels?: Record<string, string>; // 标签
+  createdAt: string; // 创建时间
 }
 
 export interface PersistentVolumeListParams {
@@ -850,12 +1031,17 @@ export interface PersistentVolumeClaimStatus {
   resizeStatus?: string;
 }
 
+// PersistentVolumeClaim - 扁平数据结构（匹配后端返回）
 export interface PersistentVolumeClaim {
-  apiVersion: string;
-  kind: 'PersistentVolumeClaim';
-  metadata: K8sMetadata;
-  spec: PersistentVolumeClaimSpec;
-  status?: PersistentVolumeClaimStatus;
+  name: string; // PVC 名称
+  namespace: string; // 命名空间
+  status: string; // 状态：Bound | Pending | Lost
+  volume: string; // 绑定的 PV 名称
+  capacity: string; // 容量（如 "2Gi"）
+  accessModes: string[]; // 访问模式
+  storageClassName: string; // 存储类名称
+  labels?: Record<string, string>; // 标签
+  createdAt: string; // 创建时间
 }
 
 export interface PersistentVolumeClaimListParams {
@@ -1091,7 +1277,8 @@ export interface EventListParams {
   namespace?: string;
   involvedObjectKind?: string;
   involvedObjectName?: string;
-  type?: '' | 'Normal' | 'Warning';
+  type?: '' | 'Error' | 'Normal' | 'Warning';
+  reason?: string;
   page?: number;
   pageSize?: number;
 }
@@ -1523,16 +1710,17 @@ export interface HorizontalPodAutoscalerSpec {
 export interface MetricStatus {
   type: 'ContainerResource' | 'External' | 'Object' | 'Pods' | 'Resource';
   resource?: {
-    name: string;
     current: MetricTarget;
+    name: string;
   };
   pods?: {
+    current: MetricTarget;
     metric: {
       name: string;
     };
-    current: MetricTarget;
   };
   object?: {
+    current: MetricTarget;
     describedObject: {
       apiVersion: string;
       kind: string;
@@ -1541,18 +1729,17 @@ export interface MetricStatus {
     metric: {
       name: string;
     };
-    current: MetricTarget;
   };
   external?: {
+    current: MetricTarget;
     metric: {
       name: string;
     };
-    current: MetricTarget;
   };
   containerResource?: {
     container: string;
-    name: string;
     current: MetricTarget;
+    name: string;
   };
 }
 
@@ -1561,11 +1748,11 @@ export interface HorizontalPodAutoscalerStatus {
   desiredReplicas: number;
   currentMetrics?: MetricStatus[];
   conditions?: Array<{
-    type: string;
-    status: string;
     lastTransitionTime?: string;
-    reason?: string;
     message?: string;
+    reason?: string;
+    status: string;
+    type: string;
   }>;
   observedGeneration?: number;
   lastScaleTime?: string;
@@ -1596,15 +1783,15 @@ export interface HorizontalPodAutoscalerListResult {
 
 // ==================== 调度与优先级 ====================
 
-// PriorityClass
+// PriorityClass - 扁平数据结构（匹配后端返回）
 export interface PriorityClass {
-  apiVersion: string;
-  kind: 'PriorityClass';
-  metadata: K8sMetadata;
+  name: string; // PriorityClass 名称
   value: number; // 优先级值，越高越优先
-  globalDefault?: boolean;
-  description?: string;
-  preemptionPolicy?: 'Never' | 'PreemptLowerPriority';
+  globalDefault: boolean; // 是否为全局默认
+  preemptionPolicy?: string; // 抢占策略：Never | PreemptLowerPriority
+  description?: string; // 描述信息
+  labels?: Record<string, string>; // 标签
+  createdAt: string; // 创建时间
 }
 
 export interface PriorityClassListParams {
@@ -1687,13 +1874,13 @@ export interface EndpointAddress {
   hostname?: string;
   nodeName?: string;
   targetRef?: {
+    apiVersion?: string;
+    fieldPath?: string;
     kind: string;
     name: string;
     namespace?: string;
-    uid?: string;
-    apiVersion?: string;
     resourceVersion?: string;
-    fieldPath?: string;
+    uid?: string;
   };
 }
 
@@ -1732,44 +1919,15 @@ export interface EndpointsListResult {
   total: number;
 }
 
-// EndpointSlice
-export interface EndpointSliceEndpoint {
-  addresses: string[];
-  conditions?: {
-    ready?: boolean;
-    serving?: boolean;
-    terminating?: boolean;
-  };
-  hostname?: string;
-  targetRef?: {
-    kind: string;
-    name: string;
-    namespace?: string;
-    uid?: string;
-  };
-  nodeName?: string;
-  zone?: string;
-  hints?: {
-    forZones?: Array<{
-      name: string;
-    }>;
-  };
-}
-
-export interface EndpointSlicePort {
-  name?: string;
-  port?: number;
-  protocol?: string;
-  appProtocol?: string;
-}
-
+// EndpointSlice - 扁平数据结构（匹配后端返回）
 export interface EndpointSlice {
-  apiVersion: string;
-  kind: 'EndpointSlice';
-  metadata: K8sMetadata;
-  addressType: 'FQDN' | 'IPv4' | 'IPv6';
-  endpoints: EndpointSliceEndpoint[];
-  ports?: EndpointSlicePort[];
+  name: string; // EndpointSlice 名称
+  namespace: string; // 命名空间
+  addressType: string; // 地址类型：IPv4 | IPv6 | FQDN
+  endpointCount: number; // 端点数量
+  portCount: number; // 端口数量
+  labels?: Record<string, string>; // 标签
+  createdAt: string; // 创建时间
 }
 
 export interface EndpointSliceListParams {

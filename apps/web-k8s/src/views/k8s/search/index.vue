@@ -6,6 +6,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+import { RightOutlined, SearchOutlined } from '@ant-design/icons-vue';
 import {
   Button,
   Card,
@@ -19,17 +20,16 @@ import {
   Spin,
   Tag,
 } from 'ant-design-vue';
-import { RightOutlined, SearchOutlined } from '@ant-design/icons-vue';
 
 import {
-  getMockConfigMapList,
-  getMockDeploymentList,
-  getMockNamespaceList,
-  getMockNodeList,
-  getMockPodList,
-  getMockSecretList,
-  getMockServiceList,
-} from '#/api/k8s/mock';
+  configMapApi,
+  deploymentApi,
+  namespaceApi,
+  nodeApi,
+  podApi,
+  secretApi,
+  serviceApi,
+} from '#/api/k8s';
 
 const route = useRoute();
 const router = useRouter();
@@ -76,16 +76,29 @@ async function performSearch(keyword: string) {
     const results: SearchResult[] = [];
 
     // 并行搜索所有资源类型
-    const [pods, deployments, services, nodes, namespaces, configmaps, secrets] =
-      await Promise.all([
-        Promise.resolve(getMockPodList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockDeploymentList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockServiceList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockNodeList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockNamespaceList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockConfigMapList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockSecretList({ clusterId, pageSize: 100 })),
-      ]);
+    const [
+      pods,
+      deployments,
+      services,
+      nodes,
+      namespaces,
+      configmaps,
+      secrets,
+    ] = await Promise.all([
+      podApi.list({ clusterId, pageSize: 100 }).catch(() => ({ items: [] })),
+      deploymentApi
+        .list({ clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      serviceApi
+        .list({ clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      nodeApi.list(clusterId).catch(() => ({ items: [] })),
+      namespaceApi.list(clusterId).catch(() => ({ items: [] })),
+      configMapApi
+        .list({ clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      secretApi.list({ clusterId, pageSize: 100 }).catch(() => ({ items: [] })),
+    ]);
 
     const lowerKeyword = keyword.toLowerCase();
 
@@ -98,7 +111,13 @@ async function performSearch(keyword: string) {
       lowerKeyword,
       results,
     );
-    searchInResources(services.items, 'Service', '/k8s/services', lowerKeyword, results);
+    searchInResources(
+      services.items,
+      'Service',
+      '/k8s/services',
+      lowerKeyword,
+      results,
+    );
     searchInResources(nodes.items, 'Node', '/k8s/nodes', lowerKeyword, results);
     searchInResources(
       namespaces.items,
@@ -114,7 +133,13 @@ async function performSearch(keyword: string) {
       lowerKeyword,
       results,
     );
-    searchInResources(secrets.items, 'Secret', '/k8s/secrets', lowerKeyword, results);
+    searchInResources(
+      secrets.items,
+      'Secret',
+      '/k8s/secrets',
+      lowerKeyword,
+      results,
+    );
 
     searchResults.value = results;
 
@@ -210,22 +235,30 @@ function matchResource(
  */
 function getResourceDescription(resource: any, type: string): string {
   switch (type) {
-    case 'Pod':
-      return `状态: ${resource.status || 'Unknown'}`;
-    case 'Deployment':
-      return `副本: ${resource.spec?.replicas || 0}`;
-    case 'Service':
-      return `类型: ${resource.spec?.type || 'ClusterIP'}`;
-    case 'Node':
-      return `状态: ${resource.status || 'Unknown'}`;
-    case 'Namespace':
-      return `状态: ${resource.status?.phase || 'Active'}`;
-    case 'ConfigMap':
+    case 'ConfigMap': {
       return `键数量: ${resource.data ? Object.keys(resource.data).length : 0}`;
-    case 'Secret':
+    }
+    case 'Deployment': {
+      return `副本: ${resource.spec?.replicas || 0}`;
+    }
+    case 'Namespace': {
+      return `状态: ${resource.status?.phase || 'Active'}`;
+    }
+    case 'Node': {
+      return `状态: ${resource.status || 'Unknown'}`;
+    }
+    case 'Pod': {
+      return `状态: ${resource.status || 'Unknown'}`;
+    }
+    case 'Secret': {
       return `类型: ${resource.type || 'Opaque'}`;
-    default:
+    }
+    case 'Service': {
+      return `类型: ${resource.spec?.type || 'ClusterIP'}`;
+    }
+    default: {
       return '';
+    }
   }
 }
 
@@ -234,7 +267,9 @@ function getResourceDescription(resource: any, type: string): string {
  */
 function updateTypeCounts() {
   resourceTypes.forEach((type) => {
-    type.count = searchResults.value.filter((r) => r.type === type.value).length;
+    type.count = searchResults.value.filter(
+      (r) => r.type === type.value,
+    ).length;
   });
 }
 
@@ -245,7 +280,9 @@ const filteredResults = computed(() => {
   if (selectedTypes.value.length === 0) {
     return searchResults.value;
   }
-  return searchResults.value.filter((r) => selectedTypes.value.includes(r.type));
+  return searchResults.value.filter((r) =>
+    selectedTypes.value.includes(r.type),
+  );
 });
 
 /**
@@ -338,9 +375,15 @@ onMounted(() => {
         <Card title="资源类型" size="small" :bordered="false">
           <Checkbox.Group v-model:value="selectedTypes" style="width: 100%">
             <Space direction="vertical" style="width: 100%">
-              <Checkbox v-for="type in resourceTypes" :key="type.value" :value="type.value">
+              <Checkbox
+                v-for="type in resourceTypes"
+                :key="type.value"
+                :value="type.value"
+              >
                 <span class="type-label">{{ type.label }}</span>
-                <Tag size="small" style="margin-left: 8px">{{ type.count }}</Tag>
+                <Tag size="small" style="margin-left: 8px">
+                  {{ type.count }}
+                </Tag>
               </Checkbox>
             </Space>
           </Checkbox.Group>
@@ -372,14 +415,19 @@ onMounted(() => {
 
                       <div v-if="item.namespace" class="result-namespace">
                         <span class="namespace-label">命名空间:</span>
-                        <code class="namespace-value">{{ item.namespace }}</code>
+                        <code class="namespace-value">{{
+                          item.namespace
+                        }}</code>
                       </div>
 
                       <div v-if="item.description" class="result-description">
                         {{ item.description }}
                       </div>
 
-                      <div v-if="item.matchedFields.length > 0" class="matched-fields">
+                      <div
+                        v-if="item.matchedFields.length > 0"
+                        class="matched-fields"
+                      >
                         <span class="matched-label">匹配字段:</span>
                         <Tag
                           v-for="(field, idx) in item.matchedFields"
@@ -393,7 +441,11 @@ onMounted(() => {
                     </div>
 
                     <template #actions>
-                      <Button type="link" size="small" @click="navigateToResource(item)">
+                      <Button
+                        type="link"
+                        size="small"
+                        @click="navigateToResource(item)"
+                      >
                         查看 <RightOutlined />
                       </Button>
                     </template>
@@ -416,10 +468,10 @@ onMounted(() => {
 
 <style scoped>
 .search-results-page {
-  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 16px;
 }
 
 .search-card {
@@ -468,18 +520,18 @@ html[data-theme='dark'] .result-item:hover {
 
 .result-header {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .result-name {
+  padding: 2px 6px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 14px;
   font-weight: 500;
   color: var(--vben-text-color);
-  padding: 2px 6px;
-  border-radius: 3px;
   background-color: rgb(0 0 0 / 4%);
+  border-radius: 3px;
 }
 
 html[data-theme='dark'] .result-name {
@@ -488,8 +540,8 @@ html[data-theme='dark'] .result-name {
 
 .result-namespace {
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
 }
 
 .namespace-label {
@@ -498,12 +550,12 @@ html[data-theme='dark'] .result-name {
 }
 
 .namespace-value {
+  padding: 1px 4px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 12px;
   color: var(--vben-text-color-secondary);
-  padding: 1px 4px;
-  border-radius: 2px;
   background-color: rgb(0 0 0 / 3%);
+  border-radius: 2px;
 }
 
 html[data-theme='dark'] .namespace-value {
@@ -517,9 +569,9 @@ html[data-theme='dark'] .namespace-value {
 
 .matched-fields {
   display: flex;
-  align-items: center;
-  gap: 6px;
   flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
 }
 
 .matched-label {

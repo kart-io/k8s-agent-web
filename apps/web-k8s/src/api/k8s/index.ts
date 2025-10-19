@@ -8,6 +8,7 @@ import type {
   ClusterListParams,
   ClusterListResult,
   ClusterMetrics,
+  ClusterOption,
   ConfigMap,
   CronJob,
   DaemonSet,
@@ -32,6 +33,8 @@ import type {
 } from './types';
 
 import { requestClient } from '../request';
+import { createMockableApi } from './mock-adapter';
+import { createMockableResourceApi } from './mock-resource-factory';
 import {
   createResourceApi,
   createResourceApiWithExtras,
@@ -42,37 +45,43 @@ import {
 /**
  * Pod API
  */
-const podApiBase = createResourceApi<Pod>(requestClient, {
-  resourceType: 'pod',
-  namespaced: true,
-});
+const podApiBase = createMockableResourceApi(
+  createResourceApi<Pod>(requestClient, {
+    resourceType: 'pod',
+    namespaced: true,
+  }),
+  'pod',
+);
 
 export const podApi = {
   ...podApiBase,
 
   /**
    * 获取 Pod 日志
+   * 支持 mock 模式切换（通过环境变量 VITE_USE_K8S_MOCK 控制）
    */
-  logs: async (params: PodLogsParams): Promise<string> => {
-    const { clusterId, namespace, name, ...queryParams } = params;
-
-    // 导入并使用 mock 数据
-    const { getMockPodLogs } = await import('./mock');
-    return getMockPodLogs({
-      clusterId,
-      namespace,
-      name,
-      container: queryParams.container,
-      timestamps: queryParams.timestamps,
-      tailLines: queryParams.tailLines,
-    });
-
-    // 实际 API 调用（当后端准备好时使用）
-    // return requestClient.get(
-    //   `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}/logs`,
-    //   { params: queryParams },
-    // );
-  },
+  logs: createMockableApi(
+    // 真实 API
+    async (params: PodLogsParams): Promise<string> => {
+      const { clusterId, namespace, name, ...queryParams } = params;
+      return requestClient.get(
+        `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}/logs`,
+        { params: queryParams },
+      );
+    },
+    // Mock API
+    async (params: PodLogsParams): Promise<string> => {
+      const { getMockPodLogs } = await import('./mock');
+      return getMockPodLogs({
+        clusterId: params.clusterId,
+        namespace: params.namespace,
+        name: params.name,
+        container: params.container,
+        timestamps: params.timestamps,
+        tailLines: params.tailLines,
+      });
+    },
+  ),
 
   /**
    * 执行 Pod 命令
@@ -98,10 +107,13 @@ export const execPod = podApi.exec;
 /**
  * Service API
  */
-const serviceApiBase = createResourceApi<Service>(requestClient, {
-  resourceType: 'service',
-  namespaced: true,
-});
+const serviceApiBase = createMockableResourceApi(
+  createResourceApi<Service>(requestClient, {
+    resourceType: 'service',
+    namespaced: true,
+  }),
+  'service',
+);
 
 export const serviceApi = serviceApiBase;
 export const getServiceList = serviceApiBase.list;
@@ -113,10 +125,13 @@ export const deleteService = serviceApiBase.delete;
 /**
  * ConfigMap API
  */
-const configMapApiBase = createResourceApi<ConfigMap>(requestClient, {
-  resourceType: 'configmap',
-  namespaced: true,
-});
+const configMapApiBase = createMockableResourceApi(
+  createResourceApi<ConfigMap>(requestClient, {
+    resourceType: 'configmap',
+    namespaced: true,
+  }),
+  'configmap',
+);
 
 export const configMapApi = configMapApiBase;
 export const getConfigMapList = configMapApiBase.list;
@@ -128,10 +143,13 @@ export const deleteConfigMap = configMapApiBase.delete;
 /**
  * Secret API
  */
-const secretApiBase = createResourceApi<Secret>(requestClient, {
-  resourceType: 'secret',
-  namespaced: true,
-});
+const secretApiBase = createMockableResourceApi(
+  createResourceApi<Secret>(requestClient, {
+    resourceType: 'secret',
+    namespaced: true,
+  }),
+  'secret',
+);
 
 export const secretApi = secretApiBase;
 export const getSecretList = secretApiBase.list;
@@ -143,56 +161,59 @@ export const deleteSecret = secretApiBase.delete;
 /**
  * Deployment API - 带扩展操作
  */
-export const deploymentApi = createResourceApiWithExtras<
-  Deployment,
-  {
-    restart: (
-      clusterId: string,
-      namespace: string,
-      name: string,
-    ) => Promise<Deployment>;
-    scale: (
-      clusterId: string,
-      namespace: string,
-      name: string,
-      params: ScaleParams,
-    ) => Promise<Deployment>;
-  }
->(
-  requestClient,
-  {
-    resourceType: 'deployment',
-    namespaced: true,
-  },
-  {
-    /**
-     * 扩缩容 Deployment
-     */
-    scale: (
-      clusterId: string,
-      namespace: string,
-      name: string,
-      params: ScaleParams,
-    ) => {
-      return requestClient.post(
-        `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/scale`,
-        params,
-      );
+export const deploymentApi = createMockableResourceApi(
+  createResourceApiWithExtras<
+    Deployment,
+    {
+      restart: (
+        clusterId: string,
+        namespace: string,
+        name: string,
+      ) => Promise<Deployment>;
+      scale: (
+        clusterId: string,
+        namespace: string,
+        name: string,
+        params: ScaleParams,
+      ) => Promise<Deployment>;
+    }
+  >(
+    requestClient,
+    {
+      resourceType: 'deployment',
+      namespaced: true,
     },
+    {
+      /**
+       * 扩缩容 Deployment
+       */
+      scale: (
+        clusterId: string,
+        namespace: string,
+        name: string,
+        params: ScaleParams,
+      ) => {
+        return requestClient.post(
+          `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/scale`,
+          params,
+        );
+      },
 
-    /**
-     * 重启 Deployment
-     */
-    restart: (clusterId: string, namespace: string, name: string) => {
-      const restartParams: RestartParams = {
-        restartedAt: new Date().toISOString(),
-      };
-      return requestClient.post(
-        `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/restart`,
-        restartParams,
-      );
+      /**
+       * 重启 Deployment
+       */
+      restart: (clusterId: string, namespace: string, name: string) => {
+        const restartParams: RestartParams = {
+          restartedAt: new Date().toISOString(),
+        };
+        return requestClient.post(
+          `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/restart`,
+          restartParams,
+        );
+      },
     },
-  },
+  ),
+  'deployment',
 );
 
 export const getDeploymentList = deploymentApi.list;
@@ -206,35 +227,38 @@ export const restartDeployment = deploymentApi.restart;
 /**
  * StatefulSet API - 带扩展操作
  */
-export const statefulSetApi = createResourceApiWithExtras<
-  StatefulSet,
-  {
-    scale: (
-      clusterId: string,
-      namespace: string,
-      name: string,
-      params: ScaleParams,
-    ) => Promise<StatefulSet>;
-  }
->(
-  requestClient,
-  {
-    resourceType: 'statefulset',
-    namespaced: true,
-  },
-  {
-    scale: (
-      clusterId: string,
-      namespace: string,
-      name: string,
-      params: ScaleParams,
-    ) => {
-      return requestClient.post(
-        `/k8s/clusters/${clusterId}/namespaces/${namespace}/statefulsets/${name}/scale`,
-        params,
-      );
+export const statefulSetApi = createMockableResourceApi(
+  createResourceApiWithExtras<
+    StatefulSet,
+    {
+      scale: (
+        clusterId: string,
+        namespace: string,
+        name: string,
+        params: ScaleParams,
+      ) => Promise<StatefulSet>;
+    }
+  >(
+    requestClient,
+    {
+      resourceType: 'statefulset',
+      namespaced: true,
     },
-  },
+    {
+      scale: (
+        clusterId: string,
+        namespace: string,
+        name: string,
+        params: ScaleParams,
+      ) => {
+        return requestClient.post(
+          `/k8s/clusters/${clusterId}/namespaces/${namespace}/statefulsets/${name}/scale`,
+          params,
+        );
+      },
+    },
+  ),
+  'statefulset',
 );
 
 export const getStatefulSetList = statefulSetApi.list;
@@ -246,10 +270,13 @@ export const scaleStatefulSet = statefulSetApi.scale;
 /**
  * DaemonSet API
  */
-const daemonSetApiBase = createResourceApi<DaemonSet>(requestClient, {
-  resourceType: 'daemonset',
-  namespaced: true,
-});
+const daemonSetApiBase = createMockableResourceApi(
+  createResourceApi<DaemonSet>(requestClient, {
+    resourceType: 'daemonset',
+    namespaced: true,
+  }),
+  'daemonset',
+);
 
 export const daemonSetApi = daemonSetApiBase;
 export const getDaemonSetList = daemonSetApiBase.list;
@@ -260,10 +287,13 @@ export const deleteDaemonSet = daemonSetApiBase.delete;
 /**
  * Job API
  */
-const jobApiBase = createResourceApi<Job>(requestClient, {
-  resourceType: 'job',
-  namespaced: true,
-});
+const jobApiBase = createMockableResourceApi(
+  createResourceApi<Job>(requestClient, {
+    resourceType: 'job',
+    namespaced: true,
+  }),
+  'job',
+);
 
 export const jobApi = jobApiBase;
 export const getJobList = jobApiBase.list;
@@ -274,40 +304,43 @@ export const deleteJob = jobApiBase.delete;
 /**
  * CronJob API - 带扩展操作
  */
-export const cronJobApi = createResourceApiWithExtras<
-  CronJob,
-  {
-    toggle: (
-      clusterId: string,
-      namespace: string,
-      name: string,
-      suspend: boolean,
-    ) => Promise<CronJob>;
-  }
->(
-  requestClient,
-  {
-    resourceType: 'cronjob',
-    namespaced: true,
-  },
-  {
-    /**
-     * 暂停/恢复 CronJob
-     */
-    toggle: (
-      clusterId: string,
-      namespace: string,
-      name: string,
-      suspend: boolean,
-    ) => {
-      return requestClient.put(
-        `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs/${name}`,
-        {
-          spec: { suspend },
-        },
-      );
+export const cronJobApi = createMockableResourceApi(
+  createResourceApiWithExtras<
+    CronJob,
+    {
+      toggle: (
+        clusterId: string,
+        namespace: string,
+        name: string,
+        suspend: boolean,
+      ) => Promise<CronJob>;
+    }
+  >(
+    requestClient,
+    {
+      resourceType: 'cronjob',
+      namespaced: true,
     },
-  },
+    {
+      /**
+       * 暂停/恢复 CronJob
+       */
+      toggle: (
+        clusterId: string,
+        namespace: string,
+        name: string,
+        suspend: boolean,
+      ) => {
+        return requestClient.put(
+          `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs/${name}`,
+          {
+            spec: { suspend },
+          },
+        );
+      },
+    },
+  ),
+  'cronjob',
 );
 
 export const getCronJobList = cronJobApi.list;
@@ -326,9 +359,42 @@ export const namespaceApi = {
   /**
    * 获取 Namespace 列表
    */
-  list: async (clusterId: string) => {
-    return requestClient.get(`/k8s/clusters/${clusterId}/namespaces`);
-  },
+  list: createMockableApi(
+    async (clusterId: string) => {
+      return requestClient.get(`/k8s/clusters/${clusterId}/namespaces`);
+    },
+    async (clusterId: string) => {
+      const { getMockNamespaceList } = await import('./mock');
+      return getMockNamespaceList({ clusterId });
+    },
+  ),
+
+  /**
+   * 获取 Namespace 选项（用于下拉选择）
+   */
+  options: createMockableApi(
+    async (
+      clusterId: string,
+    ): Promise<Array<{ label: string; value: string }>> => {
+      const result = await requestClient.get(
+        `/k8s/clusters/${clusterId}/namespaces`,
+      );
+      return result.items.map((ns: any) => ({
+        label: ns.name || ns.metadata?.name,
+        value: ns.name || ns.metadata?.name,
+      }));
+    },
+    async (
+      clusterId: string,
+    ): Promise<Array<{ label: string; value: string }>> => {
+      const { getMockNamespaceList } = await import('./mock');
+      const result = await getMockNamespaceList({ clusterId });
+      return result.items.map((ns: any) => ({
+        label: ns.name || ns.metadata?.name,
+        value: ns.name || ns.metadata?.name,
+      }));
+    },
+  ),
 
   /**
    * 获取 Namespace 详情
@@ -366,9 +432,15 @@ export const nodeApi = {
   /**
    * 获取 Node 列表
    */
-  list: async (clusterId: string) => {
-    return requestClient.get(`/k8s/clusters/${clusterId}/nodes`);
-  },
+  list: createMockableApi(
+    async (clusterId: string) => {
+      return requestClient.get(`/k8s/clusters/${clusterId}/nodes`);
+    },
+    async (clusterId: string) => {
+      const { getMockNodeList } = await import('./mock');
+      return getMockNodeList({ clusterId });
+    },
+  ),
 
   /**
    * 获取 Node 详情
@@ -464,8 +536,21 @@ export const clusterApi = {
   /**
    * 获取集群列表
    */
-  list: async (params?: ClusterListParams): Promise<ClusterListResult> => {
-    return requestClient.get('/k8s/clusters', { params });
+  list: createMockableApi(
+    async (params?: ClusterListParams): Promise<ClusterListResult> => {
+      return requestClient.get('/k8s/clusters', { params });
+    },
+    async (params?: ClusterListParams): Promise<ClusterListResult> => {
+      const { getMockClusterList } = await import('./mock');
+      return getMockClusterList(params);
+    },
+  ),
+
+  /**
+   * 获取集群选择器列表
+   */
+  options: async (): Promise<ClusterOption[]> => {
+    return requestClient.get('/k8s/clusters/options');
   },
 
   /**
@@ -505,6 +590,7 @@ export const clusterApi = {
 };
 
 export const getClusterList = clusterApi.list;
+export const getClusterOptions = clusterApi.options;
 export const getClusterDetail = clusterApi.detail;
 export const createCluster = clusterApi.create;
 export const updateCluster = clusterApi.update;
@@ -516,11 +602,14 @@ export const getClusterMetrics = clusterApi.metrics;
 /**
  * Ingress API
  */
-const ingressApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'ingress',
-  resourceTypePlural: 'ingresses',
-  namespaced: true,
-});
+const ingressApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'ingress',
+    resourceTypePlural: 'ingresses',
+    namespaced: true,
+  }),
+  'ingress',
+);
 
 export const ingressApi = ingressApiBase;
 export const getIngressList = ingressApiBase.list;
@@ -534,12 +623,16 @@ export const deleteIngress = ingressApiBase.delete;
 /**
  * PersistentVolume API
  */
-const persistentVolumeApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'persistentvolume',
-  namespaced: false, // PV 是集群级别资源
-});
+const persistentVolumeApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'persistentvolume',
+    namespaced: false, // PV 是集群级别资源
+  }),
+  'persistentvolume',
+);
 
 export const persistentVolumeApi = persistentVolumeApiBase;
+export const pvApi = persistentVolumeApiBase; // 简短别名
 export const getPersistentVolumeList = persistentVolumeApiBase.list;
 export const getPersistentVolumeDetail = persistentVolumeApiBase.detail;
 export const createPersistentVolume = persistentVolumeApiBase.create;
@@ -549,12 +642,16 @@ export const deletePersistentVolume = persistentVolumeApiBase.delete;
 /**
  * PersistentVolumeClaim API
  */
-const persistentVolumeClaimApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'persistentvolumeclaim',
-  namespaced: true,
-});
+const persistentVolumeClaimApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'persistentvolumeclaim',
+    namespaced: true,
+  }),
+  'persistentvolumeclaim',
+);
 
 export const persistentVolumeClaimApi = persistentVolumeClaimApiBase;
+export const pvcApi = persistentVolumeClaimApiBase; // 简短别名
 export const getPersistentVolumeClaimList = persistentVolumeClaimApiBase.list;
 export const getPersistentVolumeClaimDetail =
   persistentVolumeClaimApiBase.detail;
@@ -565,11 +662,14 @@ export const deletePersistentVolumeClaim = persistentVolumeClaimApiBase.delete;
 /**
  * StorageClass API
  */
-const storageClassApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'storageclass',
-  resourceTypePlural: 'storageclasses',
-  namespaced: false, // StorageClass 是集群级别资源
-});
+const storageClassApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'storageclass',
+    resourceTypePlural: 'storageclasses',
+    namespaced: false, // StorageClass 是集群级别资源
+  }),
+  'storageclass',
+);
 
 export const storageClassApi = storageClassApiBase;
 export const getStorageClassList = storageClassApiBase.list;
@@ -583,10 +683,13 @@ export const deleteStorageClass = storageClassApiBase.delete;
 /**
  * ServiceAccount API
  */
-const serviceAccountApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'serviceaccount',
-  namespaced: true,
-});
+const serviceAccountApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'serviceaccount',
+    namespaced: true,
+  }),
+  'serviceaccount',
+);
 
 export const serviceAccountApi = serviceAccountApiBase;
 export const getServiceAccountList = serviceAccountApiBase.list;
@@ -598,10 +701,13 @@ export const deleteServiceAccount = serviceAccountApiBase.delete;
 /**
  * Role API
  */
-const roleApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'role',
-  namespaced: true,
-});
+const roleApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'role',
+    namespaced: true,
+  }),
+  'role',
+);
 
 export const roleApi = roleApiBase;
 export const getRoleList = roleApiBase.list;
@@ -613,10 +719,13 @@ export const deleteRole = roleApiBase.delete;
 /**
  * RoleBinding API
  */
-const roleBindingApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'rolebinding',
-  namespaced: true,
-});
+const roleBindingApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'rolebinding',
+    namespaced: true,
+  }),
+  'rolebinding',
+);
 
 export const roleBindingApi = roleBindingApiBase;
 export const getRoleBindingList = roleBindingApiBase.list;
@@ -628,10 +737,13 @@ export const deleteRoleBinding = roleBindingApiBase.delete;
 /**
  * ClusterRole API
  */
-const clusterRoleApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'clusterrole',
-  namespaced: false,
-});
+const clusterRoleApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'clusterrole',
+    namespaced: false,
+  }),
+  'clusterrole',
+);
 
 export const clusterRoleApi = clusterRoleApiBase;
 export const getClusterRoleList = clusterRoleApiBase.list;
@@ -643,10 +755,13 @@ export const deleteClusterRole = clusterRoleApiBase.delete;
 /**
  * ClusterRoleBinding API
  */
-const clusterRoleBindingApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'clusterrolebinding',
-  namespaced: false,
-});
+const clusterRoleBindingApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'clusterrolebinding',
+    namespaced: false,
+  }),
+  'clusterrolebinding',
+);
 
 export const clusterRoleBindingApi = clusterRoleBindingApiBase;
 export const getClusterRoleBindingList = clusterRoleBindingApiBase.list;
@@ -660,10 +775,13 @@ export const deleteClusterRoleBinding = clusterRoleBindingApiBase.delete;
 /**
  * ResourceQuota API
  */
-const resourceQuotaApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'resourcequota',
-  namespaced: true,
-});
+const resourceQuotaApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'resourcequota',
+    namespaced: true,
+  }),
+  'resourcequota',
+);
 
 export const resourceQuotaApi = resourceQuotaApiBase;
 export const getResourceQuotaList = resourceQuotaApiBase.list;
@@ -675,10 +793,13 @@ export const deleteResourceQuota = resourceQuotaApiBase.delete;
 /**
  * LimitRange API
  */
-const limitRangeApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'limitrange',
-  namespaced: true,
-});
+const limitRangeApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'limitrange',
+    namespaced: true,
+  }),
+  'limitrange',
+);
 
 export const limitRangeApi = limitRangeApiBase;
 export const getLimitRangeList = limitRangeApiBase.list;
@@ -692,12 +813,43 @@ export const deleteLimitRange = limitRangeApiBase.delete;
 /**
  * Event API
  */
-const eventApiBase = createResourceApi<any>(requestClient, {
-  resourceType: 'event',
-  namespaced: true,
-});
+const eventApiBase = createMockableResourceApi(
+  createResourceApi<any>(requestClient, {
+    resourceType: 'event',
+    namespaced: true,
+  }),
+  'event',
+);
 
-export const eventApi = eventApiBase;
+export const eventApi = {
+  ...eventApiBase,
+
+  /**
+   * AI 分析事件
+   */
+  analyzeEvent: async (
+    clusterId: string,
+    eventData: any,
+  ): Promise<{
+    analysis: string;
+    confidence: number;
+    recommendations?: string[];
+    rootCause: string;
+  }> => {
+    return requestClient.post(
+      'http://localhost:8083/api/v1/analyze/k8s-event',
+      {
+        cluster_id: clusterId,
+        event: eventData,
+        use_llm: true,
+      },
+      {
+        timeout: 30_000, // 30秒超时，给 LLM 足够的响应时间
+      },
+    );
+  },
+};
+
 export const getEventList = eventApiBase.list;
 export const getEventDetail = eventApiBase.detail;
 
@@ -706,11 +858,14 @@ export const getEventDetail = eventApiBase.detail;
 /**
  * NetworkPolicy API
  */
-const networkPolicyApiBase = createResourceApi<NetworkPolicy>(requestClient, {
-  resourceType: 'networkpolicy',
-  resourceTypePlural: 'networkpolicies',
-  namespaced: true,
-});
+const networkPolicyApiBase = createMockableResourceApi(
+  createResourceApi<NetworkPolicy>(requestClient, {
+    resourceType: 'networkpolicy',
+    resourceTypePlural: 'networkpolicies',
+    namespaced: true,
+  }),
+  'networkpolicy',
+);
 
 export const networkPolicyApi = networkPolicyApiBase;
 export const getNetworkPolicyList = networkPolicyApiBase.list;
@@ -724,26 +879,31 @@ export const deleteNetworkPolicy = networkPolicyApiBase.delete;
 /**
  * HorizontalPodAutoscaler (HPA) API
  */
-const horizontalPodAutoscalerApiBase = createResourceApi<HorizontalPodAutoscaler>(
-  requestClient,
-  {
+const horizontalPodAutoscalerApiBase = createMockableResourceApi(
+  createResourceApi<HorizontalPodAutoscaler>(requestClient, {
     resourceType: 'horizontalpodautoscaler',
     resourceTypePlural: 'horizontalpodautoscalers',
     namespaced: true,
-  },
+  }),
+  'horizontalpodautoscaler',
 );
 
 export const horizontalPodAutoscalerApi = horizontalPodAutoscalerApiBase;
 export const hpaApi = horizontalPodAutoscalerApiBase; // 简短别名
-export const getHorizontalPodAutoscalerList = horizontalPodAutoscalerApiBase.list;
+export const getHorizontalPodAutoscalerList =
+  horizontalPodAutoscalerApiBase.list;
 export const getHPAList = horizontalPodAutoscalerApiBase.list; // 简短别名
-export const getHorizontalPodAutoscalerDetail = horizontalPodAutoscalerApiBase.detail;
+export const getHorizontalPodAutoscalerDetail =
+  horizontalPodAutoscalerApiBase.detail;
 export const getHPADetail = horizontalPodAutoscalerApiBase.detail; // 简短别名
-export const createHorizontalPodAutoscaler = horizontalPodAutoscalerApiBase.create;
+export const createHorizontalPodAutoscaler =
+  horizontalPodAutoscalerApiBase.create;
 export const createHPA = horizontalPodAutoscalerApiBase.create; // 简短别名
-export const updateHorizontalPodAutoscaler = horizontalPodAutoscalerApiBase.update;
+export const updateHorizontalPodAutoscaler =
+  horizontalPodAutoscalerApiBase.update;
 export const updateHPA = horizontalPodAutoscalerApiBase.update; // 简短别名
-export const deleteHorizontalPodAutoscaler = horizontalPodAutoscalerApiBase.delete;
+export const deleteHorizontalPodAutoscaler =
+  horizontalPodAutoscalerApiBase.delete;
 export const deleteHPA = horizontalPodAutoscalerApiBase.delete; // 简短别名
 
 // ==================== 调度与优先级 ====================
@@ -751,11 +911,14 @@ export const deleteHPA = horizontalPodAutoscalerApiBase.delete; // 简短别名
 /**
  * PriorityClass API
  */
-const priorityClassApiBase = createResourceApi<PriorityClass>(requestClient, {
-  resourceType: 'priorityclass',
-  resourceTypePlural: 'priorityclasses',
-  namespaced: false, // PriorityClass 是集群级别资源
-});
+const priorityClassApiBase = createMockableResourceApi(
+  createResourceApi<PriorityClass>(requestClient, {
+    resourceType: 'priorityclass',
+    resourceTypePlural: 'priorityclasses',
+    namespaced: false, // PriorityClass 是集群级别资源
+  }),
+  'priorityclass',
+);
 
 export const priorityClassApi = priorityClassApiBase;
 export const getPriorityClassList = priorityClassApiBase.list;
@@ -769,38 +932,41 @@ export const deletePriorityClass = priorityClassApiBase.delete;
 /**
  * ReplicaSet API - 带扩展操作
  */
-export const replicaSetApi = createResourceApiWithExtras<
-  ReplicaSet,
-  {
-    scale: (
-      clusterId: string,
-      namespace: string,
-      name: string,
-      params: ScaleParams,
-    ) => Promise<ReplicaSet>;
-  }
->(
-  requestClient,
-  {
-    resourceType: 'replicaset',
-    namespaced: true,
-  },
-  {
-    /**
-     * 扩缩容 ReplicaSet
-     */
-    scale: (
-      clusterId: string,
-      namespace: string,
-      name: string,
-      params: ScaleParams,
-    ) => {
-      return requestClient.post(
-        `/k8s/clusters/${clusterId}/namespaces/${namespace}/replicasets/${name}/scale`,
-        params,
-      );
+export const replicaSetApi = createMockableResourceApi(
+  createResourceApiWithExtras<
+    ReplicaSet,
+    {
+      scale: (
+        clusterId: string,
+        namespace: string,
+        name: string,
+        params: ScaleParams,
+      ) => Promise<ReplicaSet>;
+    }
+  >(
+    requestClient,
+    {
+      resourceType: 'replicaset',
+      namespaced: true,
     },
-  },
+    {
+      /**
+       * 扩缩容 ReplicaSet
+       */
+      scale: (
+        clusterId: string,
+        namespace: string,
+        name: string,
+        params: ScaleParams,
+      ) => {
+        return requestClient.post(
+          `/k8s/clusters/${clusterId}/namespaces/${namespace}/replicasets/${name}/scale`,
+          params,
+        );
+      },
+    },
+  ),
+  'replicaset',
 );
 
 export const getReplicaSetList = replicaSetApi.list;
@@ -815,11 +981,14 @@ export const scaleReplicaSet = replicaSetApi.scale;
 /**
  * Endpoints API
  */
-const endpointsApiBase = createResourceApi<Endpoints>(requestClient, {
-  resourceType: 'endpoints',
-  resourceTypePlural: 'endpoints', // 复数形式相同
-  namespaced: true,
-});
+const endpointsApiBase = createMockableResourceApi(
+  createResourceApi<Endpoints>(requestClient, {
+    resourceType: 'endpoints',
+    resourceTypePlural: 'endpoints', // 复数形式相同
+    namespaced: true,
+  }),
+  'endpoints',
+);
 
 export const endpointsApi = endpointsApiBase;
 export const getEndpointsList = endpointsApiBase.list;
@@ -831,10 +1000,13 @@ export const deleteEndpoints = endpointsApiBase.delete;
 /**
  * EndpointSlice API
  */
-const endpointSliceApiBase = createResourceApi<EndpointSlice>(requestClient, {
-  resourceType: 'endpointslice',
-  namespaced: true,
-});
+const endpointSliceApiBase = createMockableResourceApi(
+  createResourceApi<EndpointSlice>(requestClient, {
+    resourceType: 'endpointslice',
+    namespaced: true,
+  }),
+  'endpointslice',
+);
 
 export const endpointSliceApi = endpointSliceApiBase;
 export const getEndpointSliceList = endpointSliceApiBase.list;

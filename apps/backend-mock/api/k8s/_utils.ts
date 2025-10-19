@@ -17,6 +17,7 @@ export const mockSecrets: any[] = [];
 export const mockStatefulSets: any[] = [];
 export const mockDaemonSets: any[] = [];
 export const mockJobs: any[] = [];
+export const mockEndpoints: any[] = [];
 
 // 生成集群数据
 export function generateCluster(id?: string) {
@@ -43,9 +44,15 @@ export function generateCluster(id?: string) {
 // 生成集群指标数据
 export function generateClusterMetrics() {
   return {
-    cpuUsage: Number.parseFloat(faker.number.float({ min: 20, max: 95, fractionDigits: 2 }).toFixed(2)),
-    memoryUsage: Number.parseFloat(faker.number.float({ min: 30, max: 90, fractionDigits: 2 }).toFixed(2)),
-    diskUsage: Number.parseFloat(faker.number.float({ min: 40, max: 85, fractionDigits: 2 }).toFixed(2)),
+    cpuUsage: Number.parseFloat(
+      faker.number.float({ min: 20, max: 95, fractionDigits: 2 }).toFixed(2),
+    ),
+    memoryUsage: Number.parseFloat(
+      faker.number.float({ min: 30, max: 90, fractionDigits: 2 }).toFixed(2),
+    ),
+    diskUsage: Number.parseFloat(
+      faker.number.float({ min: 40, max: 85, fractionDigits: 2 }).toFixed(2),
+    ),
     podCount: faker.number.int({ min: 50, max: 500 }),
     nodeCount: faker.number.int({ min: 3, max: 20 }),
     namespaceCount: faker.number.int({ min: 10, max: 50 }),
@@ -114,15 +121,18 @@ export function generatePod(namespace: string = 'default') {
       ],
       containerStatuses: Array.from({ length: containerCount }, (_, i) => ({
         name: `container-${i}`,
-        state: phase === 'Running' ? {
-          running: {
-            startedAt: faker.date.past({ years: 1 }).toISOString(),
-          },
-        } : {
-          waiting: {
-            reason: 'ContainerCreating',
-          },
-        },
+        state:
+          phase === 'Running'
+            ? {
+                running: {
+                  startedAt: faker.date.past({ years: 1 }).toISOString(),
+                },
+              }
+            : {
+                waiting: {
+                  reason: 'ContainerCreating',
+                },
+              },
         ready: phase === 'Running',
         restartCount: faker.number.int({ min: 0, max: 5 }),
         image: `${faker.word.noun()}:${faker.system.semver()}`,
@@ -222,7 +232,7 @@ export function generateService(namespace: string = 'default') {
           port: 80,
           targetPort: 8080,
           ...(serviceType === 'NodePort' && {
-            nodePort: faker.number.int({ min: 30000, max: 32767 }),
+            nodePort: faker.number.int({ min: 30_000, max: 32_767 }),
           }),
         },
       ],
@@ -230,15 +240,18 @@ export function generateService(namespace: string = 'default') {
         app: faker.word.noun(),
       },
     },
-    status: serviceType === 'LoadBalancer' ? {
-      loadBalancer: {
-        ingress: [
-          {
-            ip: faker.internet.ipv4(),
-          },
-        ],
-      },
-    } : undefined,
+    status:
+      serviceType === 'LoadBalancer'
+        ? {
+            loadBalancer: {
+              ingress: [
+                {
+                  ip: faker.internet.ipv4(),
+                },
+              ],
+            },
+          }
+        : undefined,
   };
 }
 
@@ -259,7 +272,12 @@ export function generateConfigMap(namespace: string = 'default') {
   port: ${faker.number.int({ min: 3000, max: 9000 })}
   debug: ${faker.datatype.boolean()}`,
       'database.url': faker.internet.url(),
-      'log.level': faker.helpers.arrayElement(['debug', 'info', 'warning', 'error']),
+      'log.level': faker.helpers.arrayElement([
+        'debug',
+        'info',
+        'warning',
+        'error',
+      ]),
     },
   };
 }
@@ -315,45 +333,52 @@ export function initMockData() {
   }
 
   // 为每个集群生成资源
-  mockClusters.forEach((cluster) => {
+  mockClusters.forEach(() => {
     // Namespaces
-    ['default', 'kube-system', 'kube-public', 'prod', 'staging'].forEach((ns) => {
-      mockNamespaces.push({
-        apiVersion: 'v1',
-        kind: 'Namespace',
-        metadata: {
-          name: ns,
-          uid: faker.string.uuid(),
-          creationTimestamp: faker.date.past({ years: 2 }).toISOString(),
-        },
-        status: {
-          phase: 'Active',
-        },
-      });
+    ['default', 'kube-system', 'kube-public', 'prod', 'staging'].forEach(
+      (ns) => {
+        mockNamespaces.push({
+          apiVersion: 'v1',
+          kind: 'Namespace',
+          metadata: {
+            name: ns,
+            uid: faker.string.uuid(),
+            creationTimestamp: faker.date.past({ years: 2 }).toISOString(),
+          },
+          status: {
+            phase: 'Active',
+          },
+        });
 
-      // Pods
-      for (let i = 0; i < 5; i++) {
-        mockPods.push(generatePod(ns));
-      }
+        // Pods
+        for (let i = 0; i < 5; i++) {
+          mockPods.push(generatePod(ns));
+        }
 
-      // Deployments
-      for (let i = 0; i < 3; i++) {
-        mockDeployments.push(generateDeployment(ns));
-      }
+        // Deployments
+        for (let i = 0; i < 3; i++) {
+          mockDeployments.push(generateDeployment(ns));
+        }
 
-      // Services
-      for (let i = 0; i < 3; i++) {
-        mockServices.push(generateService(ns));
-      }
+        // Services
+        for (let i = 0; i < 3; i++) {
+          mockServices.push(generateService(ns));
+        }
 
-      // ConfigMaps
-      for (let i = 0; i < 2; i++) {
-        mockConfigMaps.push(generateConfigMap(ns));
-      }
+        // Endpoints
+        for (let i = 0; i < 3; i++) {
+          mockEndpoints.push(generateEndpoint(`service-${i + 1}`, ns));
+        }
 
-      // CronJobs
-      mockCronJobs.push(generateCronJob(ns));
-    });
+        // ConfigMaps
+        for (let i = 0; i < 2; i++) {
+          mockConfigMaps.push(generateConfigMap(ns));
+        }
+
+        // CronJobs
+        mockCronJobs.push(generateCronJob(ns));
+      },
+    );
   });
 
   // Nodes
@@ -416,7 +441,11 @@ export function initMockData() {
 }
 
 // 分页工具函数
-export function paginate<T>(items: T[], page: number = 1, pageSize: number = 10) {
+export function paginate<T>(
+  items: T[],
+  page: number = 1,
+  pageSize: number = 10,
+) {
   const start = (page - 1) * pageSize;
   const end = start + pageSize;
   return {
@@ -438,8 +467,57 @@ export function filterByKeyword<T extends Record<string, any>>(
   const lowerKeyword = keyword.toLowerCase();
   return items.filter((item) =>
     fields.some((field) => {
-      const value = field.split('.').reduce((obj, key) => obj?.[key], item);
+      // Replace Array.reduce with a for loop for better performance
+      const parts = field.split('.');
+      let value: any = item;
+      for (const key of parts) {
+        value = value?.[key];
+        if (value === undefined) break;
+      }
       return value && String(value).toLowerCase().includes(lowerKeyword);
     }),
   );
 }
+
+// 生成 Endpoints 数据
+export function generateEndpoint(name: string, namespace: string = 'default') {
+  const addressCount = faker.number.int({ min: 1, max: 5 });
+  const portCount = faker.number.int({ min: 1, max: 3 });
+
+  return {
+    name,
+    namespace,
+    subsets: [
+      {
+        addresses: Array.from({ length: addressCount }, () => ({
+          ip: faker.internet.ipv4(),
+          nodeName: `node-${faker.string.alphanumeric(8).toLowerCase()}`,
+          hostname: faker.datatype.boolean()
+            ? `host-${faker.string.alphanumeric(6).toLowerCase()}`
+            : undefined,
+        })),
+        notReadyAddresses: faker.datatype.boolean()
+          ? [
+              {
+                ip: faker.internet.ipv4(),
+                nodeName: `node-${faker.string.alphanumeric(8).toLowerCase()}`,
+              },
+            ]
+          : [],
+        ports: Array.from({ length: portCount }, (_, index) => ({
+          name: index === 0 ? 'http' : `port-${index}`,
+          port: faker.number.int({ min: 3000, max: 9000 }),
+          protocol: 'TCP',
+        })),
+      },
+    ],
+    labels: {
+      app: name,
+      service: name,
+    },
+    createdAt: faker.date.past({ years: 1 }).toISOString(),
+  };
+}
+
+// 初始化mock数据
+initMockData();

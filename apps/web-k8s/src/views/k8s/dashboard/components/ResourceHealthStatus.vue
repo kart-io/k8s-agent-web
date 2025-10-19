@@ -5,19 +5,14 @@
  */
 import { onMounted, ref } from 'vue';
 
-import { Card, message, Progress, Statistic } from 'ant-design-vue';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   WarningOutlined,
 } from '@ant-design/icons-vue';
+import { Card, message, Progress, Statistic } from 'ant-design-vue';
 
-import {
-  getMockDeploymentList,
-  getMockNodeList,
-  getMockPodList,
-  getMockServiceList,
-} from '#/api/k8s/mock';
+import { deploymentApi, nodeApi, podApi, serviceApi } from '#/api/k8s';
 
 // Props
 const props = defineProps<{
@@ -46,12 +41,16 @@ async function loadResourceHealth() {
   try {
     // 并行加载各类资源数据
     const [pods, nodes, deployments, services] = await Promise.all([
-      Promise.resolve(getMockPodList({ clusterId: props.clusterId, pageSize: 1000 })),
-      Promise.resolve(getMockNodeList({ clusterId: props.clusterId, pageSize: 100 })),
-      Promise.resolve(
-        getMockDeploymentList({ clusterId: props.clusterId, pageSize: 100 }),
-      ),
-      Promise.resolve(getMockServiceList({ clusterId: props.clusterId, pageSize: 100 })),
+      podApi
+        .list({ clusterId: props.clusterId, pageSize: 1000 })
+        .catch(() => ({ items: [] })),
+      nodeApi.list(props.clusterId).catch(() => ({ items: [] })),
+      deploymentApi
+        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      serviceApi
+        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
     ]);
 
     // 统计 Pods 健康状态
@@ -69,11 +68,15 @@ async function loadResourceHealth() {
     });
 
     // 统计 Deployments 健康状态
-    const deploymentHealth = calculateHealthStatus(deployments.items, (item: any) => {
-      if (item.status?.availableReplicas === item.status?.replicas) return 'healthy';
-      if (item.status?.availableReplicas > 0) return 'warning';
-      return 'unhealthy';
-    });
+    const deploymentHealth = calculateHealthStatus(
+      deployments.items,
+      (item: any) => {
+        if (item.status?.availableReplicas === item.status?.replicas)
+          return 'healthy';
+        if (item.status?.availableReplicas > 0) return 'warning';
+        return 'unhealthy';
+      },
+    );
 
     // 统计 Services 健康状态（简化：所有 Service 都认为是健康的）
     const serviceHealth = {
@@ -90,7 +93,8 @@ async function loadResourceHealth() {
       { name: 'Services', ...serviceHealth },
     ];
   } catch (error: any) {
-    message.error(`加载资源健康状态失败: ${error.message}`);
+    console.error('加载资源健康状态失败:', error);
+    message.error(`加载资源健康状态失败: ${error.message || '未知错误'}`);
   } finally {
     loading.value = false;
   }
@@ -142,7 +146,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <Card class="resource-health-card" title="资源健康状态" :bordered="false" :loading="loading">
+  <Card
+    class="resource-health-card"
+    title="资源健康状态"
+    :bordered="false"
+    :loading="loading"
+  >
     <div class="resource-health-content">
       <div
         v-for="resource in resourcesHealth"
@@ -209,9 +218,9 @@ onMounted(() => {
 
 .resource-health-item {
   padding: 16px;
+  background-color: rgb(0 0 0 / 2%);
   border: 1px solid var(--vben-border-color);
   border-radius: 8px;
-  background-color: rgb(0 0 0 / 2%);
   transition: all 0.3s ease;
 }
 
@@ -226,8 +235,8 @@ html[data-theme='dark'] .resource-health-item {
 
 .resource-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 12px;
 }
 
@@ -254,18 +263,18 @@ html[data-theme='dark'] .resource-health-item {
 
 .health-stat {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
   flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
   padding: 8px;
-  border-radius: 6px;
   background-color: var(--vben-background-color);
+  border-radius: 6px;
 }
 
 .stat-icon {
-  font-size: 20px;
   margin-bottom: 4px;
+  font-size: 20px;
 }
 
 .health-stat.healthy .stat-icon {
@@ -281,8 +290,8 @@ html[data-theme='dark'] .resource-health-item {
 }
 
 .health-stat :deep(.ant-statistic-title) {
-  font-size: 11px;
   margin-bottom: 0;
+  font-size: 11px;
 }
 
 .health-stat :deep(.ant-statistic-content) {

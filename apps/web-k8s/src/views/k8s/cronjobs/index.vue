@@ -4,7 +4,6 @@ import type { CronJob } from '#/api/k8s/types';
 
 import { ref, watch } from 'vue';
 
-import { Button, Input, message, Modal, Select, Space, Tag } from 'ant-design-vue';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -15,24 +14,27 @@ import {
   SearchOutlined,
 } from '@ant-design/icons-vue';
 import { useDebounceFn } from '@vueuse/core';
+import {
+  Button,
+  Input,
+  message,
+  Modal,
+  Select,
+  Space,
+  Tag,
+} from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-
-import { getMockCronJobList } from '#/api/k8s/mock';
+import { cronJobApi } from '#/api/k8s';
+import { useClusterOptions } from '#/composables/useClusterOptions';
 
 defineOptions({
   name: 'CronJobsManagement',
 });
 
-const selectedClusterId = ref('cluster-prod-01');
+const { clusterOptions, selectedClusterId } = useClusterOptions();
 const selectedNamespace = ref<string>();
 const searchKeyword = ref('');
-
-const clusterOptions = [
-  { label: 'Production Cluster', value: 'cluster-prod-01' },
-  { label: 'Staging Cluster', value: 'cluster-staging-01' },
-  { label: 'Development Cluster', value: 'cluster-dev-01' },
-];
 
 const namespaceOptions = [
   { label: '全部命名空间', value: undefined },
@@ -43,7 +45,14 @@ const namespaceOptions = [
 // AbortController 用于取消请求
 let abortController: AbortController | null = null;
 
-async function fetchCronJobData(params: { page: { currentPage: number; pageSize: number } }) {
+async function fetchCronJobData(params: {
+  page: { currentPage: number; pageSize: number };
+}) {
+  // Don't fetch if no cluster is selected
+  if (!selectedClusterId.value) {
+    return { items: [], total: 0 };
+  }
+
   // 取消之前的请求
   if (abortController) {
     abortController.abort();
@@ -53,16 +62,8 @@ async function fetchCronJobData(params: { page: { currentPage: number; pageSize:
   abortController = new AbortController();
 
   try {
-    // 模拟 API 延迟
-    await new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(resolve, 500);
-      abortController!.signal.addEventListener('abort', () => {
-        clearTimeout(timeoutId);
-        reject(new Error('Request aborted'));
-      });
-    });
-
-    const result = getMockCronJobList({
+    // 调用真实的 CronJob API
+    const result = await cronJobApi.list({
       clusterId: selectedClusterId.value,
       namespace: selectedNamespace.value,
       page: params.page.currentPage,
@@ -70,15 +71,17 @@ async function fetchCronJobData(params: { page: { currentPage: number; pageSize:
     });
 
     return {
-      items: result.items,
-      total: result.total,
+      items: result.items || [],
+      total: result.total || 0,
     };
   } catch (error: any) {
     // 如果是取消请求,返回空结果
-    if (error.message === 'Request aborted') {
+    if (error.message === 'Request aborted' || error.name === 'AbortError') {
       return { items: [], total: 0 };
     }
-    throw error;
+    console.error('获取 CronJob 列表失败:', error);
+    message.error(`获取 CronJob 列表失败: ${error.message || '未知错误'}`);
+    return { items: [], total: 0 };
   }
 }
 
@@ -221,6 +224,13 @@ function handleDelete(row: CronJob) {
     },
   });
 }
+
+// 当 cluster ID 加载完成后，触发数据刷新
+watch(selectedClusterId, (newId) => {
+  if (newId) {
+    gridApi.reload();
+  }
+});
 </script>
 
 <template>
@@ -303,8 +313,7 @@ function handleDelete(row: CronJob) {
           </Space>
         </template>
 
-        <template #toolbar-tools>
-        </template>
+        <template #toolbar-tools> </template>
       </Grid>
     </div>
   </div>

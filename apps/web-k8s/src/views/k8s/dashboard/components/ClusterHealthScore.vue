@@ -5,19 +5,14 @@
  */
 import { computed, onMounted, ref } from 'vue';
 
-import { Card, Descriptions, Progress, Tag, Tooltip } from 'ant-design-vue';
 import {
   CheckCircleOutlined,
   InfoCircleOutlined,
   TrophyOutlined,
 } from '@ant-design/icons-vue';
+import { Card, Descriptions, Progress, Tag, Tooltip } from 'ant-design-vue';
 
-import {
-  getMockDeploymentList,
-  getMockEventList,
-  getMockNodeList,
-  getMockPodList,
-} from '#/api/k8s/mock';
+import { deploymentApi, eventApi, nodeApi, podApi } from '#/api/k8s';
 
 interface Props {
   clusterId: string;
@@ -32,7 +27,7 @@ interface HealthMetric {
   score: number;
   maxScore: number;
   description: string;
-  status: 'excellent' | 'good' | 'fair' | 'poor';
+  status: 'excellent' | 'fair' | 'good' | 'poor';
 }
 
 const healthMetrics = ref<HealthMetric[]>([]);
@@ -46,20 +41,24 @@ async function loadHealthScore() {
   loading.value = true;
   try {
     const [pods, nodes, deployments, events] = await Promise.all([
-      Promise.resolve(getMockPodList({ clusterId: props.clusterId, pageSize: 100 })),
-      Promise.resolve(getMockNodeList({ clusterId: props.clusterId, pageSize: 100 })),
-      Promise.resolve(
-        getMockDeploymentList({ clusterId: props.clusterId, pageSize: 100 }),
-      ),
-      Promise.resolve(
-        getMockEventList({ clusterId: props.clusterId, pageSize: 100 }),
-      ),
+      podApi
+        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      nodeApi.list(props.clusterId).catch(() => ({ items: [] })),
+      deploymentApi
+        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      eventApi
+        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
     ]);
 
     const metrics: HealthMetric[] = [];
 
     // 1. 节点健康度 (30分)
-    const readyNodes = nodes.items.filter((n: any) => n.status === 'Ready').length;
+    const readyNodes = nodes.items.filter(
+      (n: any) => n.status === 'Ready',
+    ).length;
     const nodeHealthScore = Math.round((readyNodes / nodes.items.length) * 30);
     metrics.push({
       name: '节点健康度',
@@ -70,7 +69,9 @@ async function loadHealthScore() {
     });
 
     // 2. Pod 健康度 (25分)
-    const runningPods = pods.items.filter((p: any) => p.status === 'Running').length;
+    const runningPods = pods.items.filter(
+      (p: any) => p.status === 'Running',
+    ).length;
     const podHealthScore = Math.round((runningPods / pods.items.length) * 25);
     metrics.push({
       name: 'Pod 健康度',
@@ -96,7 +97,9 @@ async function loadHealthScore() {
     });
 
     // 4. 事件稳定性 (20分)
-    const warningEvents = events.items.filter((e: any) => e.type === 'Warning').length;
+    const warningEvents = events.items.filter(
+      (e: any) => e.type === 'Warning',
+    ).length;
     const eventStabilityScore = Math.max(0, 20 - Math.min(warningEvents, 20));
     metrics.push({
       name: '事件稳定性',
@@ -121,7 +124,7 @@ async function loadHealthScore() {
 function getMetricStatus(
   score: number,
   maxScore: number,
-): 'excellent' | 'good' | 'fair' | 'poor' {
+): 'excellent' | 'fair' | 'good' | 'poor' {
   const percentage = (score / maxScore) * 100;
   if (percentage >= 90) return 'excellent';
   if (percentage >= 75) return 'good';
@@ -188,10 +191,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <Card class="health-score-card" title="集群健康度评分" :bordered="false" :loading="loading">
+  <Card
+    class="health-score-card"
+    title="集群健康度评分"
+    :bordered="false"
+    :loading="loading"
+  >
     <template #extra>
       <Tooltip title="基于节点、Pod、Deployment 和事件的综合评估">
-        <InfoCircleOutlined style="color: var(--vben-text-color-secondary);" />
+        <InfoCircleOutlined style="color: var(--vben-text-color-secondary)" />
       </Tooltip>
     </template>
 
@@ -199,7 +207,10 @@ onMounted(() => {
       <!-- 总评分 -->
       <div class="overall-score">
         <div class="score-display">
-          <TrophyOutlined class="trophy-icon" :style="{ color: overallGrade.color }" />
+          <TrophyOutlined
+            class="trophy-icon"
+            :style="{ color: overallGrade.color }"
+          />
           <div class="score-info">
             <div class="score-value" :style="{ color: overallGrade.color }">
               {{ totalScore }} / {{ maxTotalScore }}
@@ -245,7 +256,13 @@ onMounted(() => {
               </div>
               <Progress
                 :percent="Math.round((metric.score / metric.maxScore) * 100)"
-                :stroke-color="getStatusColor(metric.status) === 'success' ? '#52c41a' : getStatusColor(metric.status) === 'error' ? '#f5222d' : '#faad14'"
+                :stroke-color="
+                  getStatusColor(metric.status) === 'success'
+                    ? '#52c41a'
+                    : getStatusColor(metric.status) === 'error'
+                      ? '#f5222d'
+                      : '#faad14'
+                "
                 :show-info="false"
                 size="small"
               />
@@ -257,7 +274,7 @@ onMounted(() => {
       <!-- 健康建议 -->
       <div v-if="scorePercentage < 90" class="health-suggestions">
         <div class="suggestions-title">
-          <CheckCircleOutlined style="color: #1890ff;" />
+          <CheckCircleOutlined style="color: #1890ff" />
           <span>改进建议</span>
         </div>
         <ul class="suggestions-list">
@@ -293,15 +310,19 @@ onMounted(() => {
 
 .overall-score {
   padding: 20px;
+  background: linear-gradient(
+    135deg,
+    rgb(24 144 255 / 5%) 0%,
+    rgb(82 196 26 / 5%) 100%
+  );
   border: 2px solid var(--vben-border-color);
   border-radius: 8px;
-  background: linear-gradient(135deg, rgb(24 144 255 / 5%) 0%, rgb(82 196 26 / 5%) 100%);
 }
 
 .score-display {
   display: flex;
-  align-items: center;
   gap: 20px;
+  align-items: center;
   margin-bottom: 16px;
 }
 
@@ -323,8 +344,8 @@ onMounted(() => {
 
 .score-grade {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .grade-text {
@@ -366,15 +387,15 @@ onMounted(() => {
 
 .health-suggestions {
   padding: 16px;
+  background-color: rgb(24 144 255 / 3%);
   border: 1px dashed var(--vben-border-color);
   border-radius: 6px;
-  background-color: rgb(24 144 255 / 3%);
 }
 
 .suggestions-title {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   margin-bottom: 12px;
   font-size: 14px;
   font-weight: 600;
@@ -382,8 +403,8 @@ onMounted(() => {
 }
 
 .suggestions-list {
-  margin: 0;
   padding-left: 24px;
+  margin: 0;
   list-style-type: disc;
 }
 

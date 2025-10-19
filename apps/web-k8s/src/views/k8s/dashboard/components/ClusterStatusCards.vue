@@ -17,7 +17,7 @@ import {
 } from '@ant-design/icons-vue';
 import { Card, Col, message, Progress, Row, Tag } from 'ant-design-vue';
 
-import { getMockClusterList } from '#/api/k8s/mock';
+import { clusterApi } from '#/api/k8s';
 
 // 加载状态
 const loading = ref(false);
@@ -28,14 +28,16 @@ const clusters = ref<Cluster[]>([]);
 /**
  * 加载集群列表
  */
-function loadClusters() {
+async function loadClusters() {
   loading.value = true;
   try {
-    const result = getMockClusterList({ pageSize: 100 });
+    // 调用真实 API
+    const result = await clusterApi.list({ pageSize: 100 });
     // 使用 splice 或直接赋值来确保响应式更新
     clusters.value = result.items || [];
   } catch (error: any) {
-    message.error(`加载集群列表失败: ${error.message}`);
+    console.error('加载集群列表失败:', error);
+    message.error(`加载集群列表失败: ${error.message || '未知错误'}`);
     clusters.value = [];
   } finally {
     loading.value = false;

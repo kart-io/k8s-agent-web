@@ -13,13 +13,14 @@ import { onBeforeUnmount, ref, watch } from 'vue';
 
 import { useDebounceFn } from '@vueuse/core';
 
+import { useClusterOptions } from '#/stores/clusterStore';
+import { useNamespaceOptions } from '#/stores/namespaceStore';
+
 export interface UseK8sResourceOptions {
   /** 数据获取函数 */
   fetchData: (params: ResourceListParams) => Promise<ResourceListResult>;
   /** 筛选器配置 */
   filters?: ResourceFilterConfig;
-  /** 默认集群 ID */
-  defaultClusterId?: string;
   /** 防抖延迟（毫秒） */
   debounceDelay?: number;
   /** 模拟延迟（毫秒），开发环境可用，生产环境自动设为 0 */
@@ -27,13 +28,13 @@ export interface UseK8sResourceOptions {
 }
 
 export function useK8sResource(options: UseK8sResourceOptions) {
-  const {
-    fetchData,
-    filters = {},
-    defaultClusterId = 'cluster-prod-01',
-    debounceDelay = 300,
-    mockDelay,
-  } = options;
+  const { fetchData, filters = {}, debounceDelay = 300, mockDelay } = options;
+
+  // 使用全局集群状态
+  const { clusterOptions, selectedClusterId } = useClusterOptions();
+
+  // 使用全局 namespace 状态
+  const { namespaceOptions, selectedNamespace } = useNamespaceOptions();
 
   // 根据环境自动设置模拟延迟
   const effectiveMockDelay = import.meta.env.DEV ? (mockDelay ?? 100) : 0;
@@ -47,8 +48,6 @@ export function useK8sResource(options: UseK8sResourceOptions) {
   } = filters;
 
   // 筛选器状态
-  const selectedClusterId = ref(defaultClusterId);
-  const selectedNamespace = ref<string>();
   const searchKeyword = ref('');
   const customFilterValues = ref<Record<string, any>>({});
 
@@ -127,26 +126,6 @@ export function useK8sResource(options: UseK8sResourceOptions) {
   }
 
   /**
-   * 集群选项
-   */
-  const clusterOptions = [
-    { label: 'Production Cluster', value: 'cluster-prod-01' },
-    { label: 'Staging Cluster', value: 'cluster-staging-01' },
-    { label: 'Development Cluster', value: 'cluster-dev-01' },
-  ];
-
-  /**
-   * 命名空间选项
-   */
-  const namespaceOptions = [
-    { label: '全部命名空间', value: undefined },
-    { label: 'default', value: 'default' },
-    { label: 'kube-system', value: 'kube-system' },
-    { label: 'production', value: 'production' },
-    { label: 'staging', value: 'staging' },
-  ];
-
-  /**
    * 重新加载回调（由外部 Grid 提供）
    */
   let reloadCallback: (() => void) | null = null;
@@ -179,7 +158,7 @@ export function useK8sResource(options: UseK8sResourceOptions) {
    */
   function handleReset() {
     searchKeyword.value = '';
-    selectedNamespace.value = undefined;
+    selectedNamespace.value = '';
     customFilterValues.value = {};
     reload();
   }
@@ -196,6 +175,22 @@ export function useK8sResource(options: UseK8sResourceOptions) {
    */
   watch(searchKeyword, () => {
     debouncedSearch();
+  });
+
+  /**
+   * 监听集群切换，自动刷新数据
+   */
+  watch(selectedClusterId, (newId) => {
+    if (newId) {
+      reload();
+    }
+  });
+
+  /**
+   * 监听 namespace 切换，自动刷新数据
+   */
+  watch(selectedNamespace, () => {
+    reload();
   });
 
   return {

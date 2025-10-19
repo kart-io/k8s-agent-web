@@ -15,8 +15,11 @@ defineOptions({ name: 'K8sReplicaSets' });
   <GenericResourcePage :config-factory="createReplicaSetConfig" scalable>
     <!-- 自定义插槽：就绪副本显示 -->
     <template #ready-slot="{ row }">
-      <Tag :color="row.status?.readyReplicas === row.spec.replicas ? 'success' : 'warning'">
-        {{ row.status?.readyReplicas ?? 0 }}/{{ row.spec.replicas }}
+      <Tag
+        v-if="row"
+        :color="row.readyReplicas === row.replicas ? 'success' : 'warning'"
+      >
+        {{ row.readyReplicas ?? 0 }}/{{ row.replicas ?? 0 }}
       </Tag>
     </template>
   </GenericResourcePage>

@@ -132,8 +132,27 @@ export function createResourceApi<T>(
      * 获取资源列表
      */
     list: async (params: ResourceListParams) => {
-      const endpoint = listEndpoint || `/k8s/${resourceTypePlural}`;
-      return client.get(endpoint, { params });
+      // 如果提供了自定义端点，使用自定义端点
+      if (listEndpoint) {
+        return client.get(listEndpoint, { params });
+      }
+
+      // 根据是否需要命名空间构建不同的路径
+      const { clusterId, namespace, ...queryParams } = params;
+
+      let endpoint: string;
+      if (namespaced && namespace) {
+        // 命名空间级别资源: /k8s/clusters/:clusterId/namespaces/:namespace/pods
+        endpoint = `/k8s/clusters/${clusterId}/namespaces/${namespace}/${resourceTypePlural}`;
+      } else if (namespaced) {
+        // 命名空间级别资源但未指定命名空间，使用所有命名空间
+        endpoint = `/k8s/clusters/${clusterId}/namespaces/-/${resourceTypePlural}`;
+      } else {
+        // 集群级别资源: /k8s/clusters/:clusterId/nodes
+        endpoint = `/k8s/clusters/${clusterId}/${resourceTypePlural}`;
+      }
+
+      return client.get(endpoint, { params: queryParams });
     },
 
     /**
@@ -204,7 +223,7 @@ export function createResourceApi<T>(
  * }, {
  *   scale: (clusterId, namespace, name, replicas) => {
  *     return requestClient.post(
- *       `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/scale`,
+ *       `/api/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/scale`,
  *       { replicas }
  *     );
  *   },

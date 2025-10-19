@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { Node } from '#/api/k8s/types';
+import type { Node, NodeListItem } from '#/api/k8s/types';
 
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import {
   CloudUploadOutlined,
@@ -33,11 +33,11 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   cordonNode,
   drainNode,
+  getNodeDetail,
   getNodeList,
   uncordonNode,
-  updateNodeLabels,
-  updateNodeTaints,
 } from '#/api/k8s';
+import { useClusterOptions } from '#/stores/clusterStore';
 
 import DetailDrawer from './DetailDrawer.vue';
 import EditLabelsModal from './EditLabelsModal.vue';
@@ -47,7 +47,7 @@ defineOptions({
   name: 'NodesManagement',
 });
 
-const selectedClusterId = ref('cluster-prod-01');
+const { clusterOptions, selectedClusterId } = useClusterOptions();
 const searchKeyword = ref('');
 const detailDrawerVisible = ref(false);
 const selectedNode = ref<Node | null>(null);
@@ -55,19 +55,18 @@ const selectedNode = ref<Node | null>(null);
 // 编辑标签和污点的对话框状态
 const editLabelsModalVisible = ref(false);
 const editTaintsModalVisible = ref(false);
-const editingNode = ref<Node | null>(null);
-
-const clusterOptions = [
-  { label: 'Production Cluster', value: 'cluster-prod-01' },
-  { label: 'Staging Cluster', value: 'cluster-staging-01' },
-  { label: 'Development Cluster', value: 'cluster-dev-01' },
-];
+const editingNode = ref<NodeListItem | null>(null);
 
 let abortController: AbortController | null = null;
 
 async function fetchNodeData(params: {
   page: { currentPage: number; pageSize: number };
 }) {
+  // Don't fetch if no cluster is selected
+  if (!selectedClusterId.value) {
+    return { items: [], total: 0 };
+  }
+
   if (abortController) {
     abortController.abort();
   }
@@ -109,36 +108,23 @@ async function fetchNodeData(params: {
   }
 }
 
-function getNodeStatus(node: Node): string {
-  const readyCondition = node.status?.conditions?.find(
-    (c) => c.type === 'Ready',
-  );
-  if (readyCondition?.status === 'True') {
-    return 'Ready';
-  }
-  return 'NotReady';
+function getNodeStatus(node: NodeListItem): string {
+  return node.status;
 }
 
-function getNodeRole(node: Node): string {
-  const labels = node.metadata.labels || {};
-  if (
-    labels['kubernetes.io/role'] === 'master' ||
-    labels['node-role.kubernetes.io/master'] !== undefined
-  ) {
-    return 'Master';
+function getNodeRole(node: NodeListItem): string {
+  if (node.roles && node.roles.length > 0) {
+    // 将角色首字母大写
+    return node.roles
+      .map((r) => r.charAt(0).toUpperCase() + r.slice(1))
+      .join(', ');
   }
-  if (
-    labels['kubernetes.io/role'] === 'worker' ||
-    labels['node-role.kubernetes.io/worker'] !== undefined
-  ) {
-    return 'Worker';
-  }
-  return 'Unknown';
+  return 'Worker';
 }
 
-function getNodeAge(creationTimestamp?: string): string {
-  if (!creationTimestamp) return '-';
-  const created = new Date(creationTimestamp);
+function getNodeAge(createdAt?: string): string {
+  if (!createdAt) return '-';
+  const created = new Date(createdAt);
   const now = new Date();
   const diffMs = now.getTime() - created.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -154,23 +140,41 @@ function getNodeAge(creationTimestamp?: string): string {
   return `${diffYears}年`;
 }
 
-function getResourceUsage(capacity?: string, allocatable?: string): number {
+/**
+ * 计算资源使用百分比
+ * 如果后端提供了 cpuUsagePercent/memoryUsagePercent，直接使用
+ * 否则计算系统预留百分比作为近似值
+ */
+function getResourcePercent(
+  node: NodeListItem,
+  type: 'cpu' | 'memory',
+): number {
+  // 优先使用后端计算的使用率
+  if (type === 'cpu' && node.cpuUsagePercent !== undefined) {
+    return Math.round(node.cpuUsagePercent);
+  }
+  if (type === 'memory' && node.memoryUsagePercent !== undefined) {
+    return Math.round(node.memoryUsagePercent);
+  }
+
+  // 降级方案：计算系统预留百分比（capacity - allocatable）
+  if (!node.capacity || !node.allocatable) return 0;
+
+  const capacity = node.capacity[type];
+  const allocatable = node.allocatable[type];
+
   if (!capacity || !allocatable) return 0;
+
   const cap = Number.parseFloat(capacity.replaceAll(/[^0-9.]/g, ''));
   const alloc = Number.parseFloat(allocatable.replaceAll(/[^0-9.]/g, ''));
-  if (Number.isNaN(cap) || cap === 0) return 0;
+
+  if (isNaN(cap) || cap === 0) return 0;
+
+  // 返回系统预留百分比
   return Math.round(((cap - alloc) / cap) * 100);
 }
 
-function getResourcePercent(node: Node, type: 'cpu' | 'memory'): number {
-  if (!node.status?.capacity || !node.status?.allocatable) return 0;
-  return getResourceUsage(
-    node.status.capacity[type],
-    node.status.allocatable[type],
-  );
-}
-
-const gridOptions: VxeGridProps<Node> = {
+const gridOptions: VxeGridProps<NodeListItem> = {
   height: '100%',
   checkboxConfig: {
     highlight: true,
@@ -183,7 +187,7 @@ const gridOptions: VxeGridProps<Node> = {
     { title: '序号', type: 'seq', width: 60 },
     { align: 'left', title: '选择', type: 'checkbox', width: 80 },
     {
-      field: 'metadata.name',
+      field: 'name',
       title: 'Node 名称',
       minWidth: 180,
     },
@@ -196,15 +200,15 @@ const gridOptions: VxeGridProps<Node> = {
       },
     },
     {
-      field: 'role',
+      field: 'roles',
       title: '角色',
-      width: 100,
+      width: 120,
       slots: {
         default: 'role-slot',
       },
     },
     {
-      field: 'status.capacity.cpu',
+      field: 'capacity.cpu',
       title: 'CPU 使用率',
       width: 150,
       slots: {
@@ -212,7 +216,7 @@ const gridOptions: VxeGridProps<Node> = {
       },
     },
     {
-      field: 'status.capacity.memory',
+      field: 'capacity.memory',
       title: '内存使用率',
       width: 150,
       slots: {
@@ -220,17 +224,12 @@ const gridOptions: VxeGridProps<Node> = {
       },
     },
     {
-      field: 'status.nodeInfo.kubeletVersion',
-      title: 'Kubelet 版本',
-      width: 140,
-    },
-    {
-      field: 'status.nodeInfo.osImage',
+      field: 'osImage',
       title: '操作系统',
       minWidth: 200,
     },
     {
-      field: 'metadata.creationTimestamp',
+      field: 'createdAt',
       title: '运行时长',
       width: 120,
       slots: {
@@ -284,29 +283,79 @@ function handleReset() {
 /**
  * 查看节点详情
  */
-function handleView(row: Node) {
-  selectedNode.value = row;
-  detailDrawerVisible.value = true;
+async function handleView(row: NodeListItem) {
+  try {
+    // 调用 API 获取节点详情
+    const nodeDetail = await getNodeDetail(selectedClusterId.value, row.name);
+
+    // 将扁平化的 NodeListItem 转换为标准的 Node 对象
+    const standardNode: Node = {
+      apiVersion: 'v1',
+      kind: 'Node',
+      metadata: {
+        name: nodeDetail.name,
+        creationTimestamp: nodeDetail.createdAt,
+        labels: nodeDetail.labels || {},
+        annotations: nodeDetail.annotations || {},
+        uid: '',
+      },
+      spec: {
+        taints: nodeDetail.taints || [],
+        unschedulable:
+          nodeDetail.taints?.some((t) => t.effect === 'NoSchedule') || false,
+      },
+      status: {
+        capacity: nodeDetail.capacity || {},
+        allocatable: nodeDetail.allocatable || {},
+        conditions: nodeDetail.conditions || [],
+        addresses: [
+          { type: 'InternalIP', address: nodeDetail.internalIP || '' },
+          { type: 'ExternalIP', address: nodeDetail.externalIP || '' },
+          { type: 'Hostname', address: nodeDetail.name },
+        ].filter((addr) => addr.address),
+        nodeInfo: {
+          architecture: '',
+          bootID: '',
+          containerRuntimeVersion: nodeDetail.containerRuntime || '',
+          kernelVersion: nodeDetail.kernelVersion || '',
+          kubeletVersion: nodeDetail.version || '',
+          kubeProxyVersion: nodeDetail.version || '',
+          machineID: '',
+          operatingSystem: 'linux',
+          osImage: nodeDetail.osImage || '',
+          systemUUID: '',
+        },
+      },
+    };
+
+    selectedNode.value = standardNode;
+    detailDrawerVisible.value = true;
+  } catch (error) {
+    message.error('获取节点详情失败');
+    console.error(error);
+  }
 }
 
 /**
  * 检查节点是否被封锁 (Unschedulable)
  */
-function isNodeCordoned(node: Node): boolean {
-  return node.spec?.unschedulable === true;
+function isNodeCordoned(node: NodeListItem): boolean {
+  // 后端应该在 taints 中包含 unschedulable 标记
+  // 或者直接提供 unschedulable 字段
+  return node.taints?.some((t) => t.effect === 'NoSchedule') || false;
 }
 
 /**
  * 封锁节点 (Cordon) - 标记为不可调度
  */
-async function handleCordon(row: Node) {
+async function handleCordon(row: NodeListItem) {
   Modal.confirm({
     title: '确认封锁节点',
-    content: `确定要封锁节点 "${row.metadata.name}" 吗？封锁后新的 Pod 将不会调度到此节点，但现有 Pod 会继续运行。`,
+    content: `确定要封锁节点 "${row.name}" 吗？封锁后新的 Pod 将不会调度到此节点，但现有 Pod 会继续运行。`,
     async onOk() {
       try {
-        await cordonNode(selectedClusterId.value, row.metadata.name);
-        message.success(`节点 "${row.metadata.name}" 已封锁`);
+        await cordonNode(selectedClusterId.value, row.name);
+        message.success(`节点 "${row.name}" 已封锁`);
         gridApi.reload();
       } catch (error) {
         message.error('封锁节点失败');
@@ -319,14 +368,14 @@ async function handleCordon(row: Node) {
 /**
  * 解除封锁 (Uncordon) - 恢复可调度状态
  */
-async function handleUncordon(row: Node) {
+async function handleUncordon(row: NodeListItem) {
   Modal.confirm({
     title: '确认解除封锁',
-    content: `确定要解除节点 "${row.metadata.name}" 的封锁吗？解除后 Pod 可以正常调度到此节点。`,
+    content: `确定要解除节点 "${row.name}" 的封锁吗？解除后 Pod 可以正常调度到此节点。`,
     async onOk() {
       try {
-        await uncordonNode(selectedClusterId.value, row.metadata.name);
-        message.success(`节点 "${row.metadata.name}" 已解除封锁`);
+        await uncordonNode(selectedClusterId.value, row.name);
+        message.success(`节点 "${row.name}" 已解除封锁`);
         gridApi.reload();
       } catch (error) {
         message.error('解除封锁失败');
@@ -339,25 +388,25 @@ async function handleUncordon(row: Node) {
 /**
  * 驱逐节点 (Drain) - 安全地迁移所有 Pod
  */
-async function handleDrain(row: Node) {
+async function handleDrain(row: NodeListItem) {
   Modal.confirm({
     title: '确认驱逐节点',
-    content: `确定要驱逐节点 "${row.metadata.name}" 上的所有 Pod 吗？Pod 将被安全地迁移到其他节点。此操作可能需要一些时间。`,
+    content: `确定要驱逐节点 "${row.name}" 上的所有 Pod 吗？Pod 将被安全地迁移到其他节点。此操作可能需要一些时间。`,
     okText: '确认驱逐',
     okType: 'danger',
     async onOk() {
       const hide = message.loading({
-        content: `正在驱逐节点 "${row.metadata.name}" 上的 Pod...`,
+        content: `正在驱逐节点 "${row.name}" 上的 Pod...`,
         duration: 0,
       });
 
       try {
-        await drainNode(selectedClusterId.value, row.metadata.name, {
+        await drainNode(selectedClusterId.value, row.name, {
           ignoreDaemonsets: true,
           deleteLocalData: true,
         });
         hide();
-        message.success(`节点 "${row.metadata.name}" 上的 Pod 已全部驱逐`);
+        message.success(`节点 "${row.name}" 上的 Pod 已全部驱逐`);
         gridApi.reload();
       } catch (error) {
         hide();
@@ -371,7 +420,7 @@ async function handleDrain(row: Node) {
 /**
  * 编辑节点标签
  */
-function handleEditLabels(row: Node) {
+function handleEditLabels(row: NodeListItem) {
   editingNode.value = row;
   editLabelsModalVisible.value = true;
 }
@@ -379,7 +428,7 @@ function handleEditLabels(row: Node) {
 /**
  * 编辑节点污点
  */
-function handleEditTaints(row: Node) {
+function handleEditTaints(row: NodeListItem) {
   editingNode.value = row;
   editTaintsModalVisible.value = true;
 }
@@ -397,6 +446,13 @@ function handleLabelsSuccess() {
 function handleTaintsSuccess() {
   gridApi.reload();
 }
+
+// 当 cluster ID 加载完成后，触发数据刷新
+watch(selectedClusterId, (newId) => {
+  if (newId) {
+    gridApi.reload();
+  }
+});
 </script>
 
 <template>
@@ -406,37 +462,37 @@ function handleTaintsSuccess() {
 
       <div class="search-filter">
         <Space :size="12" wrap>
-        <Select
-          v-model:value="selectedClusterId"
-          :options="clusterOptions"
-          :style="{ width: '200px' }"
-          placeholder="选择集群"
-          @change="handleSearch"
-        />
+          <Select
+            v-model:value="selectedClusterId"
+            :options="clusterOptions"
+            :style="{ width: '200px' }"
+            placeholder="选择集群"
+            @change="handleSearch"
+          />
 
-        <Input
-          v-model:value="searchKeyword"
-          :style="{ width: '240px' }"
-          placeholder="搜索 Node 名称"
-          allow-clear
-          @input="debouncedSearch"
-          @press-enter="handleSearch"
-        >
-          <template #prefix>
+          <Input
+            v-model:value="searchKeyword"
+            :style="{ width: '240px' }"
+            placeholder="搜索 Node 名称"
+            allow-clear
+            @input="debouncedSearch"
+            @press-enter="handleSearch"
+          >
+            <template #prefix>
+              <SearchOutlined />
+            </template>
+          </Input>
+
+          <Button type="primary" @click="handleSearch">
             <SearchOutlined />
-          </template>
-        </Input>
+            搜索
+          </Button>
 
-        <Button type="primary" @click="handleSearch">
-          <SearchOutlined />
-          搜索
-        </Button>
-
-        <Button @click="handleReset">
-          <ReloadOutlined />
-          重置
-        </Button>
-      </Space>
+          <Button @click="handleReset">
+            <ReloadOutlined />
+            重置
+          </Button>
+        </Space>
       </div>
     </div>
 
@@ -494,7 +550,7 @@ function handleTaintsSuccess() {
         </template>
 
         <template #age-slot="{ row }">
-          {{ getNodeAge(row.metadata.creationTimestamp) }}
+          {{ getNodeAge(row.createdAt) }}
         </template>
 
         <template #actions-slot="{ row }">
@@ -522,11 +578,7 @@ function handleTaintsSuccess() {
                     <LockOutlined />
                     封锁节点
                   </Menu.Item>
-                  <Menu.Item
-                    v-else
-                    key="uncordon"
-                    @click="handleUncordon(row)"
-                  >
+                  <Menu.Item v-else key="uncordon" @click="handleUncordon(row)">
                     <UnlockOutlined />
                     解除封锁
                   </Menu.Item>
@@ -534,11 +586,7 @@ function handleTaintsSuccess() {
                   <Menu.Divider />
 
                   <!-- 驱逐 -->
-                  <Menu.Item
-                    key="drain"
-                    danger
-                    @click="handleDrain(row)"
-                  >
+                  <Menu.Item key="drain" danger @click="handleDrain(row)">
                     <CloudUploadOutlined />
                     驱逐 Pod
                   </Menu.Item>

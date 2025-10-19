@@ -3,10 +3,19 @@
  * Kubernetes ClusterRoleBinding 列表页面
  * 展示集群级别的角色绑定关系：将 Subject (User/Group/ServiceAccount) 绑定到 ClusterRole
  */
-import type { ClusterRoleBinding, ClusterRoleBindingListParams, Subject } from '#/api/k8s/types';
+import type {
+  ClusterRoleBinding,
+  ClusterRoleBindingListParams,
+  Subject,
+} from '#/api/k8s/types';
 
 import { onMounted, ref } from 'vue';
 
+import {
+  LinkOutlined,
+  TeamOutlined,
+  UserOutlined,
+} from '@ant-design/icons-vue';
 import {
   Card,
   Descriptions,
@@ -16,13 +25,8 @@ import {
   Tag,
   Tooltip,
 } from 'ant-design-vue';
-import {
-  LinkOutlined,
-  TeamOutlined,
-  UserOutlined,
-} from '@ant-design/icons-vue';
 
-import { getMockClusterRoleBindingList } from '#/api/k8s/mock';
+import { clusterRoleBindingApi } from '#/api/k8s';
 
 // 当前选中的集群ID（暂时使用固定值）
 const currentClusterId = ref('cluster-production-01');
@@ -77,9 +81,9 @@ async function loadClusterRoleBindings() {
       pageSize: pageSize.value,
     };
 
-    const result = getMockClusterRoleBindingList(params);
-    clusterRoleBindings.value = result.items;
-    total.value = result.total;
+    const result = await clusterRoleBindingApi.list(params);
+    clusterRoleBindings.value = result.items || [];
+    total.value = result.total || 0;
   } catch (error: any) {
     message.error(`加载 ClusterRoleBindings 失败: ${error.message}`);
   } finally {
@@ -118,14 +122,18 @@ function formatDateTime(dateString: string): string {
  */
 function getSubjectTypeColor(kind: string): string {
   switch (kind) {
-    case 'User':
-      return 'blue';
-    case 'Group':
+    case 'Group': {
       return 'purple';
-    case 'ServiceAccount':
+    }
+    case 'ServiceAccount': {
       return 'green';
-    default:
+    }
+    case 'User': {
+      return 'blue';
+    }
+    default: {
       return 'default';
+    }
   }
 }
 
@@ -134,14 +142,18 @@ function getSubjectTypeColor(kind: string): string {
  */
 function getSubjectTypeIcon(kind: string) {
   switch (kind) {
-    case 'User':
-      return UserOutlined;
-    case 'Group':
+    case 'Group': {
       return TeamOutlined;
-    case 'ServiceAccount':
+    }
+    case 'ServiceAccount': {
       return UserOutlined;
-    default:
+    }
+    case 'User': {
       return UserOutlined;
+    }
+    default: {
+      return UserOutlined;
+    }
   }
 }
 
@@ -191,7 +203,7 @@ onMounted(() => {
         <div class="card-title">
           <LinkOutlined class="title-icon" />
           <span>ClusterRoleBindings ({{ total }})</span>
-          <Tag color="purple" style="margin-left: 12px;">集群级别</Tag>
+          <Tag color="purple" style="margin-left: 12px">集群级别</Tag>
         </div>
       </template>
 
@@ -235,7 +247,9 @@ onMounted(() => {
 
           <!-- 创建时间列 -->
           <template v-else-if="column.key === 'creationTimestamp'">
-            <Tooltip :title="formatDateTime(record.metadata.creationTimestamp!)">
+            <Tooltip
+              :title="formatDateTime(record.metadata.creationTimestamp!)"
+            >
               <span class="time-text">
                 {{ formatRelativeTime(record.metadata.creationTimestamp!) }}
               </span>
@@ -268,7 +282,10 @@ onMounted(() => {
               <h4 class="subjects-title">
                 绑定主体 ({{ record.subjects?.length || 0 }})
               </h4>
-              <div v-if="record.subjects && record.subjects.length > 0" class="subjects-list">
+              <div
+                v-if="record.subjects && record.subjects.length > 0"
+                class="subjects-list"
+              >
                 <Card
                   v-for="(subject, index) in record.subjects"
                   :key="`subject-${index}`"
@@ -300,9 +317,7 @@ onMounted(() => {
                   </div>
                 </Card>
               </div>
-              <div v-else class="no-subjects">
-                暂无绑定主体
-              </div>
+              <div v-else class="no-subjects">暂无绑定主体</div>
             </div>
           </div>
         </template>
@@ -339,8 +354,8 @@ onMounted(() => {
 
 .card-title {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   font-size: 16px;
   font-weight: 600;
 }
@@ -352,8 +367,8 @@ onMounted(() => {
 
 .name-cell {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .name-icon {
@@ -415,8 +430,8 @@ html[data-theme='dark'] .expanded-content {
 
 .subject-header {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   margin-bottom: 12px;
 }
 

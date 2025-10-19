@@ -6,18 +6,18 @@
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { AutoComplete, Input, Tag } from 'ant-design-vue';
 import { SearchOutlined } from '@ant-design/icons-vue';
+import { AutoComplete, Input, Tag } from 'ant-design-vue';
 
 import {
-  getMockConfigMapList,
-  getMockDeploymentList,
-  getMockNamespaceList,
-  getMockNodeList,
-  getMockPodList,
-  getMockSecretList,
-  getMockServiceList,
-} from '#/api/k8s/mock';
+  configMapApi,
+  deploymentApi,
+  namespaceApi,
+  nodeApi,
+  podApi,
+  secretApi,
+  serviceApi,
+} from '#/api/k8s';
 
 const router = useRouter();
 
@@ -48,17 +48,30 @@ async function performSearch(keyword: string) {
     const clusterId = 'cluster-production-01';
     const results: SearchResultItem[] = [];
 
-    // 并行搜索所有资源类型
-    const [pods, deployments, services, nodes, namespaces, configmaps, secrets] =
-      await Promise.all([
-        Promise.resolve(getMockPodList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockDeploymentList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockServiceList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockNodeList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockNamespaceList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockConfigMapList({ clusterId, pageSize: 100 })),
-        Promise.resolve(getMockSecretList({ clusterId, pageSize: 100 })),
-      ]);
+    // 并行搜索所有资源类型 - 调用真实 API
+    const [
+      pods,
+      deployments,
+      services,
+      nodes,
+      namespaces,
+      configmaps,
+      secrets,
+    ] = await Promise.all([
+      podApi.list({ clusterId, pageSize: 100 }).catch(() => ({ items: [] })),
+      deploymentApi
+        .list({ clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      serviceApi
+        .list({ clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      nodeApi.list(clusterId).catch(() => ({ items: [] })),
+      namespaceApi.list(clusterId).catch(() => ({ items: [] })),
+      configMapApi
+        .list({ clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      secretApi.list({ clusterId, pageSize: 100 }).catch(() => ({ items: [] })),
+    ]);
 
     const lowerKeyword = keyword.toLowerCase();
 
@@ -293,7 +306,9 @@ function getTypeColor(type: string): string {
       <template #option="{ item }">
         <div class="search-option">
           <div class="option-header">
-            <Tag :color="getTypeColor(item.type)" size="small">{{ item.type }}</Tag>
+            <Tag :color="getTypeColor(item.type)" size="small">
+              {{ item.type }}
+            </Tag>
             <span class="option-name">{{ item.name }}</span>
           </div>
           <div v-if="item.namespace" class="option-namespace">
@@ -324,8 +339,8 @@ function getTypeColor(type: string): string {
 
 .option-header {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .option-name {
@@ -336,8 +351,8 @@ function getTypeColor(type: string): string {
 
 .option-namespace {
   display: flex;
-  align-items: center;
   gap: 4px;
+  align-items: center;
   margin-left: 4px;
 }
 
@@ -347,12 +362,12 @@ function getTypeColor(type: string): string {
 }
 
 .namespace-value {
+  padding: 1px 4px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 11px;
   color: var(--vben-text-color-secondary);
-  padding: 1px 4px;
-  border-radius: 2px;
   background-color: rgb(0 0 0 / 3%);
+  border-radius: 2px;
 }
 
 html[data-theme='dark'] .namespace-value {
@@ -360,8 +375,8 @@ html[data-theme='dark'] .namespace-value {
 }
 
 .option-description {
+  margin-left: 4px;
   font-size: 12px;
   color: var(--vben-text-color-secondary);
-  margin-left: 4px;
 }
 </style>

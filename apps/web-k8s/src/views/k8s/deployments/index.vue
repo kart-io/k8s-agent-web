@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { Deployment } from '#/api/k8s/types';
+import type { DeploymentListItem } from '#/api/k8s/types';
 
 import { ref, watch } from 'vue';
 
-import { Button, Input, message, Modal, Select, Space, Tag } from 'ant-design-vue';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -13,24 +12,27 @@ import {
   SearchOutlined,
 } from '@ant-design/icons-vue';
 import { useDebounceFn } from '@vueuse/core';
+import {
+  Button,
+  Input,
+  message,
+  Modal,
+  Select,
+  Space,
+  Tag,
+} from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-
-import { getMockDeploymentList } from '#/api/k8s/mock';
+import { deploymentApi } from '#/api/k8s';
+import { useClusterOptions } from '#/composables/useClusterOptions';
 
 defineOptions({
   name: 'DeploymentsManagement',
 });
 
-const selectedClusterId = ref('cluster-prod-01');
+const { clusterOptions, selectedClusterId } = useClusterOptions();
 const selectedNamespace = ref<string>();
 const searchKeyword = ref('');
-
-const clusterOptions = [
-  { label: 'Production Cluster', value: 'cluster-prod-01' },
-  { label: 'Staging Cluster', value: 'cluster-staging-01' },
-  { label: 'Development Cluster', value: 'cluster-dev-01' },
-];
 
 const namespaceOptions = [
   { label: '全部命名空间', value: undefined },
@@ -41,7 +43,14 @@ const namespaceOptions = [
 // AbortController 用于取消请求
 let abortController: AbortController | null = null;
 
-async function fetchDeploymentData(params: { page: { currentPage: number; pageSize: number } }) {
+async function fetchDeploymentData(params: {
+  page: { currentPage: number; pageSize: number };
+}) {
+  // Don't fetch if no cluster is selected
+  if (!selectedClusterId.value) {
+    return { items: [], total: 0 };
+  }
+
   // 取消之前的请求
   if (abortController) {
     abortController.abort();
@@ -51,16 +60,8 @@ async function fetchDeploymentData(params: { page: { currentPage: number; pageSi
   abortController = new AbortController();
 
   try {
-    // 模拟 API 延迟
-    await new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(resolve, 500);
-      abortController!.signal.addEventListener('abort', () => {
-        clearTimeout(timeoutId);
-        reject(new Error('Request aborted'));
-      });
-    });
-
-    const result = getMockDeploymentList({
+    // 调用真实的 Deployment API
+    const result = await deploymentApi.list({
       clusterId: selectedClusterId.value,
       namespace: selectedNamespace.value,
       page: params.page.currentPage,
@@ -68,19 +69,21 @@ async function fetchDeploymentData(params: { page: { currentPage: number; pageSi
     });
 
     return {
-      items: result.items,
-      total: result.total,
+      items: result.items || [],
+      total: result.total || 0,
     };
   } catch (error: any) {
     // 如果是取消请求,返回空结果
-    if (error.message === 'Request aborted') {
+    if (error.message === 'Request aborted' || error.name === 'AbortError') {
       return { items: [], total: 0 };
     }
-    throw error;
+    console.error('获取 Deployment 列表失败:', error);
+    message.error(`获取 Deployment 列表失败: ${error.message || '未知错误'}`);
+    return { items: [], total: 0 };
   }
 }
 
-const gridOptions: VxeGridProps<Deployment> = {
+const gridOptions: VxeGridProps<DeploymentListItem> = {
   height: 600,
   checkboxConfig: {
     highlight: true,
@@ -93,22 +96,22 @@ const gridOptions: VxeGridProps<Deployment> = {
     { title: '序号', type: 'seq', width: 60 },
     { align: 'left', title: '选择', type: 'checkbox', width: 80 },
     {
-      field: 'metadata.name',
+      field: 'name',
       title: 'Deployment 名称',
       minWidth: 200,
     },
     {
-      field: 'metadata.namespace',
+      field: 'namespace',
       title: '命名空间',
       width: 150,
     },
     {
-      field: 'spec.replicas',
+      field: 'replicas',
       title: '副本数',
       width: 100,
     },
     {
-      field: 'status.readyReplicas',
+      field: 'readyReplicas',
       title: '就绪副本',
       width: 120,
       slots: {
@@ -116,7 +119,7 @@ const gridOptions: VxeGridProps<Deployment> = {
       },
     },
     {
-      field: 'metadata.creationTimestamp',
+      field: 'createdAt',
       title: '创建时间',
       width: 180,
       formatter: 'formatDateTime',
@@ -172,50 +175,57 @@ function handleReset() {
   gridApi.reload();
 }
 
-function handleView(row: Deployment) {
+function handleView(row: DeploymentListItem) {
   Modal.info({
     title: 'Deployment 详情',
     width: 700,
     content: `
-      名称: ${row.metadata.name}
-      命名空间: ${row.metadata.namespace}
-      副本数: ${row.spec.replicas}
-      就绪副本: ${row.status?.readyReplicas ?? 0}
-      可用副本: ${row.status?.availableReplicas ?? 0}
-      创建时间: ${row.metadata.creationTimestamp}
+      名称: ${row.name}
+      命名空间: ${row.namespace}
+      副本数: ${row.replicas}
+      就绪副本: ${row.readyReplicas ?? 0}
+      可用副本: ${row.availableReplicas ?? 0}
+      创建时间: ${row.createdAt}
     `,
   });
 }
 
-function handleScale(row: Deployment) {
-  message.info(`扩缩容 Deployment "${row.metadata.name}" (功能开发中)`);
+function handleScale(row: DeploymentListItem) {
+  message.info(`扩缩容 Deployment "${row.name}" (功能开发中)`);
 }
 
-function handleRestart(row: Deployment) {
+function handleRestart(row: DeploymentListItem) {
   Modal.confirm({
     title: '确认重启',
-    content: `确定要重启 Deployment "${row.metadata.name}" 吗？`,
+    content: `确定要重启 Deployment "${row.name}" 吗？`,
     onOk() {
-      message.success(`Deployment "${row.metadata.name}" 重启成功`);
+      message.success(`Deployment "${row.name}" 重启成功`);
       gridApi.reload();
     },
   });
 }
 
-function handleEdit(row: Deployment) {
-  message.info(`编辑 Deployment "${row.metadata.name}" (功能开发中)`);
+function handleEdit(row: DeploymentListItem) {
+  message.info(`编辑 Deployment "${row.name}" (功能开发中)`);
 }
 
-function handleDelete(row: Deployment) {
+function handleDelete(row: DeploymentListItem) {
   Modal.confirm({
     title: '确认删除',
-    content: `确定要删除 Deployment "${row.metadata.name}" 吗？此操作不可恢复。`,
+    content: `确定要删除 Deployment "${row.name}" 吗？此操作不可恢复。`,
     onOk() {
-      message.success(`Deployment "${row.metadata.name}" 删除成功`);
+      message.success(`Deployment "${row.name}" 删除成功`);
       gridApi.reload();
     },
   });
 }
+
+// 当 cluster ID 加载完成后，触发数据刷新
+watch(selectedClusterId, (newId) => {
+  if (newId) {
+    gridApi.reload();
+  }
+});
 </script>
 
 <template>
@@ -268,11 +278,10 @@ function handleDelete(row: Deployment) {
       <Grid>
         <template #ready-slot="{ row }">
           <Tag
-            :color="
-              row.status?.readyReplicas === row.spec.replicas ? 'success' : 'warning'
-            "
+            v-if="row"
+            :color="row.readyReplicas === row.replicas ? 'success' : 'warning'"
           >
-            {{ row.status?.readyReplicas ?? 0 }}/{{ row.spec.replicas }}
+            {{ row.readyReplicas ?? 0 }}/{{ row.replicas ?? 0 }}
           </Tag>
         </template>
 
@@ -282,8 +291,12 @@ function handleDelete(row: Deployment) {
               <EyeOutlined />
               详情
             </Button>
-            <Button size="small" type="link" @click="handleScale(row)"> 扩缩容 </Button>
-            <Button size="small" type="link" @click="handleRestart(row)"> 重启 </Button>
+            <Button size="small" type="link" @click="handleScale(row)">
+              扩缩容
+            </Button>
+            <Button size="small" type="link" @click="handleRestart(row)">
+              重启
+            </Button>
             <Button size="small" type="link" @click="handleEdit(row)">
               <EditOutlined />
               编辑
@@ -295,8 +308,7 @@ function handleDelete(row: Deployment) {
           </Space>
         </template>
 
-        <template #toolbar-tools>
-        </template>
+        <template #toolbar-tools> </template>
       </Grid>
     </div>
   </div>

@@ -7,15 +7,15 @@ import type { Event, EventListParams } from '#/api/k8s/types';
 
 import { computed, onMounted, ref } from 'vue';
 
-import { Card, Empty, List, message, Tag, Tooltip } from 'ant-design-vue';
 import {
   ClockCircleOutlined,
   ExclamationCircleOutlined,
   InfoCircleOutlined,
   WarningOutlined,
 } from '@ant-design/icons-vue';
+import { Card, Empty, List, message, Tag, Tooltip } from 'ant-design-vue';
 
-import { getMockEventList } from '#/api/k8s/mock';
+import { eventApi } from '#/api/k8s';
 
 // Props
 const props = defineProps<{
@@ -40,10 +40,13 @@ async function loadRecentEvents() {
       page: 1,
     };
 
-    const result = getMockEventList(params);
-    events.value = result.items;
+    // 调用真实 API
+    const result = await eventApi.list(params);
+    events.value = result.items || [];
   } catch (error: any) {
-    message.error(`加载最近事件失败: ${error.message}`);
+    console.error('加载最近事件失败:', error);
+    message.error(`加载最近事件失败: ${error.message || '未知错误'}`);
+    events.value = [];
   } finally {
     loading.value = false;
   }
@@ -54,14 +57,18 @@ async function loadRecentEvents() {
  */
 function getEventTypeColor(type: string): string {
   switch (type) {
-    case 'Normal':
-      return 'success';
-    case 'Warning':
-      return 'warning';
-    case 'Error':
+    case 'Error': {
       return 'error';
-    default:
+    }
+    case 'Normal': {
+      return 'success';
+    }
+    case 'Warning': {
+      return 'warning';
+    }
+    default: {
       return 'default';
+    }
   }
 }
 
@@ -70,14 +77,18 @@ function getEventTypeColor(type: string): string {
  */
 function getEventTypeIcon(type: string) {
   switch (type) {
-    case 'Normal':
-      return InfoCircleOutlined;
-    case 'Warning':
-      return WarningOutlined;
-    case 'Error':
+    case 'Error': {
       return ExclamationCircleOutlined;
-    default:
+    }
+    case 'Normal': {
+      return InfoCircleOutlined;
+    }
+    case 'Warning': {
+      return WarningOutlined;
+    }
+    default: {
       return ClockCircleOutlined;
+    }
   }
 }
 
@@ -128,9 +139,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <Card class="recent-events-card" title="最近事件" :bordered="false" :loading="loading">
+  <Card
+    class="recent-events-card"
+    title="最近事件"
+    :bordered="false"
+    :loading="loading"
+  >
     <template #extra>
-      <ClockCircleOutlined style="color: var(--vben-text-color-secondary);" />
+      <ClockCircleOutlined style="color: var(--vben-text-color-secondary)" />
     </template>
 
     <div v-if="hasEvents" class="events-content">
@@ -140,7 +156,10 @@ onMounted(() => {
             <div class="event-content">
               <div class="event-header">
                 <div class="event-type">
-                  <component :is="getEventTypeIcon(event.type)" class="event-icon" />
+                  <component
+                    :is="getEventTypeIcon(event.type)"
+                    class="event-icon"
+                  />
                   <Tag :color="getEventTypeColor(event.type)">
                     {{ event.type }}
                   </Tag>
@@ -169,7 +188,9 @@ onMounted(() => {
 
               <div v-if="event.metadata.namespace" class="event-namespace">
                 <span class="namespace-label">命名空间:</span>
-                <code class="namespace-value">{{ event.metadata.namespace }}</code>
+                <code class="namespace-value">{{
+                  event.metadata.namespace
+                }}</code>
               </div>
             </div>
           </List.Item>
@@ -177,7 +198,11 @@ onMounted(() => {
       </List>
     </div>
 
-    <Empty v-else description="暂无最近事件" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+    <Empty
+      v-else
+      description="暂无最近事件"
+      :image="Empty.PRESENTED_IMAGE_SIMPLE"
+    />
   </Card>
 </template>
 
@@ -214,14 +239,14 @@ html[data-theme='dark'] .event-item:hover {
 
 .event-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 
 .event-type {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .event-icon {
@@ -244,8 +269,8 @@ html[data-theme='dark'] .event-item:hover {
 .event-reason,
 .event-namespace {
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
 }
 
 .event-label,
@@ -256,12 +281,12 @@ html[data-theme='dark'] .event-item:hover {
 
 .event-value,
 .namespace-value {
+  padding: 2px 6px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 12px;
   color: var(--vben-text-color);
-  padding: 2px 6px;
-  border-radius: 3px;
   background-color: rgb(0 0 0 / 4%);
+  border-radius: 3px;
 }
 
 html[data-theme='dark'] .event-value,
@@ -270,12 +295,12 @@ html[data-theme='dark'] .namespace-value {
 }
 
 .event-message {
+  padding: 8px 12px;
   font-size: 13px;
   line-height: 1.6;
   color: var(--vben-text-color);
-  padding: 8px 12px;
-  border-left: 3px solid var(--vben-primary-color);
   background-color: rgb(24 144 255 / 5%);
+  border-left: 3px solid var(--vben-primary-color);
   border-radius: 4px;
 }
 

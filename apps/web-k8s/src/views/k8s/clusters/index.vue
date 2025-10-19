@@ -4,15 +4,32 @@ import type { Cluster, ClusterListParams } from '#/api/k8s/types';
 
 import { ref, watch } from 'vue';
 
-import { Button, Input, message, Modal, Select, Space, Tag } from 'ant-design-vue';
-import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons-vue';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  EyeOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+} from '@ant-design/icons-vue';
 import { useDebounceFn } from '@vueuse/core';
+import {
+  Button,
+  Input,
+  message,
+  Modal,
+  Select,
+  Space,
+  Tag,
+} from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { clusterApi, getClusterDetail } from '#/api/k8s';
+import { clusterStore } from '#/stores/clusterStore';
 
-import { getMockClusterList } from '#/api/k8s/mock';
-
+import AddClusterModal from './AddClusterModal.vue';
 import DetailDrawer from './DetailDrawer.vue';
+import EditClusterModal from './EditClusterModal.vue';
 
 defineOptions({
   name: 'ClustersManagement',
@@ -30,6 +47,13 @@ const searchForm = ref<ClusterListParams>({
 const detailDrawerVisible = ref(false);
 const selectedCluster = ref<Cluster | null>(null);
 
+// 添加集群对话框状态
+const addClusterVisible = ref(false);
+
+// 编辑集群对话框状态
+const editClusterVisible = ref(false);
+const clusterToEdit = ref<Cluster | null>(null);
+
 // 状态选项
 const statusOptions = [
   { label: '全部', value: undefined },
@@ -42,7 +66,9 @@ const statusOptions = [
 let abortController: AbortController | null = null;
 
 // 获取集群数据
-async function fetchClusterData(params: { page: { currentPage: number; pageSize: number } }) {
+async function fetchClusterData(params: {
+  page: { currentPage: number; pageSize: number };
+}) {
   // 取消之前的请求
   if (abortController) {
     abortController.abort();
@@ -52,31 +78,26 @@ async function fetchClusterData(params: { page: { currentPage: number; pageSize:
   abortController = new AbortController();
 
   try {
-    // 模拟 API 延迟
-    await new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(resolve, 500);
-      abortController!.signal.addEventListener('abort', () => {
-        clearTimeout(timeoutId);
-        reject(new Error('Request aborted'));
-      });
-    });
-
-    const result = getMockClusterList({
+    // 调用真实的 cluster-service API
+    const result = await clusterApi.list({
       ...searchForm.value,
       page: params.page.currentPage,
       pageSize: params.page.pageSize,
     });
 
     return {
-      items: result.items,
-      total: result.total,
+      items: result.items || [],
+      total: result.total || 0,
     };
   } catch (error: any) {
     // 如果是取消请求，返回空结果
-    if (error.message === 'Request aborted') {
+    if (error.message === 'Request aborted' || error.name === 'AbortError') {
       return { items: [], total: 0 };
     }
-    throw error;
+    // 其他错误抛出,让表格组件处理
+    console.error('获取集群列表失败:', error);
+    message.error(`获取集群列表失败: ${error.message || '未知错误'}`);
+    return { items: [], total: 0 };
   }
 }
 
@@ -115,7 +136,7 @@ const gridOptions: VxeGridProps<Cluster> = {
     { field: 'podCount', title: 'Pod 数', width: 100 },
     { field: 'namespaceCount', title: '命名空间', width: 120 },
     {
-      field: 'apiServer',
+      field: 'endpoint',
       title: 'API Server',
       minWidth: 250,
     },
@@ -186,14 +207,21 @@ function handleReset() {
 }
 
 // 查看详情
-function handleView(row: Cluster) {
-  selectedCluster.value = row;
-  detailDrawerVisible.value = true;
+async function handleView(row: Cluster) {
+  try {
+    // 调用详情接口获取最新数据
+    const clusterDetail = await getClusterDetail(row.id);
+    selectedCluster.value = clusterDetail;
+    detailDrawerVisible.value = true;
+  } catch (error: any) {
+    message.error(error.message || '获取集群详情失败');
+  }
 }
 
 // 编辑集群
 function handleEdit(row: Cluster) {
-  message.info(`编辑集群: ${row.name} (功能开发中)`);
+  clusterToEdit.value = row;
+  editClusterVisible.value = true;
 }
 
 // 删除集群
@@ -204,13 +232,29 @@ function handleDelete(row: Cluster) {
     onOk() {
       message.success(`集群 "${row.name}" 删除成功`);
       gridApi.reload();
+      // 刷新全局集群选项列表
+      clusterStore.refresh();
     },
   });
 }
 
 // 添加集群
 function handleAdd() {
-  message.info('添加集群功能开发中');
+  addClusterVisible.value = true;
+}
+
+// 添加成功回调
+function handleAddSuccess() {
+  gridApi.reload();
+  // 刷新全局集群选项列表
+  clusterStore.refresh();
+}
+
+// 编辑成功回调
+function handleEditSuccess() {
+  gridApi.reload();
+  // 刷新全局集群选项列表（以防集群名称被修改）
+  clusterStore.refresh();
 }
 </script>
 
@@ -308,6 +352,19 @@ function handleAdd() {
     <DetailDrawer
       v-model:visible="detailDrawerVisible"
       :cluster="selectedCluster"
+    />
+
+    <!-- 添加集群对话框 -->
+    <AddClusterModal
+      v-model:visible="addClusterVisible"
+      @success="handleAddSuccess"
+    />
+
+    <!-- 编辑集群对话框 -->
+    <EditClusterModal
+      v-model:visible="editClusterVisible"
+      :cluster="clusterToEdit"
+      @success="handleEditSuccess"
     />
   </div>
 </template>

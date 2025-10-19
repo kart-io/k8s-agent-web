@@ -18,7 +18,7 @@ import {
   Tag,
 } from 'ant-design-vue';
 
-import { getMockPodList } from '#/api/k8s/mock';
+import { podApi } from '#/api/k8s';
 
 interface DetailDrawerProps {
   visible: boolean;
@@ -412,13 +412,13 @@ function getNodeAddress(type: string): string {
 /**
  * 加载节点上的 Pod
  */
-function loadNodePods() {
+async function loadNodePods() {
   if (!props.node || !props.visible) {
     nodePods.value = [];
     return;
   }
 
-  const result = getMockPodList({
+  const result = await podApi.list({
     clusterId: props.clusterId,
     page: 1,
     pageSize: 100,

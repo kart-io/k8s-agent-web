@@ -6,7 +6,6 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { Badge, Button, Card, Empty, List, Tag } from 'ant-design-vue';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -14,13 +13,9 @@ import {
   RightOutlined,
   WarningOutlined,
 } from '@ant-design/icons-vue';
+import { Badge, Button, Card, Empty, List, Tag } from 'ant-design-vue';
 
-import {
-  getMockDeploymentList,
-  getMockNodeList,
-  getMockPodList,
-  getMockServiceList,
-} from '#/api/k8s/mock';
+import { deploymentApi, nodeApi, podApi, serviceApi } from '#/api/k8s';
 
 interface Props {
   clusterId: string;
@@ -32,7 +27,7 @@ const router = useRouter();
 const loading = ref(false);
 
 interface ProblemResource {
-  type: 'Pod' | 'Node' | 'Deployment' | 'Service';
+  type: 'Deployment' | 'Node' | 'Pod' | 'Service';
   name: string;
   namespace?: string;
   severity: 'critical' | 'warning';
@@ -49,12 +44,16 @@ async function loadProblemResources() {
   loading.value = true;
   try {
     const [pods, nodes, deployments, services] = await Promise.all([
-      Promise.resolve(getMockPodList({ clusterId: props.clusterId, pageSize: 100 })),
-      Promise.resolve(getMockNodeList({ clusterId: props.clusterId, pageSize: 100 })),
-      Promise.resolve(
-        getMockDeploymentList({ clusterId: props.clusterId, pageSize: 100 }),
-      ),
-      Promise.resolve(getMockServiceList({ clusterId: props.clusterId, pageSize: 100 })),
+      podApi
+        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      nodeApi.list(props.clusterId).catch(() => ({ items: [] })),
+      deploymentApi
+        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
+      serviceApi
+        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .catch(() => ({ items: [] })),
     ]);
 
     const problems: ProblemResource[] = [];
@@ -208,10 +207,18 @@ onMounted(() => {
       <div class="card-title">
         <span>问题资源</span>
         <div v-if="hasProblems" class="problem-badges">
-          <Badge v-if="criticalCount > 0" :count="criticalCount" :number-style="{ backgroundColor: '#f5222d' }">
+          <Badge
+            v-if="criticalCount > 0"
+            :count="criticalCount"
+            :number-style="{ backgroundColor: '#f5222d' }"
+          >
             <Tag color="error">严重</Tag>
           </Badge>
-          <Badge v-if="warningCount > 0" :count="warningCount" :number-style="{ backgroundColor: '#faad14' }">
+          <Badge
+            v-if="warningCount > 0"
+            :count="warningCount"
+            :number-style="{ backgroundColor: '#faad14' }"
+          >
             <Tag color="warning">警告</Tag>
           </Badge>
         </div>
@@ -226,12 +233,16 @@ onMounted(() => {
               <div class="problem-header">
                 <component
                   :is="getSeverityIcon(item.severity)"
-                  :style="{ color: item.severity === 'critical' ? '#f5222d' : '#faad14' }"
+                  :style="{
+                    color: item.severity === 'critical' ? '#f5222d' : '#faad14',
+                  }"
                   class="severity-icon"
                 />
                 <div class="problem-info">
                   <div class="resource-name-row">
-                    <Tag :color="getTypeColor(item.type)" size="small">{{ item.type }}</Tag>
+                    <Tag :color="getTypeColor(item.type)" size="small">
+                      {{ item.type }}
+                    </Tag>
                     <code class="resource-name">{{ item.name }}</code>
                   </div>
                   <div v-if="item.namespace" class="namespace-row">
@@ -266,7 +277,7 @@ onMounted(() => {
     >
       <template #image>
         <div class="success-state">
-          <CheckCircleOutlined style="font-size: 64px; color: #52c41a;" />
+          <CheckCircleOutlined style="font-size: 64px; color: #52c41a" />
         </div>
       </template>
     </Empty>
@@ -324,31 +335,31 @@ html[data-theme='dark'] .problem-item:hover {
 }
 
 .severity-icon {
-  font-size: 20px;
   flex-shrink: 0;
   margin-top: 2px;
+  font-size: 20px;
 }
 
 .problem-info {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 6px;
-  flex: 1;
 }
 
 .resource-name-row {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .resource-name {
+  padding: 2px 6px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 13px;
   color: var(--vben-text-color);
-  padding: 2px 6px;
-  border-radius: 3px;
   background-color: rgb(0 0 0 / 4%);
+  border-radius: 3px;
 }
 
 html[data-theme='dark'] .resource-name {
@@ -357,8 +368,8 @@ html[data-theme='dark'] .resource-name {
 
 .namespace-row {
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
 }
 
 .namespace-label {
@@ -367,12 +378,12 @@ html[data-theme='dark'] .resource-name {
 }
 
 .namespace-value {
+  padding: 1px 4px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 11px;
   color: var(--vben-text-color-secondary);
-  padding: 1px 4px;
-  border-radius: 2px;
   background-color: rgb(0 0 0 / 3%);
+  border-radius: 2px;
 }
 
 html[data-theme='dark'] .namespace-value {
@@ -381,11 +392,11 @@ html[data-theme='dark'] .namespace-value {
 
 .issue-row {
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
   padding: 6px 10px;
-  border-left: 3px solid var(--vben-warning-color);
   background-color: rgb(250 140 22 / 5%);
+  border-left: 3px solid var(--vben-warning-color);
   border-radius: 4px;
 }
 

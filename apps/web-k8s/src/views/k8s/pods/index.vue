@@ -2,9 +2,8 @@
 import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { Pod } from '#/api/k8s/types';
 
-import { ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
-import { Button, Input, message, Modal, Select, Space, Tag } from 'ant-design-vue';
 import {
   DeleteOutlined,
   EyeOutlined,
@@ -12,24 +11,28 @@ import {
   SearchOutlined,
 } from '@ant-design/icons-vue';
 import { useDebounceFn } from '@vueuse/core';
+import {
+  Button,
+  Input,
+  message,
+  Modal,
+  Select,
+  Space,
+  Tag,
+} from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-
-import { getMockPodList } from '#/api/k8s/mock';
+import { clusterApi, podApi } from '#/api/k8s';
 
 defineOptions({
   name: 'PodsManagement',
 });
 
-const selectedClusterId = ref('cluster-prod-01');
+const selectedClusterId = ref('');
 const searchKeyword = ref('');
 const selectedNamespace = ref<string>();
 
-const clusterOptions = [
-  { label: 'Production Cluster', value: 'cluster-prod-01' },
-  { label: 'Staging Cluster', value: 'cluster-staging-01' },
-  { label: 'Development Cluster', value: 'cluster-dev-01' },
-];
+const clusterOptions = ref<Array<{ label: string; value: string }>>([]);
 
 const namespaceOptions = [
   { label: '全部命名空间', value: undefined },
@@ -38,10 +41,32 @@ const namespaceOptions = [
   { label: 'production', value: 'production' },
 ];
 
+// 加载集群选项
+async function loadClusterOptions() {
+  try {
+    const options = await clusterApi.options();
+    clusterOptions.value = options;
+    // 设置第一个集群为默认选中
+    if (options.length > 0 && !selectedClusterId.value) {
+      selectedClusterId.value = options[0].value;
+    }
+  } catch (error: any) {
+    console.error('获取集群列表失败:', error);
+    message.error(`获取集群列表失败: ${error.message || '未知错误'}`);
+  }
+}
+
 // AbortController 用于取消请求
 let abortController: AbortController | null = null;
 
-async function fetchPodData(params: { page: { currentPage: number; pageSize: number } }) {
+async function fetchPodData(params: {
+  page: { currentPage: number; pageSize: number };
+}) {
+  // Don't fetch if no cluster is selected
+  if (!selectedClusterId.value) {
+    return { items: [], total: 0 };
+  }
+
   // 取消之前的请求
   if (abortController) {
     abortController.abort();
@@ -51,16 +76,8 @@ async function fetchPodData(params: { page: { currentPage: number; pageSize: num
   abortController = new AbortController();
 
   try {
-    // 模拟 API 延迟
-    await new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(resolve, 500);
-      abortController!.signal.addEventListener('abort', () => {
-        clearTimeout(timeoutId);
-        reject(new Error('Request aborted'));
-      });
-    });
-
-    const result = getMockPodList({
+    // 调用真实的 Pod API
+    const result = await podApi.list({
       clusterId: selectedClusterId.value,
       namespace: selectedNamespace.value,
       page: params.page.currentPage,
@@ -68,15 +85,17 @@ async function fetchPodData(params: { page: { currentPage: number; pageSize: num
     });
 
     return {
-      items: result.items,
-      total: result.total,
+      items: result.items || [],
+      total: result.total || 0,
     };
   } catch (error: any) {
     // 如果是取消请求，返回空结果
-    if (error.message === 'Request aborted') {
+    if (error.message === 'Request aborted' || error.name === 'AbortError') {
       return { items: [], total: 0 };
     }
-    throw error;
+    console.error('获取 Pod 列表失败:', error);
+    message.error(`获取 Pod 列表失败: ${error.message || '未知错误'}`);
+    return { items: [], total: 0 };
   }
 }
 
@@ -207,6 +226,18 @@ function handleDelete(row: Pod) {
 function handleLogs(row: Pod) {
   message.info(`查看 Pod "${row.metadata.name}" 日志 (功能开发中)`);
 }
+
+// 当 cluster ID 加载完成后，触发数据刷新
+watch(selectedClusterId, (newId) => {
+  if (newId) {
+    gridApi.reload();
+  }
+});
+
+// 页面加载时获取集群选项
+onMounted(() => {
+  loadClusterOptions();
+});
 </script>
 
 <template>
@@ -258,10 +289,18 @@ function handleLogs(row: Pod) {
     <div class="rounded-lg p-4">
       <Grid>
         <template #status-slot="{ row }">
-          <Tag v-if="row.status.phase === 'Running'" color="success">Running</Tag>
-          <Tag v-else-if="row.status.phase === 'Pending'" color="warning">Pending</Tag>
-          <Tag v-else-if="row.status.phase === 'Failed'" color="error">Failed</Tag>
-          <Tag v-else-if="row.status.phase === 'Succeeded'" color="success">Succeeded</Tag>
+          <Tag v-if="row.status.phase === 'Running'" color="success">
+            Running
+          </Tag>
+          <Tag v-else-if="row.status.phase === 'Pending'" color="warning">
+            Pending
+          </Tag>
+          <Tag v-else-if="row.status.phase === 'Failed'" color="error">
+            Failed
+          </Tag>
+          <Tag v-else-if="row.status.phase === 'Succeeded'" color="success">
+            Succeeded
+          </Tag>
           <Tag v-else color="default">{{ row.status.phase }}</Tag>
         </template>
 
@@ -271,7 +310,9 @@ function handleLogs(row: Pod) {
               <EyeOutlined />
               详情
             </Button>
-            <Button size="small" type="link" @click="handleLogs(row)"> 日志 </Button>
+            <Button size="small" type="link" @click="handleLogs(row)">
+              日志
+            </Button>
             <Button size="small" type="link" danger @click="handleDelete(row)">
               <DeleteOutlined />
               删除
@@ -279,8 +320,7 @@ function handleLogs(row: Pod) {
           </Space>
         </template>
 
-        <template #toolbar-tools>
-        </template>
+        <template #toolbar-tools> </template>
       </Grid>
     </div>
   </div>

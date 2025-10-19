@@ -18,9 +18,9 @@ import type {
   Deployment,
   DeploymentListResult,
   Endpoints,
-  EndpointsListResult,
   EndpointSlice,
   EndpointSliceListResult,
+  EndpointsListResult,
   EventListResult,
   HorizontalPodAutoscaler,
   HorizontalPodAutoscalerListResult,
@@ -113,9 +113,12 @@ function generateMockClusters(count: number): Cluster[] {
       id: clusterId,
       name: `${env} Cluster ${regionId}`,
       description: `${env}环境集群 - Region ${regionId}`,
-      apiServer: `https://k8s-${env.toLowerCase()}-${regionId}.example.com:6443`,
+      endpoint: `https://k8s-${env.toLowerCase()}-${regionId}.example.com:6443`,
       version: randomElement(CLUSTER_VERSIONS),
       status: randomElement(CLUSTER_STATUSES),
+      region: '',
+      provider: '',
+      labels: null,
       nodeCount: randomInt(3, 50),
       podCount: randomInt(20, 500),
       namespaceCount: randomInt(3, 20),
@@ -450,11 +453,22 @@ export function getMockServiceList(params: {
   const start = (page - 1) * pageSize;
   const end = start + pageSize;
 
+  // 转换为扁平化结构的 ServiceListItem[]
+  const items = filteredServices.slice(start, end).map((service) => ({
+    name: service.metadata.name,
+    namespace: service.metadata.namespace,
+    type: service.spec.type,
+    clusterIP: service.spec.clusterIP,
+    ports: service.spec.ports,
+    createdAt: service.metadata.creationTimestamp,
+    labels: service.metadata.labels,
+  }));
+
   return {
     apiVersion: 'v1',
     kind: 'ServiceList',
     metadata: {},
-    items: filteredServices.slice(start, end),
+    items: items as any, // 类型转换因为 ServiceListResult 仍然期望 Service[]
     total,
   };
 }
@@ -1371,12 +1385,12 @@ export function mockDrainNode(
   clusterId: string,
   nodeName: string,
   options?: {
-    force?: boolean;
     deleteLocalData?: boolean;
+    force?: boolean;
     ignoreDaemonsets?: boolean;
     timeout?: number;
   },
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ message: string; success: boolean }> {
   return new Promise((resolve) => {
     // 模拟驱逐操作需要一些时间
     setTimeout(() => {
@@ -1438,9 +1452,9 @@ export function mockUpdateNodeTaints(
   clusterId: string,
   nodeName: string,
   taints: Array<{
+    effect: 'NoExecute' | 'NoSchedule' | 'PreferNoSchedule';
     key: string;
     value?: string;
-    effect: 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
   }>,
 ): Promise<Node> {
   return new Promise((resolve) => {
@@ -1458,13 +1472,39 @@ export function mockUpdateNodeTaints(
 
 // ==================== PersistentVolume Mock 数据生成 ====================
 
-const PV_PHASES = ['Pending', 'Available', 'Bound', 'Released', 'Failed'] as const;
-const PV_ACCESS_MODES = ['ReadWriteOnce', 'ReadOnlyMany', 'ReadWriteMany'] as const;
+const PV_PHASES = [
+  'Pending',
+  'Available',
+  'Bound',
+  'Released',
+  'Failed',
+] as const;
+const PV_ACCESS_MODES = [
+  'ReadWriteOnce',
+  'ReadOnlyMany',
+  'ReadWriteMany',
+] as const;
 const PV_RECLAIM_POLICIES = ['Retain', 'Delete'] as const;
-const STORAGE_CLASSES = ['standard', 'fast-ssd', 'slow-hdd', 'nfs-storage', 'local-storage'];
+const STORAGE_CLASSES = [
+  'standard',
+  'fast-ssd',
+  'slow-hdd',
+  'nfs-storage',
+  'local-storage',
+];
 const STORAGE_BACKENDS = ['nfs', 'hostPath', 'csi'] as const;
 
-const STORAGE_CAPACITIES = ['1Gi', '5Gi', '10Gi', '20Gi', '50Gi', '100Gi', '200Gi', '500Gi', '1Ti'];
+const STORAGE_CAPACITIES = [
+  '1Gi',
+  '5Gi',
+  '10Gi',
+  '20Gi',
+  '50Gi',
+  '100Gi',
+  '200Gi',
+  '500Gi',
+  '1Ti',
+];
 
 function generateMockPersistentVolumes(count: number): PersistentVolume[] {
   const pvs: PersistentVolume[] = [];
@@ -1482,27 +1522,38 @@ function generateMockPersistentVolumes(count: number): PersistentVolume[] {
 
     // 构建存储后端配置
     const backendConfig: any = {};
-    if (backend === 'nfs') {
-      backendConfig.nfs = {
-        server: `nfs-server-${randomInt(1, 3)}.example.com`,
-        path: `/exports/pv-${i}`,
-        readOnly: false,
-      };
-    } else if (backend === 'hostPath') {
-      backendConfig.hostPath = {
-        path: `/mnt/data/pv-${i}`,
-        type: 'DirectoryOrCreate',
-      };
-    } else if (backend === 'csi') {
-      backendConfig.csi = {
-        driver: 'csi.example.com',
-        volumeHandle: `volume-${Math.random().toString(36).slice(2, 12)}`,
-        readOnly: false,
-        fsType: 'ext4',
-        volumeAttributes: {
-          storage: capacity,
-        },
-      };
+    switch (backend) {
+      case 'csi': {
+        backendConfig.csi = {
+          driver: 'csi.example.com',
+          volumeHandle: `volume-${Math.random().toString(36).slice(2, 12)}`,
+          readOnly: false,
+          fsType: 'ext4',
+          volumeAttributes: {
+            storage: capacity,
+          },
+        };
+
+        break;
+      }
+      case 'hostPath': {
+        backendConfig.hostPath = {
+          path: `/mnt/data/pv-${i}`,
+          type: 'DirectoryOrCreate',
+        };
+
+        break;
+      }
+      case 'nfs': {
+        backendConfig.nfs = {
+          server: `nfs-server-${randomInt(1, 3)}.example.com`,
+          path: `/exports/pv-${i}`,
+          readOnly: false,
+        };
+
+        break;
+      }
+      // No default
     }
 
     // 如果是 Bound 状态，添加 claimRef
@@ -1530,7 +1581,8 @@ function generateMockPersistentVolumes(count: number): PersistentVolume[] {
           environment: randomElement(['production', 'staging', 'development']),
         },
         annotations: {
-          'pv.kubernetes.io/provisioned-by': backend === 'csi' ? 'csi.example.com' : 'manual',
+          'pv.kubernetes.io/provisioned-by':
+            backend === 'csi' ? 'csi.example.com' : 'manual',
         },
       },
       spec: {
@@ -1559,23 +1611,27 @@ function generateMockPersistentVolumes(count: number): PersistentVolume[] {
 const MOCK_PVS: PersistentVolume[] = generateMockPersistentVolumes(150);
 
 export function getMockPVList(params: {
-  clusterId: string;
-  storageClass?: string;
-  status?: string;
   accessMode?: string;
+  clusterId: string;
   page?: number;
   pageSize?: number;
+  status?: string;
+  storageClass?: string;
 }): PersistentVolumeListResult {
   let filteredPVs = [...MOCK_PVS];
 
   // 存储类筛选
   if (params.storageClass) {
-    filteredPVs = filteredPVs.filter((pv) => pv.spec.storageClassName === params.storageClass);
+    filteredPVs = filteredPVs.filter(
+      (pv) => pv.spec.storageClassName === params.storageClass,
+    );
   }
 
   // 状态筛选
   if (params.status) {
-    filteredPVs = filteredPVs.filter((pv) => pv.status?.phase === params.status);
+    filteredPVs = filteredPVs.filter(
+      (pv) => pv.status?.phase === params.status,
+    );
   }
 
   // 访问模式筛选
@@ -1605,7 +1661,9 @@ export function getMockPVList(params: {
 const PVC_PHASES = ['Pending', 'Bound', 'Lost'] as const;
 const PVC_STORAGE_REQUESTS = ['1Gi', '5Gi', '10Gi', '20Gi', '50Gi', '100Gi'];
 
-function generateMockPersistentVolumeClaims(count: number): PersistentVolumeClaim[] {
+function generateMockPersistentVolumeClaims(
+  count: number,
+): PersistentVolumeClaim[] {
   const pvcs: PersistentVolumeClaim[] = [];
 
   for (let i = 1; i <= count; i++) {
@@ -1620,7 +1678,7 @@ function generateMockPersistentVolumeClaims(count: number): PersistentVolumeClai
 
     // 如果是 Bound 状态，找到匹配的 PV（或创建引用）
     let volumeName: string | undefined;
-    let actualCapacity: { storage: string } | undefined;
+    let actualCapacity: undefined | { storage: string };
 
     if (phase === 'Bound') {
       // 尝试找到一个 Bound 状态且匹配存储类的 PV
@@ -1656,7 +1714,9 @@ function generateMockPersistentVolumeClaims(count: number): PersistentVolumeClai
         },
         annotations: {
           'volume.beta.kubernetes.io/storage-provisioner':
-            storageClass === 'nfs-storage' ? 'nfs.csi.k8s.io' : 'kubernetes.io/csi',
+            storageClass === 'nfs-storage'
+              ? 'nfs.csi.k8s.io'
+              : 'kubernetes.io/csi',
         },
       },
       spec: {
@@ -1680,7 +1740,9 @@ function generateMockPersistentVolumeClaims(count: number): PersistentVolumeClai
                 {
                   type: 'Resizing',
                   status: 'False',
-                  lastTransitionTime: generateTimestamp(randomInt(0, createdDaysAgo)),
+                  lastTransitionTime: generateTimestamp(
+                    randomInt(0, createdDaysAgo),
+                  ),
                 },
               ]
             : undefined,
@@ -1691,31 +1753,38 @@ function generateMockPersistentVolumeClaims(count: number): PersistentVolumeClai
   return pvcs;
 }
 
-const MOCK_PVCS: PersistentVolumeClaim[] = generateMockPersistentVolumeClaims(200);
+const MOCK_PVCS: PersistentVolumeClaim[] =
+  generateMockPersistentVolumeClaims(200);
 
 export function getMockPVCList(params: {
   clusterId: string;
   namespace?: string;
-  storageClass?: string;
-  status?: string;
   page?: number;
   pageSize?: number;
+  status?: string;
+  storageClass?: string;
 }): PersistentVolumeClaimListResult {
   let filteredPVCs = [...MOCK_PVCS];
 
   // 命名空间筛选
   if (params.namespace) {
-    filteredPVCs = filteredPVCs.filter((pvc) => pvc.metadata.namespace === params.namespace);
+    filteredPVCs = filteredPVCs.filter(
+      (pvc) => pvc.metadata.namespace === params.namespace,
+    );
   }
 
   // 存储类筛选
   if (params.storageClass) {
-    filteredPVCs = filteredPVCs.filter((pvc) => pvc.spec.storageClassName === params.storageClass);
+    filteredPVCs = filteredPVCs.filter(
+      (pvc) => pvc.spec.storageClassName === params.storageClass,
+    );
   }
 
   // 状态筛选
   if (params.status) {
-    filteredPVCs = filteredPVCs.filter((pvc) => pvc.status?.phase === params.status);
+    filteredPVCs = filteredPVCs.filter(
+      (pvc) => pvc.status?.phase === params.status,
+    );
   }
 
   const total = filteredPVCs.length;
@@ -1749,7 +1818,10 @@ function generateMockStorageClasses(): StorageClass[] {
 
   STORAGE_CLASSES.forEach((scName, index) => {
     const provisioner = randomElement(STORAGE_PROVISIONERS);
-    const reclaimPolicy: 'Delete' | 'Retain' = randomElement(['Delete', 'Retain']);
+    const reclaimPolicy: 'Delete' | 'Retain' = randomElement([
+      'Delete',
+      'Retain',
+    ]);
     const volumeBindingMode =
       provisioner === 'kubernetes.io/no-provisioner'
         ? 'WaitForFirstConsumer'
@@ -1759,41 +1831,64 @@ function generateMockStorageClasses(): StorageClass[] {
 
     // 根据 provisioner 类型生成参数
     let parameters: Record<string, string> = {};
-    if (provisioner === 'kubernetes.io/aws-ebs') {
-      parameters = {
-        type: randomElement(['gp3', 'gp2', 'io1']),
-        iopsPerGB: '10',
-        encrypted: 'true',
-        fsType: 'ext4',
-      };
-    } else if (provisioner === 'kubernetes.io/gce-pd') {
-      parameters = {
-        type: randomElement(['pd-standard', 'pd-ssd', 'pd-balanced']),
-        'replication-type': 'none',
-        fsType: 'ext4',
-      };
-    } else if (provisioner === 'kubernetes.io/azure-disk') {
-      parameters = {
-        storageaccounttype: randomElement(['Standard_LRS', 'Premium_LRS', 'StandardSSD_LRS']),
-        kind: 'Managed',
-        cachingMode: 'ReadOnly',
-      };
-    } else if (provisioner === 'nfs.csi.k8s.io') {
-      parameters = {
-        server: 'nfs-server.example.com',
-        share: '/exports',
-        mountOptions: 'nfsvers=4.1,hard',
-      };
-    } else if (provisioner === 'csi.example.com') {
-      parameters = {
-        type: 'ssd',
-        replication: '3',
-        fsType: 'ext4',
-      };
+    switch (provisioner) {
+      case 'csi.example.com': {
+        parameters = {
+          type: 'ssd',
+          replication: '3',
+          fsType: 'ext4',
+        };
+
+        break;
+      }
+      case 'kubernetes.io/aws-ebs': {
+        parameters = {
+          type: randomElement(['gp3', 'gp2', 'io1']),
+          iopsPerGB: '10',
+          encrypted: 'true',
+          fsType: 'ext4',
+        };
+
+        break;
+      }
+      case 'kubernetes.io/azure-disk': {
+        parameters = {
+          storageaccounttype: randomElement([
+            'Standard_LRS',
+            'Premium_LRS',
+            'StandardSSD_LRS',
+          ]),
+          kind: 'Managed',
+          cachingMode: 'ReadOnly',
+        };
+
+        break;
+      }
+      case 'kubernetes.io/gce-pd': {
+        parameters = {
+          type: randomElement(['pd-standard', 'pd-ssd', 'pd-balanced']),
+          'replication-type': 'none',
+          fsType: 'ext4',
+        };
+
+        break;
+      }
+      case 'nfs.csi.k8s.io': {
+        parameters = {
+          server: 'nfs-server.example.com',
+          share: '/exports',
+          mountOptions: 'nfsvers=4.1,hard',
+        };
+
+        break;
+      }
+      // No default
     }
 
     const mountOptions =
-      provisioner === 'nfs.csi.k8s.io' ? ['hard', 'nfsvers=4.1', 'noatime'] : undefined;
+      provisioner === 'nfs.csi.k8s.io'
+        ? ['hard', 'nfsvers=4.1', 'noatime']
+        : undefined;
 
     storageClasses.push({
       apiVersion: 'storage.k8s.io/v1',
@@ -1840,21 +1935,25 @@ const MOCK_STORAGE_CLASSES: StorageClass[] = generateMockStorageClasses();
 
 export function getMockStorageClassList(params: {
   clusterId: string;
-  provisioner?: string;
-  reclaimPolicy?: string;
   page?: number;
   pageSize?: number;
+  provisioner?: string;
+  reclaimPolicy?: string;
 }): StorageClassListResult {
   let filteredSCs = [...MOCK_STORAGE_CLASSES];
 
   // Provisioner 筛选
   if (params.provisioner) {
-    filteredSCs = filteredSCs.filter((sc) => sc.provisioner === params.provisioner);
+    filteredSCs = filteredSCs.filter(
+      (sc) => sc.provisioner === params.provisioner,
+    );
   }
 
   // 回收策略筛选
   if (params.reclaimPolicy) {
-    filteredSCs = filteredSCs.filter((sc) => sc.reclaimPolicy === params.reclaimPolicy);
+    filteredSCs = filteredSCs.filter(
+      (sc) => sc.reclaimPolicy === params.reclaimPolicy,
+    );
   }
 
   const total = filteredSCs.length;
@@ -1902,17 +2001,21 @@ export function checkPVBeforeDelete(
   if (pv.status?.phase === 'Bound' && pv.spec.claimRef) {
     warnings.push(
       `此 PV 已绑定到 PVC: ${pv.spec.claimRef.namespace}/${pv.spec.claimRef.name}`,
+      '删除 PV 可能导致 PVC 无法访问数据',
     );
-    warnings.push('删除 PV 可能导致 PVC 无法访问数据');
   }
 
   // 检查回收策略
   if (pv.spec.persistentVolumeReclaimPolicy === 'Retain') {
-    warnings.push('回收策略为 Retain，底层存储资源不会被自动删除');
-    warnings.push('需要手动清理底层存储资源');
+    warnings.push(
+      '回收策略为 Retain，底层存储资源不会被自动删除',
+      '需要手动清理底层存储资源',
+    );
   } else if (pv.spec.persistentVolumeReclaimPolicy === 'Delete') {
-    warnings.push('回收策略为 Delete，底层存储资源将被自动删除');
-    warnings.push('数据将永久丢失，请确保已备份');
+    warnings.push(
+      '回收策略为 Delete，底层存储资源将被自动删除',
+      '数据将永久丢失，请确保已备份',
+    );
   }
 
   return { canDelete: true, warnings };
@@ -1983,22 +2086,30 @@ export function checkPVCBeforeDelete(
 
   // 检查是否正在被 Pod 使用（这里简化处理，实际应该查询 Pod）
   if (pvc.status?.phase === 'Bound') {
-    warnings.push('此 PVC 可能正在被 Pod 使用');
-    warnings.push('删除 PVC 将导致使用该存储的 Pod 无法访问数据');
-    warnings.push('建议先检查并停止使用该 PVC 的 Pod');
+    warnings.push(
+      '此 PVC 可能正在被 Pod 使用',
+      '删除 PVC 将导致使用该存储的 Pod 无法访问数据',
+      '建议先检查并停止使用该 PVC 的 Pod',
+    );
   }
 
   // 检查绑定的 PV
   if (pvc.spec.volumeName) {
-    const boundPV = MOCK_PVS.find((pv) => pv.metadata.name === pvc.spec.volumeName);
+    const boundPV = MOCK_PVS.find(
+      (pv) => pv.metadata.name === pvc.spec.volumeName,
+    );
     if (boundPV) {
       warnings.push(`此 PVC 已绑定到 PV: ${pvc.spec.volumeName}`);
       if (boundPV.spec.persistentVolumeReclaimPolicy === 'Delete') {
-        warnings.push('PV 的回收策略为 Delete，删除 PVC 将同时删除 PV');
-        warnings.push('底层存储资源和数据将永久丢失');
+        warnings.push(
+          'PV 的回收策略为 Delete，删除 PVC 将同时删除 PV',
+          '底层存储资源和数据将永久丢失',
+        );
       } else if (boundPV.spec.persistentVolumeReclaimPolicy === 'Retain') {
-        warnings.push('PV 的回收策略为 Retain，PV 将变为 Released 状态');
-        warnings.push('需要手动清理或重新绑定 PV');
+        warnings.push(
+          'PV 的回收策略为 Retain，PV 将变为 Released 状态',
+          '需要手动清理或重新绑定 PV',
+        );
       }
     }
   }
@@ -2083,9 +2194,11 @@ export function checkStorageClassBeforeDelete(
     sc.metadata.annotations?.['storageclass.kubernetes.io/is-default-class'] ===
     'true';
   if (isDefault) {
-    warnings.push('这是默认存储类');
-    warnings.push('删除后，新的 PVC 可能无法自动分配存储类');
-    warnings.push('建议先设置其他存储类为默认');
+    warnings.push(
+      '这是默认存储类',
+      '删除后，新的 PVC 可能无法自动分配存储类',
+      '建议先设置其他存储类为默认',
+    );
   }
 
   // 检查是否有 PV 使用此存储类
@@ -2093,8 +2206,10 @@ export function checkStorageClassBeforeDelete(
     (pv) => pv.spec.storageClassName === scName,
   ).length;
   if (pvCount > 0) {
-    warnings.push(`当前有 ${pvCount} 个 PV 使用此存储类`);
-    warnings.push('删除存储类不会影响现有 PV');
+    warnings.push(
+      `当前有 ${pvCount} 个 PV 使用此存储类`,
+      '删除存储类不会影响现有 PV',
+    );
   }
 
   // 检查是否有 PVC 使用此存储类
@@ -2102,9 +2217,11 @@ export function checkStorageClassBeforeDelete(
     (pvc) => pvc.spec.storageClassName === scName,
   ).length;
   if (pvcCount > 0) {
-    warnings.push(`当前有 ${pvcCount} 个 PVC 使用此存储类`);
-    warnings.push('删除存储类不会影响现有 PVC');
-    warnings.push('但无法再创建使用此存储类的新 PVC');
+    warnings.push(
+      `当前有 ${pvcCount} 个 PVC 使用此存储类`,
+      '删除存储类不会影响现有 PVC',
+      '但无法再创建使用此存储类的新 PVC',
+    );
   }
 
   return { canDelete: true, warnings };
@@ -2170,10 +2287,13 @@ function generateMockIngresses(count: number): Ingress[] {
 
     const paths = [];
     for (let j = 0; j < pathCount; j++) {
-      const serviceName = randomElement(APP_NAMES) + '-service';
+      const serviceName = `${randomElement(APP_NAMES)}-service`;
       const pathType = randomElement(PATH_TYPES);
-      const path = j === 0 ? '/' : `/${randomElement(['api', 'admin', 'dashboard', 'docs'])}`;
-      
+      const path =
+        j === 0
+          ? '/'
+          : `/${randomElement(['api', 'admin', 'dashboard', 'docs'])}`;
+
       paths.push({
         path,
         pathType,
@@ -2209,7 +2329,7 @@ function generateMockIngresses(count: number): Ingress[] {
               pathType: 'Prefix' as const,
               backend: {
                 service: {
-                  name: randomElement(APP_NAMES) + '-service',
+                  name: `${randomElement(APP_NAMES)}-service`,
                   port: {
                     number: randomInt(3000, 9000),
                   },
@@ -2251,7 +2371,9 @@ function generateMockIngresses(count: number): Ingress[] {
         annotations: {
           'kubernetes.io/ingress.class': ingressClass,
           'nginx.ingress.kubernetes.io/rewrite-target': '/',
-          'cert-manager.io/cluster-issuer': hasTLS ? 'letsencrypt-prod' : undefined,
+          'cert-manager.io/cluster-issuer': hasTLS
+            ? 'letsencrypt-prod'
+            : undefined,
         },
       },
       spec: {
@@ -2280,8 +2402,8 @@ const MOCK_INGRESSES: Ingress[] = generateMockIngresses(80);
 
 export function getMockIngressList(params: {
   clusterId: string;
-  namespace?: string;
   ingressClass?: string;
+  namespace?: string;
   page?: number;
   pageSize?: number;
 }): IngressListResult {
@@ -2325,7 +2447,8 @@ export function checkIngressBeforeDelete(
   ingressName: string,
 ): { canDelete: boolean; warnings: string[] } {
   const ingress = MOCK_INGRESSES.find(
-    (ing) => ing.metadata.name === ingressName && ing.metadata.namespace === namespace,
+    (ing) =>
+      ing.metadata.name === ingressName && ing.metadata.namespace === namespace,
   );
 
   if (!ingress) {
@@ -2336,21 +2459,24 @@ export function checkIngressBeforeDelete(
 
   // 检查是否有 TLS 配置
   if (ingress.spec.tls && ingress.spec.tls.length > 0) {
-    warnings.push('此 Ingress 配置了 TLS');
-    warnings.push('删除后，HTTPS 访问将不可用');
+    warnings.push('此 Ingress 配置了 TLS', '删除后，HTTPS 访问将不可用');
   }
 
   // 检查规则数量
   const ruleCount = ingress.spec.rules?.length || 0;
   if (ruleCount > 0) {
-    warnings.push(`此 Ingress 包含 ${ruleCount} 条路由规则`);
-    warnings.push('删除后，相关域名的流量路由将失效');
+    warnings.push(
+      `此 Ingress 包含 ${ruleCount} 条路由规则`,
+      '删除后，相关域名的流量路由将失效',
+    );
   }
 
   // 检查是否有 LoadBalancer IP
   if (ingress.status?.loadBalancer?.ingress) {
-    warnings.push('此 Ingress 已分配 LoadBalancer IP');
-    warnings.push('删除后，外部访问入口将失效');
+    warnings.push(
+      '此 Ingress 已分配 LoadBalancer IP',
+      '删除后，外部访问入口将失效',
+    );
   }
 
   return { canDelete: true, warnings };
@@ -2367,7 +2493,9 @@ export function mockDeleteIngress(
   return new Promise((resolve) => {
     setTimeout(() => {
       const index = MOCK_INGRESSES.findIndex(
-        (ing) => ing.metadata.name === ingressName && ing.metadata.namespace === namespace,
+        (ing) =>
+          ing.metadata.name === ingressName &&
+          ing.metadata.namespace === namespace,
       );
 
       if (index === -1) {
@@ -2408,11 +2536,7 @@ const EVENT_REASONS = {
     'Unhealthy',
     'Killing',
   ],
-  Deployment: [
-    'ScalingReplicaSet',
-    'SuccessfulCreate',
-    'FailedCreate',
-  ],
+  Deployment: ['ScalingReplicaSet', 'SuccessfulCreate', 'FailedCreate'],
   Service: [
     'EnsuringLoadBalancer',
     'EnsuredLoadBalancer',
@@ -2433,12 +2557,7 @@ const EVENT_REASONS = {
     'WaitForFirstConsumer',
     'ExternalProvisioning',
   ],
-  Ingress: [
-    'Sync',
-    'CREATE',
-    'UPDATE',
-    'DELETE',
-  ],
+  Ingress: ['Sync', 'CREATE', 'UPDATE', 'DELETE'],
 };
 
 const EVENT_MESSAGES = {
@@ -2465,7 +2584,14 @@ const EVENT_MESSAGES = {
   ],
 };
 
-const RESOURCE_KINDS = ['Pod', 'Deployment', 'Service', 'Node', 'PersistentVolumeClaim', 'Ingress'];
+const RESOURCE_KINDS = [
+  'Pod',
+  'Deployment',
+  'Service',
+  'Node',
+  'PersistentVolumeClaim',
+  'Ingress',
+];
 
 function generateMockEvents(count: number): K8sEvent[] {
   const events: K8sEvent[] = [];
@@ -2480,17 +2606,27 @@ function generateMockEvents(count: number): K8sEvent[] {
 
     // 生成时间戳（从现在往前推）
     const now = new Date();
-    const eventDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000 - hoursAgo * 60 * 60 * 1000 - minutesAgo * 60 * 1000);
+    const eventDate = new Date(
+      now.getTime() -
+        daysAgo * 24 * 60 * 60 * 1000 -
+        hoursAgo * 60 * 60 * 1000 -
+        minutesAgo * 60 * 1000,
+    );
     const firstTimestamp = eventDate.toISOString();
-    
+
     // lastTimestamp 可能与 firstTimestamp 相同，或者稍晚一些
-    const lastEventDate = new Date(eventDate.getTime() + randomInt(0, 3600) * 1000);
+    const lastEventDate = new Date(
+      eventDate.getTime() + randomInt(0, 3600) * 1000,
+    );
     const lastTimestamp = lastEventDate.toISOString();
 
-    const count_value = eventType === 'Warning' ? randomInt(1, 20) : randomInt(1, 5);
+    const count_value =
+      eventType === 'Warning' ? randomInt(1, 20) : randomInt(1, 5);
 
     // 根据资源类型选择事件原因
-    const reasons = EVENT_REASONS[kind as keyof typeof EVENT_REASONS] || ['Unknown'];
+    const reasons = EVENT_REASONS[kind as keyof typeof EVENT_REASONS] || [
+      'Unknown',
+    ];
     const reason = randomElement(reasons);
 
     // 根据事件类型选择消息模板
@@ -2510,9 +2646,10 @@ function generateMockEvents(count: number): K8sEvent[] {
       .replace('{port}', String(randomInt(3000, 9000)));
 
     // 生成 involvedObject（关联的资源对象）
-    const involvedObjectName = kind === 'Node' 
-      ? `node-${randomInt(1, 10)}`
-      : `${randomElement(APP_NAMES)}-${kind.toLowerCase()}-${randomInt(1000, 9999)}`;
+    const involvedObjectName =
+      kind === 'Node'
+        ? `node-${randomInt(1, 10)}`
+        : `${randomElement(APP_NAMES)}-${kind.toLowerCase()}-${randomInt(1000, 9999)}`;
 
     events.push({
       apiVersion: 'v1',
@@ -2524,25 +2661,42 @@ function generateMockEvents(count: number): K8sEvent[] {
         creationTimestamp: firstTimestamp,
       },
       involvedObject: {
-        apiVersion: kind === 'Pod' || kind === 'Service' || kind === 'PersistentVolumeClaim' ? 'v1' : 
-                      kind === 'Deployment' ? 'apps/v1' :
-                      kind === 'Ingress' ? 'networking.k8s.io/v1' : 'v1',
+        apiVersion:
+          kind === 'Pod' ||
+          kind === 'Service' ||
+          kind === 'PersistentVolumeClaim'
+            ? 'v1'
+            : kind === 'Deployment'
+              ? 'apps/v1'
+              : kind === 'Ingress'
+                ? 'networking.k8s.io/v1'
+                : 'v1',
         kind,
         name: involvedObjectName,
         namespace: kind === 'Node' ? undefined : namespace,
-        uid: `${kind.toLowerCase()}-${randomInt(100000, 999999)}`,
+        uid: `${kind.toLowerCase()}-${randomInt(100_000, 999_999)}`,
       },
       reason,
       message,
       source: {
-        component: randomElement(['kubelet', 'scheduler', 'controller-manager', 'default-scheduler', 'deployment-controller']),
+        component: randomElement([
+          'kubelet',
+          'scheduler',
+          'controller-manager',
+          'default-scheduler',
+          'deployment-controller',
+        ]),
         host: kind === 'Node' ? involvedObjectName : `node-${randomInt(1, 10)}`,
       },
       firstTimestamp,
       lastTimestamp,
       count: count_value,
       type: eventType,
-      reportingComponent: randomElement(['kubelet', 'default-scheduler', 'replicaset-controller']),
+      reportingComponent: randomElement([
+        'kubelet',
+        'default-scheduler',
+        'replicaset-controller',
+      ]),
       reportingInstance: `instance-${randomInt(1, 5)}`,
     });
   }
@@ -2559,12 +2713,12 @@ const MOCK_EVENTS: K8sEvent[] = generateMockEvents(200);
 
 export function getMockEventList(params: {
   clusterId: string;
-  namespace?: string;
   involvedObjectKind?: string;
   involvedObjectName?: string;
-  type?: 'Normal' | 'Warning' | '';
+  namespace?: string;
   page?: number;
   pageSize?: number;
+  type?: '' | 'Normal' | 'Warning';
 }): EventListResult {
   let filteredEvents = [...MOCK_EVENTS];
 
@@ -2584,8 +2738,8 @@ export function getMockEventList(params: {
 
   // 资源名称筛选
   if (params.involvedObjectName) {
-    filteredEvents = filteredEvents.filter(
-      (event) => event.involvedObject.name.includes(params.involvedObjectName),
+    filteredEvents = filteredEvents.filter((event) =>
+      event.involvedObject.name.includes(params.involvedObjectName),
     );
   }
 
@@ -2629,7 +2783,10 @@ function generateMockServiceAccounts(count: number): ServiceAccount[] {
   const serviceAccounts: ServiceAccount[] = [];
 
   for (let i = 1; i <= count; i++) {
-    const saName = i <= SA_NAMES.length ? SA_NAMES[i - 1] : `${randomElement(SA_NAMES)}-${i}`;
+    const saName =
+      i <= SA_NAMES.length
+        ? SA_NAMES[i - 1]
+        : `${randomElement(SA_NAMES)}-${i}`;
     const namespace = randomElement(NAMESPACES);
     const createdDaysAgo = randomInt(1, 365);
     const hasSecrets = Math.random() > 0.3;
@@ -2644,7 +2801,11 @@ function generateMockServiceAccounts(count: number): ServiceAccount[] {
         creationTimestamp: generateTimestamp(createdDaysAgo),
       },
       secrets: hasSecrets
-        ? [{ name: `${saName}-token-${Math.random().toString(36).slice(2, 7)}` }]
+        ? [
+            {
+              name: `${saName}-token-${Math.random().toString(36).slice(2, 7)}`,
+            },
+          ]
         : undefined,
       automountServiceAccountToken: Math.random() > 0.5,
     });
@@ -2653,7 +2814,8 @@ function generateMockServiceAccounts(count: number): ServiceAccount[] {
   return serviceAccounts;
 }
 
-const MOCK_SERVICE_ACCOUNTS: ServiceAccount[] = generateMockServiceAccounts(100);
+const MOCK_SERVICE_ACCOUNTS: ServiceAccount[] =
+  generateMockServiceAccounts(100);
 
 export function getMockServiceAccountList(params: {
   clusterId: string;
@@ -2664,7 +2826,9 @@ export function getMockServiceAccountList(params: {
   let filteredSAs = [...MOCK_SERVICE_ACCOUNTS];
 
   if (params.namespace) {
-    filteredSAs = filteredSAs.filter((sa) => sa.metadata.namespace === params.namespace);
+    filteredSAs = filteredSAs.filter(
+      (sa) => sa.metadata.namespace === params.namespace,
+    );
   }
 
   const total = filteredSAs.length;
@@ -2699,7 +2863,9 @@ function generateMockRoles(count: number): Role[] {
       rules.push({
         apiGroups: [randomElement(API_GROUPS)],
         resources: [randomElement(RESOURCES)],
-        verbs: [randomElement(VERBS), randomElement(VERBS)].filter((v, idx, arr) => arr.indexOf(v) === idx),
+        verbs: [randomElement(VERBS), randomElement(VERBS)].filter(
+          (v, idx, arr) => arr.indexOf(v) === idx,
+        ),
       });
     }
 
@@ -2730,7 +2896,9 @@ export function getMockRoleList(params: {
   let filteredRoles = [...MOCK_ROLES];
 
   if (params.namespace) {
-    filteredRoles = filteredRoles.filter((role) => role.metadata.namespace === params.namespace);
+    filteredRoles = filteredRoles.filter(
+      (role) => role.metadata.namespace === params.namespace,
+    );
   }
 
   const total = filteredRoles.length;
@@ -2749,15 +2917,22 @@ export function getMockRoleList(params: {
 }
 
 // ClusterRole
-const CLUSTER_ROLE_NAMES = ['cluster-admin', 'admin', 'edit', 'view', 'system:node'];
+const CLUSTER_ROLE_NAMES = [
+  'cluster-admin',
+  'admin',
+  'edit',
+  'view',
+  'system:node',
+];
 
 function generateMockClusterRoles(count: number): ClusterRole[] {
   const clusterRoles: ClusterRole[] = [];
 
   for (let i = 1; i <= count; i++) {
-    const crName = i <= CLUSTER_ROLE_NAMES.length
-      ? CLUSTER_ROLE_NAMES[i - 1]
-      : `cluster-role-${i}`;
+    const crName =
+      i <= CLUSTER_ROLE_NAMES.length
+        ? CLUSTER_ROLE_NAMES[i - 1]
+        : `cluster-role-${i}`;
     const ruleCount = randomInt(2, 5);
     const rules = [];
 
@@ -2765,7 +2940,11 @@ function generateMockClusterRoles(count: number): ClusterRole[] {
       rules.push({
         apiGroups: [randomElement(API_GROUPS)],
         resources: [randomElement(RESOURCES)],
-        verbs: [randomElement(VERBS), randomElement(VERBS), randomElement(VERBS)].filter((v, idx, arr) => arr.indexOf(v) === idx),
+        verbs: [
+          randomElement(VERBS),
+          randomElement(VERBS),
+          randomElement(VERBS),
+        ].filter((v, idx, arr) => arr.indexOf(v) === idx),
       });
     }
 
@@ -2815,7 +2994,9 @@ function generateMockRoleBindings(count: number): RoleBinding[] {
 
   for (let i = 1; i <= count; i++) {
     const namespace = randomElement(NAMESPACES);
-    const role = randomElement(MOCK_ROLES.filter(r => r.metadata.namespace === namespace));
+    const role = randomElement(
+      MOCK_ROLES.filter((r) => r.metadata.namespace === namespace),
+    );
     const roleName = role ? role.metadata.name : 'default-role';
     const subjectType = randomElement(SUBJECT_TYPES);
 
@@ -2823,12 +3004,24 @@ function generateMockRoleBindings(count: number): RoleBinding[] {
       subjectType === 'ServiceAccount'
         ? {
             kind: 'ServiceAccount' as const,
-            name: randomElement(MOCK_SERVICE_ACCOUNTS.filter(s => s.metadata.namespace === namespace).map(s => s.metadata.name)),
+            name: randomElement(
+              MOCK_SERVICE_ACCOUNTS.filter(
+                (s) => s.metadata.namespace === namespace,
+              ).map((s) => s.metadata.name),
+            ),
             namespace,
           }
         : subjectType === 'User'
-        ? { kind: 'User' as const, name: randomElement(USER_NAMES), apiGroup: 'rbac.authorization.k8s.io' }
-        : { kind: 'Group' as const, name: 'developers', apiGroup: 'rbac.authorization.k8s.io' };
+          ? {
+              kind: 'User' as const,
+              name: randomElement(USER_NAMES),
+              apiGroup: 'rbac.authorization.k8s.io',
+            }
+          : {
+              kind: 'Group' as const,
+              name: 'developers',
+              apiGroup: 'rbac.authorization.k8s.io',
+            };
 
     roleBindings.push({
       apiVersion: 'rbac.authorization.k8s.io/v1',
@@ -2862,7 +3055,9 @@ export function getMockRoleBindingList(params: {
   let filteredRBs = [...MOCK_ROLE_BINDINGS];
 
   if (params.namespace) {
-    filteredRBs = filteredRBs.filter((rb) => rb.metadata.namespace === params.namespace);
+    filteredRBs = filteredRBs.filter(
+      (rb) => rb.metadata.namespace === params.namespace,
+    );
   }
 
   const total = filteredRBs.length;
@@ -2885,16 +3080,30 @@ function generateMockClusterRoleBindings(count: number): ClusterRoleBinding[] {
   const clusterRoleBindings: ClusterRoleBinding[] = [];
 
   for (let i = 1; i <= count; i++) {
-    const clusterRoleName = randomElement(MOCK_CLUSTER_ROLES.map(cr => cr.metadata.name));
+    const clusterRoleName = randomElement(
+      MOCK_CLUSTER_ROLES.map((cr) => cr.metadata.name),
+    );
     const subjectType = randomElement(SUBJECT_TYPES);
     const sa = randomElement(MOCK_SERVICE_ACCOUNTS);
 
     const subject =
       subjectType === 'ServiceAccount'
-        ? { kind: 'ServiceAccount' as const, name: sa.metadata.name, namespace: sa.metadata.namespace }
+        ? {
+            kind: 'ServiceAccount' as const,
+            name: sa.metadata.name,
+            namespace: sa.metadata.namespace,
+          }
         : subjectType === 'User'
-        ? { kind: 'User' as const, name: randomElement(USER_NAMES), apiGroup: 'rbac.authorization.k8s.io' }
-        : { kind: 'Group' as const, name: 'admins', apiGroup: 'rbac.authorization.k8s.io' };
+          ? {
+              kind: 'User' as const,
+              name: randomElement(USER_NAMES),
+              apiGroup: 'rbac.authorization.k8s.io',
+            }
+          : {
+              kind: 'Group' as const,
+              name: 'admins',
+              apiGroup: 'rbac.authorization.k8s.io',
+            };
 
     clusterRoleBindings.push({
       apiVersion: 'rbac.authorization.k8s.io/v1',
@@ -2916,7 +3125,8 @@ function generateMockClusterRoleBindings(count: number): ClusterRoleBinding[] {
   return clusterRoleBindings;
 }
 
-const MOCK_CLUSTER_ROLE_BINDINGS: ClusterRoleBinding[] = generateMockClusterRoleBindings(40);
+const MOCK_CLUSTER_ROLE_BINDINGS: ClusterRoleBinding[] =
+  generateMockClusterRoleBindings(40);
 
 export function getMockClusterRoleBindingList(params: {
   clusterId: string;
@@ -3000,11 +3210,11 @@ function generateMockResourceQuotas(count: number): ResourceQuota[] {
     Object.keys(hard).forEach((resource) => {
       const hardValue = hard[resource];
       if (hardValue.endsWith('Gi')) {
-        const maxValue = parseInt(hardValue);
+        const maxValue = Number.parseInt(hardValue);
         const usedValue = randomInt(0, Math.floor(maxValue * 0.9));
         used[resource] = `${usedValue}Gi`;
       } else {
-        const maxValue = parseInt(hardValue);
+        const maxValue = Number.parseInt(hardValue);
         const usedValue = randomInt(0, Math.floor(maxValue * 0.9));
         used[resource] = `${usedValue}`;
       }
@@ -3071,7 +3281,11 @@ export function getMockResourceQuotaList(params: {
 // ==================== LimitRange Mock 数据生成 ====================
 
 // LimitRange 类型
-const LIMIT_RANGE_TYPES = ['Container', 'Pod', 'PersistentVolumeClaim'] as const;
+const LIMIT_RANGE_TYPES = [
+  'Container',
+  'Pod',
+  'PersistentVolumeClaim',
+] as const;
 
 function generateMockLimitRanges(count: number): LimitRange[] {
   const limitRanges: LimitRange[] = [];
@@ -3086,46 +3300,57 @@ function generateMockLimitRanges(count: number): LimitRange[] {
       const type = randomElement(LIMIT_RANGE_TYPES);
       const item: any = { type };
 
-      if (type === 'Container') {
-        // Container 限制
-        item.max = {
-          cpu: `${randomInt(2, 8)}`,
-          memory: `${randomInt(2, 16)}Gi`,
-        };
-        item.min = {
-          cpu: '100m',
-          memory: '128Mi',
-        };
-        item.default = {
-          cpu: `${randomInt(500, 2000)}m`,
-          memory: `${randomInt(256, 2048)}Mi`,
-        };
-        item.defaultRequest = {
-          cpu: '100m',
-          memory: '128Mi',
-        };
-        item.maxLimitRequestRatio = {
-          cpu: `${randomInt(2, 10)}`,
-          memory: `${randomInt(2, 10)}`,
-        };
-      } else if (type === 'Pod') {
-        // Pod 限制
-        item.max = {
-          cpu: `${randomInt(4, 16)}`,
-          memory: `${randomInt(8, 64)}Gi`,
-        };
-        item.min = {
-          cpu: '200m',
-          memory: '256Mi',
-        };
-      } else if (type === 'PersistentVolumeClaim') {
-        // PVC 存储限制
-        item.max = {
-          storage: `${randomInt(100, 1000)}Gi`,
-        };
-        item.min = {
-          storage: '1Gi',
-        };
+      switch (type) {
+        case 'Container': {
+          // Container 限制
+          item.max = {
+            cpu: `${randomInt(2, 8)}`,
+            memory: `${randomInt(2, 16)}Gi`,
+          };
+          item.min = {
+            cpu: '100m',
+            memory: '128Mi',
+          };
+          item.default = {
+            cpu: `${randomInt(500, 2000)}m`,
+            memory: `${randomInt(256, 2048)}Mi`,
+          };
+          item.defaultRequest = {
+            cpu: '100m',
+            memory: '128Mi',
+          };
+          item.maxLimitRequestRatio = {
+            cpu: `${randomInt(2, 10)}`,
+            memory: `${randomInt(2, 10)}`,
+          };
+
+          break;
+        }
+        case 'PersistentVolumeClaim': {
+          // PVC 存储限制
+          item.max = {
+            storage: `${randomInt(100, 1000)}Gi`,
+          };
+          item.min = {
+            storage: '1Gi',
+          };
+
+          break;
+        }
+        case 'Pod': {
+          // Pod 限制
+          item.max = {
+            cpu: `${randomInt(4, 16)}`,
+            memory: `${randomInt(8, 64)}Gi`,
+          };
+          item.min = {
+            cpu: '200m',
+            memory: '256Mi',
+          };
+
+          break;
+        }
+        // No default
       }
 
       limits.push(item);
@@ -3197,56 +3422,62 @@ function generateMockNetworkPolicies(count: number): NetworkPolicy[] {
     const appName = randomElement(APP_NAMES);
     const createdDaysAgo = randomInt(1, 180);
     const hasBothTypes = Math.random() > 0.5;
-    const policyTypes = hasBothTypes ? ['Ingress', 'Egress'] as const : [randomElement(NETWORK_POLICY_TYPES)];
+    const policyTypes = hasBothTypes
+      ? (['Ingress', 'Egress'] as const)
+      : [randomElement(NETWORK_POLICY_TYPES)];
 
     // 生成 Ingress 规则
-    const ingress = policyTypes.includes('Ingress') ? [
-      {
-        from: [
+    const ingress = policyTypes.includes('Ingress')
+      ? [
           {
-            podSelector: {
-              matchLabels: {
-                app: randomElement(APP_NAMES),
+            from: [
+              {
+                podSelector: {
+                  matchLabels: {
+                    app: randomElement(APP_NAMES),
+                  },
+                },
               },
-            },
-          },
-          {
-            namespaceSelector: {
-              matchLabels: {
-                environment: randomElement(['production', 'staging']),
+              {
+                namespaceSelector: {
+                  matchLabels: {
+                    environment: randomElement(['production', 'staging']),
+                  },
+                },
               },
-            },
+            ],
+            ports: [
+              {
+                protocol: randomElement(NETWORK_PROTOCOLS),
+                port: randomInt(3000, 9000),
+              },
+            ],
           },
-        ],
-        ports: [
-          {
-            protocol: randomElement(NETWORK_PROTOCOLS),
-            port: randomInt(3000, 9000),
-          },
-        ],
-      },
-    ] : undefined;
+        ]
+      : undefined;
 
     // 生成 Egress 规则
-    const egress = policyTypes.includes('Egress') ? [
-      {
-        to: [
+    const egress = policyTypes.includes('Egress')
+      ? [
           {
-            podSelector: {
-              matchLabels: {
-                app: 'database',
+            to: [
+              {
+                podSelector: {
+                  matchLabels: {
+                    app: 'database',
+                  },
+                },
               },
-            },
+            ],
+            ports: [
+              {
+                protocol: 'TCP' as const,
+                port: randomElement([3306, 5432, 6379, 27_017]),
+              },
+            ],
           },
-        ],
-        ports: [
-          {
-            protocol: 'TCP' as const,
-            port: randomElement([3306, 5432, 6379, 27017]),
-          },
-        ],
-      },
-    ] : undefined;
+        ]
+      : undefined;
 
     networkPolicies.push({
       apiVersion: 'networking.k8s.io/v1',
@@ -3317,7 +3548,11 @@ function generateMockHPAs(count: number): HorizontalPodAutoscaler[] {
 
   for (let i = 1; i <= count; i++) {
     const namespace = randomElement(NAMESPACES);
-    const targetKind = randomElement(['Deployment', 'StatefulSet', 'ReplicaSet']);
+    const targetKind = randomElement([
+      'Deployment',
+      'StatefulSet',
+      'ReplicaSet',
+    ]);
     const targetName = `${randomElement(APP_NAMES)}-${targetKind.toLowerCase()}`;
     const minReplicas = randomInt(1, 3);
     const maxReplicas = randomInt(5, 20);
@@ -3339,7 +3574,10 @@ function generateMockHPAs(count: number): HorizontalPodAutoscaler[] {
       },
       spec: {
         scaleTargetRef: {
-          apiVersion: targetKind === 'Deployment' || targetKind === 'StatefulSet' ? 'apps/v1' : 'apps/v1',
+          apiVersion:
+            targetKind === 'Deployment' || targetKind === 'StatefulSet'
+              ? 'apps/v1'
+              : 'apps/v1',
           kind: targetKind,
           name: targetName,
         },
@@ -3446,9 +3684,13 @@ function generateMockPriorityClasses(): PriorityClass[] {
   const priorityClasses: PriorityClass[] = [];
 
   PRIORITY_CLASS_NAMES.forEach((name, index) => {
-    const value = name.startsWith('system') ? 2000000000 - index * 1000 : 1000000 - index * 100000;
+    const value = name.startsWith('system')
+      ? 2_000_000_000 - index * 1000
+      : 1_000_000 - index * 100_000;
     const globalDefault = name === 'medium-priority';
-    const preemptionPolicy = name.includes('best-effort') ? 'Never' : 'PreemptLowerPriority';
+    const preemptionPolicy = name.includes('best-effort')
+      ? 'Never'
+      : 'PreemptLowerPriority';
 
     priorityClasses.push({
       apiVersion: 'scheduling.k8s.io/v1',
@@ -3605,7 +3847,7 @@ function generateMockEndpoints(count: number): Endpoints[] {
           kind: 'Pod',
           name: `${randomElement(APP_NAMES)}-pod-${randomInt(1000, 9999)}`,
           namespace,
-          uid: `pod-${randomInt(100000, 999999)}`,
+          uid: `pod-${randomInt(100_000, 999_999)}`,
         },
       });
     }
@@ -3689,11 +3931,12 @@ function generateMockEndpointSlices(count: number): EndpointSlice[] {
 
     const endpoints_array = [];
     for (let j = 0; j < endpointCount; j++) {
-      const addresses = addressType === 'IPv4'
-        ? [`10.244.${randomInt(0, 255)}.${randomInt(1, 254)}`]
-        : addressType === 'IPv6'
-        ? [`fd00::${randomInt(1, 255)}:${randomInt(1, 255)}`]
-        : [`pod-${randomInt(1, 100)}.${namespace}.svc.cluster.local`];
+      const addresses =
+        addressType === 'IPv4'
+          ? [`10.244.${randomInt(0, 255)}.${randomInt(1, 254)}`]
+          : addressType === 'IPv6'
+            ? [`fd00::${randomInt(1, 255)}:${randomInt(1, 255)}`]
+            : [`pod-${randomInt(1, 100)}.${namespace}.svc.cluster.local`];
 
       endpoints_array.push({
         addresses,
@@ -3707,7 +3950,7 @@ function generateMockEndpointSlices(count: number): EndpointSlice[] {
           kind: 'Pod',
           name: `${randomElement(APP_NAMES)}-pod-${randomInt(1000, 9999)}`,
           namespace,
-          uid: `pod-${randomInt(100000, 999999)}`,
+          uid: `pod-${randomInt(100_000, 999_999)}`,
         },
         zone: randomElement(['us-west-1a', 'us-west-1b', 'us-west-1c']),
       });

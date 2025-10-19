@@ -12,10 +12,13 @@ defineOptions({ name: 'K8sSecrets' });
 </script>
 
 <template>
-  <GenericResourcePage :config-factory="createSecretConfig" :detail-component="GenericDetailDrawer">
+  <GenericResourcePage
+    :config-factory="createSecretConfig"
+    :detail-component="GenericDetailDrawer"
+  >
     <!-- 自定义插槽：键数量显示 -->
     <template #keys-slot="{ row }">
-      <span>{{ row.data ? Object.keys(row.data).length : 0 }} 个键</span>
+      <span>{{ row.keysCount }} 个键</span>
     </template>
 
     <!-- 详情抽屉：资源特定字段 -->
@@ -24,10 +27,13 @@ defineOptions({ name: 'K8sSecrets' });
         {{ resource.type || '-' }}
       </Descriptions.Item>
       <Descriptions.Item label="键数量" :span="2">
-        {{ resource.data ? Object.keys(resource.data).length : 0 }}
+        {{ resource.keysCount || 0 }}
       </Descriptions.Item>
       <Descriptions.Item label="键列表" :span="2">
         {{ resource.data ? Object.keys(resource.data).join(', ') : '-' }}
+      </Descriptions.Item>
+      <Descriptions.Item label="是否不可变" :span="2">
+        {{ resource.immutable ? '是' : '否' }}
       </Descriptions.Item>
     </template>
   </GenericResourcePage>

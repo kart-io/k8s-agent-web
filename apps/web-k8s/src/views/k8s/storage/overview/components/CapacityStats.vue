@@ -13,27 +13,31 @@ import {
 } from '@ant-design/icons-vue';
 import { Alert, Card, Col, Progress, Row, Statistic } from 'ant-design-vue';
 
-// Mock 统计数据
+import { pvApi, pvcApi } from '#/api/k8s';
+
+// 统计数据
 const stats = ref({
   // 容量统计
-  totalCapacity: '10Ti',
-  usedCapacity: '7.2Ti',
-  availableCapacity: '2.8Ti',
-  usagePercent: 72,
+  totalCapacity: '0Ti',
+  usedCapacity: '0Ti',
+  availableCapacity: '0Ti',
+  usagePercent: 0,
 
   // PV 统计
-  pvCount: 150,
-  pvBoundCount: 108,
-  pvAvailableCount: 35,
-  pvReleasedCount: 5,
-  pvFailedCount: 2,
+  pvCount: 0,
+  pvBoundCount: 0,
+  pvAvailableCount: 0,
+  pvReleasedCount: 0,
+  pvFailedCount: 0,
 
   // PVC 统计
-  pvcCount: 200,
-  pvcBoundCount: 108,
-  pvcPendingCount: 85,
-  pvcLostCount: 7,
+  pvcCount: 0,
+  pvcBoundCount: 0,
+  pvcPendingCount: 0,
+  pvcLostCount: 0,
 });
+
+const loading = ref(false);
 
 /**
  * 使用率状态
@@ -66,11 +70,127 @@ const UsageIcon = computed(() => {
 });
 
 /**
+ * 格式化容量
+ */
+function formatCapacity(bytes: number): string {
+  const units = ['B', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi'];
+  let value = bytes;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+
+  return `${value.toFixed(1)}${units[unitIndex]}`;
+}
+
+/**
  * 加载统计数据
  */
 async function loadStats() {
-  // TODO: 调用 API 获取真实数据
-  // 目前使用 Mock 数据
+  loading.value = true;
+
+  try {
+    // 使用默认集群 ID，实际应用中应从 store 或 URL 参数获取
+    const clusterId = 'cluster-prod-01';
+
+    // 并行获取 PV 和 PVC 列表
+    const [pvResult, pvcResult] = await Promise.all([
+      pvApi
+        .list({ clusterId, pageSize: 1000 })
+        .catch(() => ({ items: [], total: 0 })),
+      pvcApi
+        .list({ clusterId, pageSize: 1000 })
+        .catch(() => ({ items: [], total: 0 })),
+    ]);
+
+    const pvList = pvResult.items || [];
+    const pvcList = pvcResult.items || [];
+
+    // 计算 PV 统计
+    stats.value.pvCount = pvList.length;
+    stats.value.pvBoundCount = pvList.filter(
+      (pv: any) => pv.status?.phase === 'Bound',
+    ).length;
+    stats.value.pvAvailableCount = pvList.filter(
+      (pv: any) => pv.status?.phase === 'Available',
+    ).length;
+    stats.value.pvReleasedCount = pvList.filter(
+      (pv: any) => pv.status?.phase === 'Released',
+    ).length;
+    stats.value.pvFailedCount = pvList.filter(
+      (pv: any) => pv.status?.phase === 'Failed',
+    ).length;
+
+    // 计算 PVC 统计
+    stats.value.pvcCount = pvcList.length;
+    stats.value.pvcBoundCount = pvcList.filter(
+      (pvc: any) => pvc.status?.phase === 'Bound',
+    ).length;
+    stats.value.pvcPendingCount = pvcList.filter(
+      (pvc: any) => pvc.status?.phase === 'Pending',
+    ).length;
+    stats.value.pvcLostCount = pvcList.filter(
+      (pvc: any) => pvc.status?.phase === 'Lost',
+    ).length;
+
+    // 计算容量统计
+    let totalCapacityBytes = 0;
+    let usedCapacityBytes = 0;
+
+    pvList.forEach((pv: any) => {
+      const capacity = pv.spec?.capacity?.storage;
+      if (capacity) {
+        const bytes = parseCapacity(capacity);
+        totalCapacityBytes += bytes;
+        if (pv.status?.phase === 'Bound') {
+          usedCapacityBytes += bytes;
+        }
+      }
+    });
+
+    stats.value.totalCapacity = formatCapacity(totalCapacityBytes);
+    stats.value.usedCapacity = formatCapacity(usedCapacityBytes);
+    stats.value.availableCapacity = formatCapacity(
+      totalCapacityBytes - usedCapacityBytes,
+    );
+    stats.value.usagePercent =
+      totalCapacityBytes > 0
+        ? Math.round((usedCapacityBytes / totalCapacityBytes) * 100)
+        : 0;
+  } catch (error) {
+    console.error('Failed to load storage stats:', error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+/**
+ * 解析 K8s 容量字符串（如 "10Gi", "500Mi"）为字节数
+ */
+function parseCapacity(capacity: string): number {
+  const match = capacity.match(/^(\d+(?:\.\d+)?)(.*)?$/);
+  if (!match) return 0;
+
+  const value = Number.parseFloat(match[1]);
+  const unit = match[2] || '';
+
+  const units: Record<string, number> = {
+    '': 1,
+    Ki: 1024,
+    Mi: 1024 ** 2,
+    Gi: 1024 ** 3,
+    Ti: 1024 ** 4,
+    Pi: 1024 ** 5,
+    K: 1000,
+    M: 1000 ** 2,
+    G: 1000 ** 3,
+    T: 1000 ** 4,
+    P: 1000 ** 5,
+  };
+
+  return value * (units[unit] || 1);
 }
 
 onMounted(() => {

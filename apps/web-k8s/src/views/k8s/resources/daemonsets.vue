@@ -13,7 +13,10 @@ defineOptions({ name: 'K8sDaemonSets' });
   <GenericResourcePage :config-factory="createDaemonSetConfig">
     <!-- 自定义插槽：就绪节点数显示 -->
     <template #ready-slot="{ row }">
-      <span>{{ row.status.numberReady }} / {{ row.status.desiredNumberScheduled }}</span>
+      <span v-if="row"
+        >{{ row.numberReady ?? 0 }} /
+        {{ row.desiredNumberScheduled ?? 0 }}</span
+      >
     </template>
   </GenericResourcePage>
 </template>

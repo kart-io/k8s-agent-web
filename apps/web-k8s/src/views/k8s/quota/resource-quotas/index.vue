@@ -21,7 +21,7 @@ import {
   Tooltip,
 } from 'ant-design-vue';
 
-import { getMockResourceQuotaList } from '#/api/k8s/mock';
+import { resourceQuotaApi } from '#/api/k8s';
 
 // 当前选中的集群ID（暂时使用固定值）
 const currentClusterId = ref('cluster-production-01');
@@ -105,9 +105,9 @@ async function loadResourceQuotas() {
       ...filters.value,
     };
 
-    const result = getMockResourceQuotaList(params);
-    resourceQuotas.value = result.items;
-    total.value = result.total;
+    const result = await resourceQuotaApi.list(params);
+    resourceQuotas.value = result.items || [];
+    total.value = result.total || 0;
   } catch (error: any) {
     message.error(`加载 ResourceQuotas 失败: ${error.message}`);
   } finally {

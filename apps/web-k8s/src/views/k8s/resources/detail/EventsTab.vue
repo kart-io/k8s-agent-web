@@ -7,15 +7,14 @@ import type { K8sEvent } from '#/api/k8s/types';
 
 import { computed, onMounted, ref, watch } from 'vue';
 
-import { Empty, List, message, Tag, Tooltip } from 'ant-design-vue';
 import {
   ClockCircleOutlined,
-  ExclamationCircleOutlined,
   InfoCircleOutlined,
   WarningOutlined,
 } from '@ant-design/icons-vue';
+import { Empty, List, message, Tag, Tooltip } from 'ant-design-vue';
 
-import { getMockEventList } from '#/api/k8s/mock';
+import { eventApi } from '#/api/k8s';
 
 interface Props {
   resource: any;
@@ -39,7 +38,7 @@ async function loadEvents() {
 
   loading.value = true;
   try {
-    const result = getMockEventList({
+    const result = await eventApi.list({
       clusterId: props.clusterId,
       namespace: props.resource.metadata.namespace,
       involvedObjectKind: props.resource.kind,
@@ -60,12 +59,15 @@ async function loadEvents() {
  */
 function getEventTypeColor(type: string): string {
   switch (type) {
-    case 'Normal':
+    case 'Normal': {
       return 'success';
-    case 'Warning':
+    }
+    case 'Warning': {
       return 'warning';
-    default:
+    }
+    default: {
       return 'default';
+    }
   }
 }
 
@@ -74,12 +76,15 @@ function getEventTypeColor(type: string): string {
  */
 function getEventTypeIcon(type: string) {
   switch (type) {
-    case 'Normal':
+    case 'Normal': {
       return InfoCircleOutlined;
-    case 'Warning':
+    }
+    case 'Warning': {
       return WarningOutlined;
-    default:
+    }
+    default: {
       return ClockCircleOutlined;
+    }
   }
 }
 
@@ -141,7 +146,10 @@ onMounted(() => {
             <div class="event-content">
               <div class="event-header">
                 <div class="event-type">
-                  <component :is="getEventTypeIcon(event.type)" class="event-icon" />
+                  <component
+                    :is="getEventTypeIcon(event.type)"
+                    class="event-icon"
+                  />
                   <Tag :color="getEventTypeColor(event.type)">
                     {{ event.type }}
                   </Tag>
@@ -172,7 +180,9 @@ onMounted(() => {
                 <span class="source-label">来源:</span>
                 <code class="source-value">
                   {{ event.source.component || '-' }}
-                  <template v-if="event.source.host">({{ event.source.host }})</template>
+                  <template v-if="event.source.host"
+                    >({{ event.source.host }})</template
+                  >
                 </code>
               </div>
             </div>
@@ -188,7 +198,10 @@ onMounted(() => {
     />
 
     <div v-if="loading && !hasEvents" class="loading-placeholder">
-      <ClockCircleOutlined spin style="font-size: 24px; color: var(--vben-primary-color);" />
+      <ClockCircleOutlined
+        spin
+        style="font-size: 24px; color: var(--vben-primary-color)"
+      />
       <p>加载事件中...</p>
     </div>
   </div>
@@ -196,8 +209,8 @@ onMounted(() => {
 
 <style scoped>
 .events-tab {
-  padding: 16px;
   min-height: 300px;
+  padding: 16px;
 }
 
 .events-content {
@@ -227,14 +240,14 @@ html[data-theme='dark'] .event-item:hover {
 
 .event-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 
 .event-type {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .event-icon {
@@ -257,8 +270,8 @@ html[data-theme='dark'] .event-item:hover {
 .event-count,
 .event-source {
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
 }
 
 .event-label,
@@ -268,12 +281,12 @@ html[data-theme='dark'] .event-item:hover {
 }
 
 .source-value {
+  padding: 2px 6px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 12px;
   color: var(--vben-text-color);
-  padding: 2px 6px;
-  border-radius: 3px;
   background-color: rgb(0 0 0 / 4%);
+  border-radius: 3px;
 }
 
 html[data-theme='dark'] .source-value {
@@ -281,22 +294,22 @@ html[data-theme='dark'] .source-value {
 }
 
 .event-message {
+  padding: 8px 12px;
   font-size: 13px;
   line-height: 1.6;
   color: var(--vben-text-color);
-  padding: 8px 12px;
-  border-left: 3px solid var(--vben-primary-color);
   background-color: rgb(24 144 255 / 5%);
+  border-left: 3px solid var(--vben-primary-color);
   border-radius: 4px;
 }
 
 .loading-placeholder {
   display: flex;
   flex-direction: column;
+  gap: 16px;
   align-items: center;
   justify-content: center;
   padding: 60px 0;
-  gap: 16px;
   color: var(--vben-text-color-secondary);
 }
 

@@ -16,13 +16,13 @@ import {
 import { Card, Col, message, Row, Statistic } from 'ant-design-vue';
 
 import {
-  getMockClusterList,
-  getMockDeploymentList,
-  getMockNamespaceList,
-  getMockNodeList,
-  getMockPodList,
-  getMockServiceList,
-} from '#/api/k8s/mock';
+  clusterApi,
+  deploymentApi,
+  namespaceApi,
+  nodeApi,
+  podApi,
+  serviceApi,
+} from '#/api/k8s';
 
 import ClusterHealthScore from './components/ClusterHealthScore.vue';
 import ClusterStatusCards from './components/ClusterStatusCards.vue';
@@ -56,12 +56,12 @@ async function loadStats() {
     // 使用 Promise.allSettled 进行错误隔离
     // 即使某些请求失败，其他成功的数据仍然可以显示
     const results = await Promise.allSettled([
-      getMockClusterList({ pageSize: 1 }),
-      getMockNodeList({ clusterId: currentClusterId.value, pageSize: 1 }),
-      getMockNamespaceList({ clusterId: currentClusterId.value, pageSize: 1 }),
-      getMockPodList({ clusterId: currentClusterId.value, pageSize: 1 }),
-      getMockDeploymentList({ clusterId: currentClusterId.value, pageSize: 1 }),
-      getMockServiceList({ clusterId: currentClusterId.value, pageSize: 1 }),
+      clusterApi.list({ pageSize: 1 }),
+      nodeApi.list(currentClusterId.value),
+      namespaceApi.list(currentClusterId.value),
+      podApi.list({ clusterId: currentClusterId.value, pageSize: 1 }),
+      deploymentApi.list({ clusterId: currentClusterId.value, pageSize: 1 }),
+      serviceApi.list({ clusterId: currentClusterId.value, pageSize: 1 }),
     ]);
 
     // 提取成功的数据，失败的显示为 0

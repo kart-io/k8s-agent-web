@@ -6,6 +6,8 @@ import { ReloadOutlined, SearchOutlined } from '@ant-design/icons-vue';
  */
 import { Button, Input, Select, Space } from 'ant-design-vue';
 
+import { useClusterOptions } from '#/composables/useClusterOptions';
+
 interface Props {
   /** 是否显示集群选择器 */
   showClusterSelector?: boolean;
@@ -15,8 +17,6 @@ interface Props {
   showSearch?: boolean;
   /** 搜索框占位文本 */
   searchPlaceholder?: string;
-  /** 集群选项 */
-  clusterOptions?: Array<{ label: string; value: string }>;
   /** 命名空间选项 */
   namespaceOptions?: Array<{ label: string; value: string | undefined }>;
 }
@@ -26,11 +26,6 @@ withDefaults(defineProps<Props>(), {
   showNamespaceSelector: true,
   showSearch: true,
   searchPlaceholder: '搜索资源名称',
-  clusterOptions: () => [
-    { label: 'Production Cluster', value: 'cluster-prod-01' },
-    { label: 'Staging Cluster', value: 'cluster-staging-01' },
-    { label: 'Development Cluster', value: 'cluster-dev-01' },
-  ],
   namespaceOptions: () => [
     { label: '全部命名空间', value: undefined },
     { label: 'default', value: 'default' },
@@ -44,9 +39,17 @@ const emit = defineEmits<{
   search: [];
 }>();
 
+// 使用 composable 获取集群选项
+const { clusterOptions, selectedClusterId } = useClusterOptions();
+
 // v-model 支持
 const clusterId = defineModel<string>('clusterId', {
-  default: 'cluster-prod-01',
+  get() {
+    return selectedClusterId.value;
+  },
+  set(value) {
+    selectedClusterId.value = value;
+  },
 });
 const namespace = defineModel<string | undefined>('namespace');
 const keyword = defineModel<string>('keyword', { default: '' });

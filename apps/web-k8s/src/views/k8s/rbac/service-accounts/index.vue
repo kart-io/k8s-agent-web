@@ -24,7 +24,7 @@ import {
   Tooltip,
 } from 'ant-design-vue';
 
-import { getMockServiceAccountList } from '#/api/k8s/mock';
+import { serviceAccountApi } from '#/api/k8s';
 
 // 当前选中的集群ID（暂时使用固定值）
 const currentClusterId = ref('cluster-production-01');
@@ -103,9 +103,9 @@ async function loadServiceAccounts() {
       ...filters.value,
     };
 
-    const result = getMockServiceAccountList(params);
-    serviceAccounts.value = result.items;
-    total.value = result.total;
+    const result = await serviceAccountApi.list(params);
+    serviceAccounts.value = result.items || [];
+    total.value = result.total || 0;
   } catch (error: any) {
     message.error(`加载 ServiceAccounts 失败: ${error.message}`);
   } finally {

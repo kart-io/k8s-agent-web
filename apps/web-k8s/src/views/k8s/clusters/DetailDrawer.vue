@@ -63,28 +63,52 @@ function formatDateTime(dateString?: string): string {
 }
 
 /**
- * 生成 YAML 格式的 Cluster 配置
+ * 生成 YAML 格式的 Kubeconfig
  */
 const clusterYaml = computed(() => {
   if (!props.cluster) return '';
 
-  // 构建完整的 Cluster YAML 对象
-  const yamlObj = {
-    id: props.cluster.id,
-    name: props.cluster.name,
-    description: props.cluster.description,
-    apiServer: props.cluster.apiServer,
-    version: props.cluster.version,
-    status: props.cluster.status,
-    nodeCount: props.cluster.nodeCount,
-    podCount: props.cluster.podCount,
-    namespaceCount: props.cluster.namespaceCount,
-    createdAt: props.cluster.createdAt,
-    updatedAt: props.cluster.updatedAt,
+  // 如果后端返回了 kubeconfig，直接使用
+  if (props.cluster.kubeconfig) {
+    return props.cluster.kubeconfig;
+  }
+
+  // 否则生成一个 kubeconfig 模板
+  const kubeconfigTemplate = {
+    apiVersion: 'v1',
+    kind: 'Config',
+    clusters: [
+      {
+        name: props.cluster.name,
+        cluster: {
+          server: props.cluster.endpoint,
+          'certificate-authority-data': '<base64-encoded-ca-cert>',
+        },
+      },
+    ],
+    contexts: [
+      {
+        name: props.cluster.name,
+        context: {
+          cluster: props.cluster.name,
+          user: `${props.cluster.name}-admin`,
+        },
+      },
+    ],
+    'current-context': props.cluster.name,
+    users: [
+      {
+        name: `${props.cluster.name}-admin`,
+        user: {
+          'client-certificate-data': '<base64-encoded-client-cert>',
+          'client-key-data': '<base64-encoded-client-key>',
+        },
+      },
+    ],
   };
 
   // 转换为 YAML 格式字符串
-  return formatYaml(yamlObj);
+  return formatYaml(kubeconfigTemplate);
 });
 
 /**
@@ -147,19 +171,19 @@ function formatYaml(obj: any, indent = 0): string {
 }
 
 /**
- * 复制 YAML 到剪贴板
+ * 复制 Kubeconfig 到剪贴板
  */
 async function copyYaml() {
   try {
     await navigator.clipboard.writeText(clusterYaml.value);
-    message.success('YAML 已复制到剪贴板');
+    message.success('Kubeconfig 已复制到剪贴板');
   } catch {
     message.error('复制失败');
   }
 }
 
 /**
- * 下载 YAML 文件
+ * 下载 Kubeconfig 文件
  */
 function downloadYaml() {
   if (!props.cluster) return;
@@ -168,20 +192,20 @@ function downloadYaml() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${props.cluster.name}.yaml`;
+  a.download = `${props.cluster.name}-kubeconfig.yaml`;
   a.click();
   URL.revokeObjectURL(url);
-  message.success('YAML 文件已下载');
+  message.success('Kubeconfig 文件已下载');
 }
 
 /**
  * 复制 API Server 地址
  */
 async function copyApiServer() {
-  if (!props.cluster?.apiServer) return;
+  if (!props.cluster?.endpoint) return;
 
   try {
-    await navigator.clipboard.writeText(props.cluster.apiServer);
+    await navigator.clipboard.writeText(props.cluster.endpoint);
     message.success('API Server 地址已复制到剪贴板');
   } catch {
     message.error('复制失败');
@@ -230,7 +254,7 @@ function handleClose() {
             </Descriptions.Item>
             <Descriptions.Item label="API Server">
               <div class="api-server-container">
-                <code class="api-server-url">{{ cluster.apiServer }}</code>
+                <code class="api-server-url">{{ cluster.endpoint }}</code>
                 <Button size="small" type="link" @click="copyApiServer">
                   复制
                 </Button>
@@ -316,7 +340,7 @@ function handleClose() {
               <Descriptions :column="1" size="small">
                 <Descriptions.Item label="API Server 地址">
                   <div class="api-server-container">
-                    <code class="api-server-url">{{ cluster.apiServer }}</code>
+                    <code class="api-server-url">{{ cluster.endpoint }}</code>
                     <Button size="small" type="link" @click="copyApiServer">
                       复制
                     </Button>
@@ -331,7 +355,7 @@ function handleClose() {
                 <div class="mb-2 text-sm font-medium">连接示例</div>
                 <div class="connection-example">
                   <pre><code>kubectl config set-cluster {{ cluster.name }} \
-  --server={{ cluster.apiServer }} \
+  --server={{ cluster.endpoint }} \
   --certificate-authority=/path/to/ca.crt
 
 kubectl config set-context {{ cluster.name }} \
@@ -345,13 +369,15 @@ kubectl config use-context {{ cluster.name }}</code></pre>
           </div>
         </Tabs.TabPane>
 
-        <!-- YAML 配置标签页 -->
-        <Tabs.TabPane key="yaml" tab="YAML 配置">
+        <!-- Kubeconfig 配置标签页 -->
+        <Tabs.TabPane key="yaml" tab="Kubeconfig">
           <div class="yaml-actions">
             <Button type="primary" size="small" @click="copyYaml">
-              复制 YAML
+              复制 Kubeconfig
             </Button>
-            <Button size="small" @click="downloadYaml"> 下载 YAML </Button>
+            <Button size="small" @click="downloadYaml">
+              下载 Kubeconfig
+            </Button>
           </div>
           <div class="yaml-wrapper">
             <div class="yaml-content">

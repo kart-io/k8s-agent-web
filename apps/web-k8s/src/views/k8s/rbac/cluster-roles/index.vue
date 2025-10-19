@@ -3,10 +3,15 @@
  * Kubernetes ClusterRole 列表页面
  * 展示集群级别的角色及其权限规则
  */
-import type { ClusterRole, ClusterRoleListParams, PolicyRule } from '#/api/k8s/types';
+import type {
+  ClusterRole,
+  ClusterRoleListParams,
+  PolicyRule,
+} from '#/api/k8s/types';
 
 import { onMounted, ref } from 'vue';
 
+import { LockOutlined, SafetyOutlined } from '@ant-design/icons-vue';
 import {
   Card,
   Descriptions,
@@ -16,12 +21,8 @@ import {
   Tag,
   Tooltip,
 } from 'ant-design-vue';
-import {
-  LockOutlined,
-  SafetyOutlined,
-} from '@ant-design/icons-vue';
 
-import { getMockClusterRoleList } from '#/api/k8s/mock';
+import { clusterRoleApi } from '#/api/k8s';
 
 // 当前选中的集群ID（暂时使用固定值）
 const currentClusterId = ref('cluster-production-01');
@@ -98,9 +99,9 @@ async function loadClusterRoles() {
       pageSize: pageSize.value,
     };
 
-    const result = getMockClusterRoleList(params);
-    clusterRoles.value = result.items;
-    total.value = result.total;
+    const result = await clusterRoleApi.list(params);
+    clusterRoles.value = result.items || [];
+    total.value = result.total || 0;
   } catch (error: any) {
     message.error(`加载 ClusterRoles 失败: ${error.message}`);
   } finally {
@@ -146,9 +147,10 @@ function getPermissionsSummary(rules: PolicyRule[]): string {
     rule.verbs?.forEach((v) => allVerbs.add(v));
   });
 
-  const resourcesStr = Array.from(allResources).slice(0, 3).join(', ');
-  const verbsStr = Array.from(allVerbs).slice(0, 3).join(', ');
-  const moreResources = allResources.size > 3 ? ` +${allResources.size - 3}` : '';
+  const resourcesStr = [...allResources].slice(0, 3).join(', ');
+  const verbsStr = [...allVerbs].slice(0, 3).join(', ');
+  const moreResources =
+    allResources.size > 3 ? ` +${allResources.size - 3}` : '';
   const moreVerbs = allVerbs.size > 3 ? ` +${allVerbs.size - 3}` : '';
 
   return `[${resourcesStr}${moreResources}] → [${verbsStr}${moreVerbs}]`;
@@ -189,7 +191,7 @@ onMounted(() => {
         <div class="card-title">
           <LockOutlined class="title-icon" />
           <span>ClusterRoles ({{ total }})</span>
-          <Tag color="purple" style="margin-left: 12px;">集群级别</Tag>
+          <Tag color="purple" style="margin-left: 12px">集群级别</Tag>
         </div>
       </template>
 
@@ -217,9 +219,7 @@ onMounted(() => {
 
           <!-- 规则数量列 -->
           <template v-else-if="column.key === 'rulesCount'">
-            <Tag color="blue">
-              {{ record.rules.length }} 条规则
-            </Tag>
+            <Tag color="blue"> {{ record.rules.length }} 条规则 </Tag>
           </template>
 
           <!-- 权限摘要列 -->
@@ -233,7 +233,9 @@ onMounted(() => {
 
           <!-- 创建时间列 -->
           <template v-else-if="column.key === 'creationTimestamp'">
-            <Tooltip :title="formatDateTime(record.metadata.creationTimestamp!)">
+            <Tooltip
+              :title="formatDateTime(record.metadata.creationTimestamp!)"
+            >
               <span class="time-text">
                 {{ formatRelativeTime(record.metadata.creationTimestamp!) }}
               </span>
@@ -244,7 +246,12 @@ onMounted(() => {
         <!-- 展开行内容 -->
         <template #expandedRowRender="{ record }">
           <div class="expanded-content">
-            <Descriptions title="ClusterRole 详情" :column="1" bordered size="small">
+            <Descriptions
+              title="ClusterRole 详情"
+              :column="1"
+              bordered
+              size="small"
+            >
               <Descriptions.Item label="角色名称">
                 {{ record.metadata.name }}
               </Descriptions.Item>
@@ -269,21 +276,33 @@ onMounted(() => {
                 <template #bodyCell="{ column, record: rule }">
                   <template v-if="column.key === 'apiGroups'">
                     <div class="tags-cell">
-                      <Tag v-for="group in rule.apiGroups" :key="group" color="purple">
+                      <Tag
+                        v-for="group in rule.apiGroups"
+                        :key="group"
+                        color="purple"
+                      >
                         {{ group || '(core)' }}
                       </Tag>
                     </div>
                   </template>
                   <template v-else-if="column.key === 'resources'">
                     <div class="tags-cell">
-                      <Tag v-for="resource in rule.resources" :key="resource" color="cyan">
+                      <Tag
+                        v-for="resource in rule.resources"
+                        :key="resource"
+                        color="cyan"
+                      >
                         {{ resource }}
                       </Tag>
                     </div>
                   </template>
                   <template v-else-if="column.key === 'verbs'">
                     <div class="tags-cell">
-                      <Tag v-for="verb in rule.verbs" :key="verb" :color="getVerbColor(verb)">
+                      <Tag
+                        v-for="verb in rule.verbs"
+                        :key="verb"
+                        :color="getVerbColor(verb)"
+                      >
                         {{ verb }}
                       </Tag>
                     </div>
@@ -326,8 +345,8 @@ onMounted(() => {
 
 .card-title {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   font-size: 16px;
   font-weight: 600;
 }
@@ -339,8 +358,8 @@ onMounted(() => {
 
 .name-cell {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .name-icon {
