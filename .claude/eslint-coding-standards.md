@@ -83,6 +83,22 @@ const props = withDefaults(defineProps<Props>(), {
 />
 ```
 
+**特殊情况 - Prettier 冲突:**
+
+在某些情况下,Prettier 可能与此规则冲突(循环修复警告)。这时需要使用 eslint-disable 注释:
+
+```vue
+<!-- eslint-disable-next-line vue/html-closing-bracket-newline -->
+您即将删除
+<strong>{{ resourceType }}</strong>
+:
+
+<!-- 或使用块级禁用 -->
+<!-- eslint-disable vue/html-closing-bracket-newline -->
+<span>{{ row.status?.readyReplicas ?? 0 }} / {{ row.spec.replicas }}</span>
+<!-- eslint-enable vue/html-closing-bracket-newline -->
+```
+
 ### 3. v-html 使用规范
 
 #### 规则: `vue/no-v-html`
