@@ -1,5 +1,11 @@
 import type { RouteRecordRaw } from 'vue-router';
-import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
+
+import {
+  createRouter,
+  createWebHashHistory,
+  createWebHistory,
+} from 'vue-router';
+
 import { AuthPageLayout } from '../layouts';
 
 const routes: RouteRecordRaw[] = [
@@ -25,9 +31,10 @@ const routes: RouteRecordRaw[] = [
 ];
 
 const router = createRouter({
-  history: import.meta.env.VITE_ROUTER_HISTORY === 'hash'
-    ? createWebHashHistory(import.meta.env.VITE_BASE)
-    : createWebHistory(import.meta.env.VITE_BASE),
+  history:
+    import.meta.env.VITE_ROUTER_HISTORY === 'hash'
+      ? createWebHashHistory(import.meta.env.VITE_BASE)
+      : createWebHistory(import.meta.env.VITE_BASE),
   routes,
   scrollBehavior: () => ({ left: 0, top: 0 }),
 });
@@ -35,11 +42,9 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach((to, _from, next) => {
   // 设置页面标题
-  if (to.meta.title) {
-    document.title = `${to.meta.title} - ${import.meta.env.VITE_APP_TITLE}`;
-  } else {
-    document.title = import.meta.env.VITE_APP_TITLE;
-  }
+  document.title = to.meta.title
+    ? `${to.meta.title} - ${import.meta.env.VITE_APP_TITLE}`
+    : import.meta.env.VITE_APP_TITLE;
 
   next();
 });

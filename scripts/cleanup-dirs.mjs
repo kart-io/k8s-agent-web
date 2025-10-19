@@ -5,14 +5,14 @@
  * 单一职责：仅删除空目录和无用目录
  */
 
-import { rmSync, existsSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
 import { execSync } from 'node:child_process';
+import { existsSync, readdirSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
  * 检查目录是否为空或只包含临时文件
  * @param {string} dir - 目录路径
- * @returns {Object} 检查结果
+ * @returns {object} 检查结果
  */
 export function checkDirectory(dir) {
   const fullPath = join(process.cwd(), dir);
@@ -22,7 +22,7 @@ export function checkDirectory(dir) {
       exists: false,
       empty: false,
       canDelete: false,
-      reason: '目录不存在'
+      reason: '目录不存在',
     };
   }
 
@@ -34,7 +34,7 @@ export function checkDirectory(dir) {
       exists: true,
       empty: true,
       canDelete: true,
-      reason: '空目录'
+      reason: '空目录',
     };
   }
 
@@ -44,18 +44,20 @@ export function checkDirectory(dir) {
       exists: true,
       empty: false,
       canDelete: true,
-      reason: '仅包含 node_modules'
+      reason: '仅包含 node_modules',
     };
   }
 
   // 只包含 dist 和/或 node_modules
-  const tempOnly = files.every(f => ['node_modules', 'dist', '.DS_Store'].includes(f));
+  const tempOnly = files.every((f) =>
+    ['.DS_Store', 'dist', 'node_modules'].includes(f),
+  );
   if (tempOnly) {
     return {
       exists: true,
       empty: false,
       canDelete: true,
-      reason: '仅包含临时文件'
+      reason: '仅包含临时文件',
     };
   }
 
@@ -64,14 +66,14 @@ export function checkDirectory(dir) {
     empty: false,
     canDelete: false,
     reason: '包含源文件',
-    files
+    files,
   };
 }
 
 /**
  * 删除目录
  * @param {string} dir - 目录路径
- * @returns {Object} 删除结果
+ * @returns {object} 删除结果
  */
 export function deleteDirectory(dir) {
   const fullPath = join(process.cwd(), dir);
@@ -80,14 +82,14 @@ export function deleteDirectory(dir) {
   if (!check.exists) {
     return {
       success: true,
-      message: '目录不存在，无需删除'
+      message: '目录不存在，无需删除',
     };
   }
 
   if (!check.canDelete) {
     return {
       success: false,
-      error: `不能删除：${check.reason}`
+      error: `不能删除：${check.reason}`,
     };
   }
 
@@ -96,7 +98,9 @@ export function deleteDirectory(dir) {
 
     // 使用 git rm 如果目录在 git 中
     try {
-      execSync(`git ls-files "${dir}" --error-unmatch 2>/dev/null`, { stdio: 'pipe' });
+      execSync(`git ls-files "${dir}" --error-unmatch 2>/dev/null`, {
+        stdio: 'pipe',
+      });
       // 如果目录在 git 中，使用 git rm
       execSync(`git rm -rf "${dir}"`, { stdio: 'inherit' });
     } catch {
@@ -106,12 +110,12 @@ export function deleteDirectory(dir) {
 
     return {
       success: true,
-      message: `已删除 ${dir}`
+      message: `已删除 ${dir}`,
     };
   } catch (error) {
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
@@ -124,7 +128,7 @@ export function deleteDirectory(dir) {
 export function cleanupDirectories(dirs) {
   console.log('\n🧹 开始清理目录...\n');
 
-  const results = dirs.map(dir => {
+  const results = dirs.map((dir) => {
     const result = deleteDirectory(dir);
 
     if (result.success) {
@@ -137,8 +141,8 @@ export function cleanupDirectories(dirs) {
   });
 
   // 统计结果
-  const successful = results.filter(r => r.success).length;
-  const failed = results.filter(r => !r.success).length;
+  const successful = results.filter((r) => r.success).length;
+  const failed = results.filter((r) => !r.success).length;
 
   console.log('\n📊 清理统计:');
   console.log(`  成功: ${successful}`);
@@ -163,13 +167,15 @@ async function main() {
 
   // 先检查每个目录
   console.log('目录状态:');
-  const checks = dirsToClean.map(dir => {
+  const checks = dirsToClean.map((dir) => {
     const check = checkDirectory(dir);
-    console.log(`  ${dir}: ${check.canDelete ? '✅ 可删除' : '❌ 不可删除'} (${check.reason})`);
+    console.log(
+      `  ${dir}: ${check.canDelete ? '✅ 可删除' : '❌ 不可删除'} (${check.reason})`,
+    );
     return { dir, ...check };
   });
 
-  const deletable = checks.filter(c => c.canDelete);
+  const deletable = checks.filter((c) => c.canDelete);
 
   if (deletable.length === 0) {
     console.log('\n没有需要清理的目录');
@@ -182,10 +188,10 @@ async function main() {
   const readline = await import('node:readline');
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
-  const answer = await new Promise(resolve => {
+  const answer = await new Promise((resolve) => {
     rl.question('确认删除？(y/n): ', resolve);
   });
 
@@ -197,9 +203,9 @@ async function main() {
   }
 
   // 执行清理
-  const results = cleanupDirectories(deletable.map(d => d.dir));
+  const results = cleanupDirectories(deletable.map((d) => d.dir));
 
-  if (results.every(r => r.success)) {
+  if (results.every((r) => r.success)) {
     console.log('\n✨ 清理完成！');
     console.log('\n💡 下一步:');
     console.log('  1. 更新 .gitignore 文件');

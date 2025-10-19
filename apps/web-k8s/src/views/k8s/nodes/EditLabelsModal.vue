@@ -5,7 +5,7 @@
  */
 import type { Node } from '#/api/k8s/types';
 
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons-vue';
 import { Button, Input, message, Modal, Space, Table } from 'ant-design-vue';
@@ -13,8 +13,8 @@ import { Button, Input, message, Modal, Space, Table } from 'ant-design-vue';
 import { updateNodeLabels } from '#/api/k8s';
 
 interface EditLabelsModalProps {
-  visible: boolean;
-  node: Node | null;
+  visible?: boolean;
+  node?: Node | null;
   clusterId?: string;
 }
 
@@ -30,7 +30,7 @@ const emit = defineEmits<{
 }>();
 
 // 标签列表
-const labels = ref<Array<{ key: string; value: string; isNew?: boolean }>>([]);
+const labels = ref<Array<{ isNew?: boolean; key: string; value: string }>>([]);
 
 // 新标签输入
 const newLabelKey = ref('');
@@ -133,7 +133,7 @@ function handleAddLabel() {
   }
 
   // 验证键格式 (简化版，完整的 K8s 验证更复杂)
-  const keyPattern = /^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$/;
+  const keyPattern = /^[a-z0-9](?:[\w.-]*[a-z0-9])?$/i;
   const parts = key.split('/');
   const labelKey = parts.length === 2 ? parts[1] : parts[0];
 
@@ -183,13 +183,11 @@ async function handleSave() {
   if (!props.node) return;
 
   try {
-    const labelsObject = labels.value.reduce(
-      (acc, { key, value }) => {
-        acc[key] = value;
-        return acc;
-      },
-      {} as Record<string, string>,
-    );
+    // 将标签数组转换为对象
+    const labelsObject: Record<string, string> = {};
+    for (const { key, value } of labels.value) {
+      labelsObject[key] = value;
+    }
 
     await updateNodeLabels(
       props.clusterId,
@@ -307,8 +305,8 @@ function handleClose() {
 }
 
 .add-label-section {
-  margin-bottom: 24px;
   padding: 16px;
+  margin-bottom: 24px;
   background-color: var(--vben-background-color);
   border: 1px solid var(--vben-border-color);
   border-radius: 4px;
@@ -332,8 +330,8 @@ function handleClose() {
 }
 
 .system-label {
-  color: var(--vben-text-color-secondary);
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
+  color: var(--vben-text-color-secondary);
 }
 
 .system-value {
@@ -346,8 +344,8 @@ function handleClose() {
 }
 
 .new-badge {
-  margin-left: 8px;
   padding: 2px 6px;
+  margin-left: 8px;
   font-size: 11px;
   color: #fff;
   background-color: #52c41a;

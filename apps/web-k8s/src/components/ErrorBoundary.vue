@@ -21,9 +21,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const hasError = ref(false);
 const errorInfo = ref<{
+  componentName?: string;
   message: string;
   stack?: string;
-  componentName?: string;
 }>({
   message: '',
 });
@@ -94,23 +94,19 @@ function reportError(err: Error, instance: any, info: string) {
     <div v-if="hasError" class="error-state">
       <Result
         status="error"
-        :title="title"
+        :title="props.title"
         :sub-title="errorInfo.message"
       >
         <template #extra>
           <div class="error-actions">
-            <Button type="primary" @click="handleReset">
-              重试
-            </Button>
-            <Button @click="handleReload">
-              刷新页面
-            </Button>
+            <Button type="primary" @click="handleReset"> 重试 </Button>
+            <Button @click="handleReload"> 刷新页面 </Button>
           </div>
         </template>
       </Result>
 
       <!-- 错误详情（仅开发环境） -->
-      <div v-if="showDetails && errorInfo.stack" class="error-details">
+      <div v-if="props.showDetails && errorInfo.stack" class="error-details">
         <details>
           <summary>错误详情</summary>
           <div class="error-stack">
@@ -153,8 +149,8 @@ function reportError(err: Error, instance: any, info: string) {
 
 .error-details {
   max-width: 800px;
-  margin-top: 24px;
   padding: 16px;
+  margin-top: 24px;
   background-color: #f5f5f5;
   border-radius: 4px;
 }
@@ -170,8 +166,8 @@ function reportError(err: Error, instance: any, info: string) {
 }
 
 .error-stack {
-  margin-top: 12px;
   padding: 12px;
+  margin-top: 12px;
   background-color: white;
   border-radius: 4px;
 }

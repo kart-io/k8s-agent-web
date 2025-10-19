@@ -6,10 +6,10 @@ import { computed, markRaw } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { AuthenticationLogin, SliderCaptcha, z } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+
 import { message } from 'ant-design-vue';
 
-import { loginApi, getUserInfoApi } from '../api/auth';
+import { getUserInfoApi, loginApi } from '../api/auth';
 import { setToken, setUserInfo } from '../utils/storage';
 
 defineOptions({ name: 'Login' });
@@ -108,7 +108,9 @@ async function handleSubmit(values: Record<string, any>) {
       const userInfo = await getUserInfoApi();
       setUserInfo(userInfo);
 
-      message.success(`登录成功！欢迎 ${userInfo.realName || userInfo.username}`);
+      message.success(
+        `登录成功！欢迎 ${userInfo.realName || userInfo.username}`,
+      );
 
       // 获取重定向 URL
       const redirectUrl = route.query.redirect as string;
@@ -121,7 +123,8 @@ async function handleSubmit(values: Record<string, any>) {
           window.location.href = `${redirectUrl}${separator}token=${accessToken}`;
         } else {
           // 默认跳转到主应用
-          const mainAppUrl = import.meta.env.VITE_MAIN_APP_URL || 'http://localhost:5666';
+          const mainAppUrl =
+            import.meta.env.VITE_MAIN_APP_URL || 'http://localhost:5666';
           window.location.href = `${mainAppUrl}?token=${accessToken}`;
         }
       }, 500);

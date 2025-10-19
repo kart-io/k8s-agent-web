@@ -5,12 +5,12 @@
  */
 import { computed, onMounted, ref, watch } from 'vue';
 
-import { Card, Descriptions, Empty, List, Tag } from 'ant-design-vue';
 import {
   ContainerOutlined,
   DatabaseOutlined,
   DeploymentUnitOutlined,
 } from '@ant-design/icons-vue';
+import { Card, Empty, List, Tag } from 'ant-design-vue';
 
 interface Props {
   resource: any;
@@ -28,10 +28,10 @@ const relatedResources = ref<
     category: string;
     items: Array<{
       kind: string;
+      link?: string;
       name: string;
       namespace?: string;
       status?: string;
-      link?: string;
     }>;
   }>
 >([]);
@@ -51,24 +51,30 @@ async function loadRelatedResources() {
 
     // 根据不同的资源类型加载关联资源
     switch (props.resourceType) {
-      case 'Deployment':
-        await loadDeploymentRelated(related);
-        break;
-      case 'Service':
-        await loadServiceRelated(related);
-        break;
-      case 'Pod':
-        await loadPodRelated(related);
-        break;
-      case 'StatefulSet':
-        await loadStatefulSetRelated(related);
-        break;
-      case 'DaemonSet':
+      case 'DaemonSet': {
         await loadDaemonSetRelated(related);
         break;
-      default:
+      }
+      case 'Deployment': {
+        await loadDeploymentRelated(related);
+        break;
+      }
+      case 'Pod': {
+        await loadPodRelated(related);
+        break;
+      }
+      case 'Service': {
+        await loadServiceRelated(related);
+        break;
+      }
+      case 'StatefulSet': {
+        await loadStatefulSetRelated(related);
+        break;
+      }
+      default: {
         // 通用处理：显示标签匹配的 Pod
         await loadGenericRelated(related);
+      }
     }
 
     relatedResources.value = related;
@@ -173,7 +179,10 @@ async function loadPodRelated(related: typeof relatedResources.value) {
   const pod = props.resource;
 
   // Owner (Deployment/StatefulSet/DaemonSet/ReplicaSet)
-  if (pod.metadata?.ownerReferences && pod.metadata.ownerReferences.length > 0) {
+  if (
+    pod.metadata?.ownerReferences &&
+    pod.metadata.ownerReferences.length > 0
+  ) {
     const owner = pod.metadata.ownerReferences[0];
     related.push({
       category: 'Owner',
@@ -201,7 +210,9 @@ async function loadPodRelated(related: typeof relatedResources.value) {
 
   // PersistentVolumeClaims
   if (pod.spec?.volumes) {
-    const pvcVolumes = pod.spec.volumes.filter((v: any) => v.persistentVolumeClaim);
+    const pvcVolumes = pod.spec.volumes.filter(
+      (v: any) => v.persistentVolumeClaim,
+    );
     if (pvcVolumes.length > 0) {
       related.push({
         category: 'PersistentVolumeClaims',
@@ -270,7 +281,10 @@ async function loadStatefulSetRelated(related: typeof relatedResources.value) {
   });
 
   // PVCs (from volumeClaimTemplates)
-  if (sts.spec?.volumeClaimTemplates && sts.spec.volumeClaimTemplates.length > 0) {
+  if (
+    sts.spec?.volumeClaimTemplates &&
+    sts.spec.volumeClaimTemplates.length > 0
+  ) {
     related.push({
       category: 'PersistentVolumeClaims',
       items: Array.from({ length: sts.spec?.replicas || 0 }, (_, i) =>
@@ -332,25 +346,29 @@ function getStatusColor(status?: string): string {
   if (!status) return 'default';
 
   switch (status.toLowerCase()) {
-    case 'running':
     case 'active':
     case 'bound':
+    case 'running': {
       return 'success';
-    case 'pending':
-      return 'warning';
-    case 'failed':
+    }
     case 'error':
+    case 'failed': {
       return 'error';
-    default:
+    }
+    case 'pending': {
+      return 'warning';
+    }
+    default: {
       return 'default';
+    }
   }
 }
 
 /**
  * 是否有关联资源
  */
-const hasRelatedResources = computed(
-  () => relatedResources.value.length > 0 && relatedResources.value.some((r) => r.items.length > 0),
+const hasRelatedResources = computed(() =>
+  relatedResources.value.some((r) => r.items.length > 0),
 );
 
 // 监听资源变化
@@ -370,8 +388,16 @@ onMounted(() => {
 
 <template>
   <div class="related-resources-tab">
-    <div v-if="hasRelatedResources" class="resources-content" v-loading="loading">
-      <div v-for="(category, idx) in relatedResources" :key="idx" class="resource-category">
+    <div
+      v-if="hasRelatedResources"
+      class="resources-content"
+      v-loading="loading"
+    >
+      <div
+        v-for="(category, idx) in relatedResources"
+        :key="idx"
+        class="resource-category"
+      >
         <Card :title="category.category" :bordered="false" size="small">
           <template #extra>
             <Tag color="blue">{{ category.items.length }}</Tag>
@@ -390,7 +416,7 @@ onMounted(() => {
                             ? DeploymentUnitOutlined
                             : DatabaseOutlined
                       "
-                      style="font-size: 16px; color: var(--vben-primary-color);"
+                      style="font-size: 16px; color: var(--vben-primary-color)"
                     />
                   </div>
                   <div class="resource-info">
@@ -423,7 +449,10 @@ onMounted(() => {
     />
 
     <div v-if="loading && !hasRelatedResources" class="loading-placeholder">
-      <DatabaseOutlined spin style="font-size: 24px; color: var(--vben-primary-color);" />
+      <DatabaseOutlined
+        spin
+        style="font-size: 24px; color: var(--vben-primary-color)"
+      />
       <p>加载关联资源中...</p>
     </div>
   </div>
@@ -431,8 +460,8 @@ onMounted(() => {
 
 <style scoped>
 .related-resources-tab {
-  padding: 16px;
   min-height: 300px;
+  padding: 16px;
 }
 
 .resources-content {
@@ -451,8 +480,8 @@ onMounted(() => {
 
 .resource-content {
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
   width: 100%;
 }
 
@@ -462,24 +491,24 @@ onMounted(() => {
 
 .resource-info {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 4px;
-  flex: 1;
 }
 
 .resource-name-row {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .resource-name {
+  padding: 2px 6px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 13px;
   color: var(--vben-text-color);
-  padding: 2px 6px;
-  border-radius: 3px;
   background-color: rgb(0 0 0 / 4%);
+  border-radius: 3px;
 }
 
 html[data-theme='dark'] .resource-name {
@@ -488,8 +517,8 @@ html[data-theme='dark'] .resource-name {
 
 .resource-namespace {
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
 }
 
 .namespace-label {
@@ -498,12 +527,12 @@ html[data-theme='dark'] .resource-name {
 }
 
 .namespace-value {
+  padding: 1px 4px;
   font-family: Menlo, Monaco, 'Courier New', Courier, monospace;
   font-size: 11px;
   color: var(--vben-text-color-secondary);
-  padding: 1px 4px;
-  border-radius: 2px;
   background-color: rgb(0 0 0 / 3%);
+  border-radius: 2px;
 }
 
 html[data-theme='dark'] .namespace-value {
@@ -517,10 +546,10 @@ html[data-theme='dark'] .namespace-value {
 .loading-placeholder {
   display: flex;
   flex-direction: column;
+  gap: 16px;
   align-items: center;
   justify-content: center;
   padding: 60px 0;
-  gap: 16px;
   color: var(--vben-text-color-secondary);
 }
 </style>

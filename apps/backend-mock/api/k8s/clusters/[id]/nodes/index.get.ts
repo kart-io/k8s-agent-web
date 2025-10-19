@@ -2,7 +2,7 @@
  * 获取 Node 列表
  * GET /api/k8s/clusters/:clusterId/nodes
  */
-import { defineEventHandler, getQuery, getRouterParam } from 'h3';
+import { defineEventHandler, getQuery } from 'h3';
 
 import { mockNodes, paginate } from '../../../_utils';
 

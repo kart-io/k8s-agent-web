@@ -5,16 +5,16 @@
  */
 import { computed, h, onMounted, ref } from 'vue';
 
-import { Progress, Statistic, Tag, Tooltip } from 'ant-design-vue';
 import { DatabaseOutlined } from '@ant-design/icons-vue';
+import { Progress, Statistic, Tag, Tooltip } from 'ant-design-vue';
 
 // Mock 存储类分布数据
 const storageClassData = ref<
   Array<{
-    name: string;
-    count: number;
     capacity: string;
     color: string;
+    count: number;
+    name: string;
   }>
 >([
   {
@@ -105,7 +105,9 @@ onMounted(() => {
             </Tag>
             <span class="item-capacity">{{ item.capacity }}</span>
           </div>
-          <Tooltip :title="`${item.count} 个 PV (${getPercentage(item.count)}%)`">
+          <Tooltip
+            :title="`${item.count} 个 PV (${getPercentage(item.count)}%)`"
+          >
             <span class="item-count">{{ item.count }}</span>
           </Tooltip>
         </div>
@@ -115,9 +117,7 @@ onMounted(() => {
           :show-info="false"
           class="item-progress"
         />
-        <div class="item-percentage">
-          {{ getPercentage(item.count) }}%
-        </div>
+        <div class="item-percentage">{{ getPercentage(item.count) }}%</div>
       </div>
     </div>
   </div>
@@ -165,8 +165,8 @@ onMounted(() => {
 
 .item-info {
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
 }
 
 .item-name {

@@ -25,11 +25,13 @@ function handleRetry() {
 
 <template>
   <div class="async-error">
-    <Result status="error" title="组件加载失败" :sub-title="error?.message || '网络错误，请重试'">
+    <Result
+      status="error"
+      title="组件加载失败"
+      :sub-title="error?.message || '网络错误，请重试'"
+    >
       <template #extra>
-        <Button type="primary" @click="handleRetry">
-          重新加载
-        </Button>
+        <Button type="primary" @click="handleRetry"> 重新加载 </Button>
       </template>
     </Result>
   </div>

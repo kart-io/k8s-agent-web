@@ -19,8 +19,8 @@ import {
 import * as yaml from 'js-yaml';
 
 interface DetailDrawerProps {
-  visible: boolean;
-  daemonSet: DaemonSet | null;
+  visible?: boolean;
+  daemonSet?: DaemonSet | null;
 }
 
 const props = withDefaults(defineProps<DetailDrawerProps>(), {
@@ -195,7 +195,8 @@ function handleClose() {
             <Descriptions.Item label="就绪节点数">
               <Tag
                 :color="
-                  daemonSet.status.numberReady === daemonSet.status.desiredNumberScheduled
+                  daemonSet.status.numberReady ===
+                  daemonSet.status.desiredNumberScheduled
                     ? 'success'
                     : 'warning'
                 "

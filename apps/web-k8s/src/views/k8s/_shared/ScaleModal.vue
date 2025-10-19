@@ -19,6 +19,12 @@ defineOptions({
   name: 'ScaleModal',
 });
 
+const props = withDefaults(defineProps<Props>(), {
+  currentReplicas: 0,
+});
+
+const emit = defineEmits<Emits>();
+
 interface Props {
   visible: boolean;
   resourceName: string;
@@ -26,12 +32,6 @@ interface Props {
   currentReplicas?: number;
   namespace: string;
 }
-
-const props = withDefaults(defineProps<Props>(), {
-  currentReplicas: 0,
-});
-
-const emit = defineEmits<Emits>();
 
 interface Emits {
   (e: 'update:visible', value: boolean): void;

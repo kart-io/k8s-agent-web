@@ -2,7 +2,6 @@
 /**
  * ConfigMap 资源管理页面 - 使用通用页面模板
  */
-import { computed } from 'vue';
 
 import { Descriptions } from 'ant-design-vue';
 
@@ -14,7 +13,10 @@ defineOptions({ name: 'K8sConfigMaps' });
 </script>
 
 <template>
-  <GenericResourcePage :config-factory="createConfigMapConfig" :detail-component="GenericDetailDrawer">
+  <GenericResourcePage
+    :config-factory="createConfigMapConfig"
+    :detail-component="GenericDetailDrawer"
+  >
     <!-- 自定义插槽：键数量显示 -->
     <template #keys-slot="{ row }">
       <span>{{ row.data ? Object.keys(row.data).length : 0 }} 个键</span>

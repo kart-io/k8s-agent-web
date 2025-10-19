@@ -1,7 +1,12 @@
 /**
  * 更新集群
  */
-import { defineEventHandler, getRouterParam, readBody, setResponseStatus } from 'h3';
+import {
+  defineEventHandler,
+  getRouterParam,
+  readBody,
+  setResponseStatus,
+} from 'h3';
 
 import { mockClusters } from '../_utils';
 

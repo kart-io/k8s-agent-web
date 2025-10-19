@@ -33,13 +33,20 @@ import AsyncError from '#/components/AsyncError.vue';
 import AsyncLoading from '#/components/AsyncLoading.vue';
 import ResourceList from '#/views/k8s/_shared/ResourceList.vue';
 
+const props = withDefaults(defineProps<Props>(), {
+  scalable: false,
+  enableDetail: true,
+  enableYAMLEdit: true,
+  detailComponent: undefined,
+});
+
 // 懒加载大型组件，减少初始加载时间，并添加加载和错误状态
 const ScaleModal = defineAsyncComponent({
   loader: () => import('#/views/k8s/_shared/ScaleModal.vue'),
   loadingComponent: AsyncLoading,
   errorComponent: AsyncError,
   delay: 200, // 200ms 后显示 loading
-  timeout: 10000, // 10 秒超时
+  timeout: 10_000, // 10 秒超时
 });
 
 const YAMLEditorModal = defineAsyncComponent({
@@ -47,7 +54,7 @@ const YAMLEditorModal = defineAsyncComponent({
   loadingComponent: AsyncLoading,
   errorComponent: AsyncError,
   delay: 200,
-  timeout: 10000,
+  timeout: 10_000,
 });
 
 const GenericDetailDrawer = defineAsyncComponent({
@@ -55,7 +62,7 @@ const GenericDetailDrawer = defineAsyncComponent({
   loadingComponent: AsyncLoading,
   errorComponent: AsyncError,
   delay: 200,
-  timeout: 10000,
+  timeout: 10_000,
 });
 
 interface Props {
@@ -70,12 +77,6 @@ interface Props {
   /** 是否启用 YAML 编辑（默认 true） */
   enableYAMLEdit?: boolean;
 }
-
-const props = withDefaults(defineProps<Props>(), {
-  scalable: false,
-  enableDetail: true,
-  enableYAMLEdit: true,
-});
 
 // ==================== 状态管理 ====================
 
@@ -96,24 +97,28 @@ const config = computed(() => {
       const newAction = { ...action };
 
       switch (action.action) {
-        case 'view':
-          if (props.enableDetail) {
-            newAction.handler = openDetail;
-          }
-          break;
-        case 'edit':
+        case 'edit': {
           if (props.enableYAMLEdit) {
             newAction.handler = openYAMLEditor;
           }
           break;
-        case 'scale':
+        }
+        case 'scale': {
           if (props.scalable) {
             newAction.handler = openScaleModal;
           }
           break;
-        // delete, restart 等其他操作保持原样
-        default:
+        }
+        case 'view': {
+          if (props.enableDetail) {
+            newAction.handler = openDetail;
+          }
           break;
+        }
+        // delete, restart 等其他操作保持原样
+        default: {
+          break;
+        }
       }
 
       return newAction;

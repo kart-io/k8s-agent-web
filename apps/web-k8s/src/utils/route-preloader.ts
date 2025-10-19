@@ -22,12 +22,12 @@ interface PreloadOptions {
 }
 
 export class RoutePreloader {
-  private router: Router;
-  private options: Required<PreloadOptions>;
-  private preloadedRoutes: Set<string>;
   private hoverTimers: Map<string, NodeJS.Timeout>;
   private idleTimer: NodeJS.Timeout | null = null;
   private lastActivityTime: number = Date.now();
+  private options: Required<PreloadOptions>;
+  private preloadedRoutes: Set<string>;
+  private router: Router;
 
   constructor(router: Router, options: PreloadOptions = {}) {
     this.router = router;
@@ -42,6 +42,29 @@ export class RoutePreloader {
   }
 
   /**
+   * 销毁预加载器
+   */
+  destroy() {
+    // 清理所有定时器
+    this.hoverTimers.forEach((timer) => clearTimeout(timer));
+    this.hoverTimers.clear();
+
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+    }
+  }
+
+  /**
+   * 获取预加载统计
+   */
+  getStats() {
+    return {
+      preloadedCount: this.preloadedRoutes.size,
+      preloadedRoutes: [...this.preloadedRoutes],
+    };
+  }
+
+  /**
    * 初始化预加载器
    */
   init() {
@@ -51,6 +74,125 @@ export class RoutePreloader {
     }
     // 预加载优先级路由
     this.preloadPriorityRoutes();
+  }
+
+  /**
+   * 取消预加载
+   */
+  private cancelPreload(path: string) {
+    const timer = this.hoverTimers.get(path);
+    if (timer) {
+      clearTimeout(timer);
+      this.hoverTimers.delete(path);
+    }
+  }
+
+  /**
+   * 预加载常用路由
+   */
+  private async preloadCommonRoutes() {
+    // 基于当前路由预测可能访问的路由
+    const currentPath = this.router.currentRoute.value.path;
+
+    // K8s 资源相关的常用导航路径
+    const predictions: string[] = [];
+
+    if (currentPath.startsWith('/k8s')) {
+      // 在 K8s 页面时，预加载常用资源页面
+      predictions.push(
+        '/k8s/dashboard',
+        '/k8s/pods',
+        '/k8s/deployments',
+        '/k8s/services',
+      );
+    }
+
+    // 去除已预加载的路由
+    const routesToPreload = predictions.filter(
+      (path) => !this.preloadedRoutes.has(path),
+    );
+
+    // 逐个预加载，避免一次性加载过多
+    for (const path of routesToPreload.slice(0, 3)) {
+      await this.preloadRoute(path);
+      // 每个路由之间间隔 500ms
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+
+  /**
+   * 预加载优先级路由
+   */
+  private async preloadPriorityRoutes() {
+    // 使用 requestIdleCallback 在浏览器空闲时预加载
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(
+        () => {
+          this.options.priorityRoutes.forEach((path) => {
+            this.preloadRoute(path);
+          });
+        },
+        { timeout: 2000 },
+      );
+    } else {
+      // 降级：使用 setTimeout
+      setTimeout(() => {
+        this.options.priorityRoutes.forEach((path) => {
+          this.preloadRoute(path);
+        });
+      }, 1000);
+    }
+  }
+
+  /**
+   * 预加载路由
+   */
+  private async preloadRoute(path: string) {
+    if (this.preloadedRoutes.has(path)) {
+      return;
+    }
+
+    try {
+      const route = this.router.resolve(path);
+      if (route.matched.length > 0) {
+        // 预加载路由组件
+        const promises = route.matched.map((record) => {
+          if (typeof record.components?.default === 'function') {
+            return (record.components.default as any)();
+          }
+          return Promise.resolve();
+        });
+
+        await Promise.all(promises);
+        this.preloadedRoutes.add(path);
+
+        // 在开发环境输出日志
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.log(`[RoutePreloader] Preloaded: ${path}`);
+        }
+      }
+    } catch (error) {
+      console.warn(`[RoutePreloader] Failed to preload: ${path}`, error);
+    }
+  }
+
+  /**
+   * 调度预加载
+   */
+  private schedulePreload(path: string) {
+    // 如果已经预加载过，跳过
+    if (this.preloadedRoutes.has(path)) {
+      return;
+    }
+
+    // 设置延迟预加载
+    const timer = setTimeout(() => {
+      this.preloadRoute(path);
+      this.hoverTimers.delete(path);
+    }, this.options.hoverDelay);
+
+    this.hoverTimers.set(path, timer);
   }
 
   /**
@@ -104,156 +246,12 @@ export class RoutePreloader {
     // 初始设置
     resetIdleTimer();
   }
-
-  /**
-   * 调度预加载
-   */
-  private schedulePreload(path: string) {
-    // 如果已经预加载过，跳过
-    if (this.preloadedRoutes.has(path)) {
-      return;
-    }
-
-    // 设置延迟预加载
-    const timer = setTimeout(() => {
-      this.preloadRoute(path);
-      this.hoverTimers.delete(path);
-    }, this.options.hoverDelay);
-
-    this.hoverTimers.set(path, timer);
-  }
-
-  /**
-   * 取消预加载
-   */
-  private cancelPreload(path: string) {
-    const timer = this.hoverTimers.get(path);
-    if (timer) {
-      clearTimeout(timer);
-      this.hoverTimers.delete(path);
-    }
-  }
-
-  /**
-   * 预加载路由
-   */
-  private async preloadRoute(path: string) {
-    if (this.preloadedRoutes.has(path)) {
-      return;
-    }
-
-    try {
-      const route = this.router.resolve(path);
-      if (route.matched.length > 0) {
-        // 预加载路由组件
-        const promises = route.matched.map((record) => {
-          if (typeof record.components?.default === 'function') {
-            return (record.components.default as any)();
-          }
-          return Promise.resolve();
-        });
-
-        await Promise.all(promises);
-        this.preloadedRoutes.add(path);
-
-        // 在开发环境输出日志
-        if (import.meta.env.DEV) {
-          console.log(`[RoutePreloader] Preloaded: ${path}`);
-        }
-      }
-    } catch (error) {
-      console.warn(`[RoutePreloader] Failed to preload: ${path}`, error);
-    }
-  }
-
-  /**
-   * 预加载优先级路由
-   */
-  private async preloadPriorityRoutes() {
-    // 使用 requestIdleCallback 在浏览器空闲时预加载
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(
-        () => {
-          this.options.priorityRoutes.forEach((path) => {
-            this.preloadRoute(path);
-          });
-        },
-        { timeout: 2000 },
-      );
-    } else {
-      // 降级：使用 setTimeout
-      setTimeout(() => {
-        this.options.priorityRoutes.forEach((path) => {
-          this.preloadRoute(path);
-        });
-      }, 1000);
-    }
-  }
-
-  /**
-   * 预加载常用路由
-   */
-  private async preloadCommonRoutes() {
-    // 基于当前路由预测可能访问的路由
-    const currentPath = this.router.currentRoute.value.path;
-
-    // K8s 资源相关的常用导航路径
-    const predictions: string[] = [];
-
-    if (currentPath.startsWith('/k8s')) {
-      // 在 K8s 页面时，预加载常用资源页面
-      predictions.push(
-        '/k8s/dashboard',
-        '/k8s/pods',
-        '/k8s/deployments',
-        '/k8s/services',
-      );
-    }
-
-    // 去除已预加载的路由
-    const routesToPreload = predictions.filter(
-      (path) => !this.preloadedRoutes.has(path),
-    );
-
-    // 逐个预加载，避免一次性加载过多
-    for (const path of routesToPreload.slice(0, 3)) {
-      await this.preloadRoute(path);
-      // 每个路由之间间隔 500ms
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-
-  /**
-   * 销毁预加载器
-   */
-  destroy() {
-    // 清理所有定时器
-    this.hoverTimers.forEach((timer) => clearTimeout(timer));
-    this.hoverTimers.clear();
-
-    if (this.idleTimer) {
-      clearTimeout(this.idleTimer);
-    }
-  }
-
-  /**
-   * 获取预加载统计
-   */
-  getStats() {
-    return {
-      preloadedCount: this.preloadedRoutes.size,
-      preloadedRoutes: Array.from(this.preloadedRoutes),
-    };
-  }
 }
 
 /**
  * 创建路由预加载器
  */
-export function createRoutePreloader(
-  router: Router,
-  options?: PreloadOptions,
-) {
+export function createRoutePreloader(router: Router, options?: PreloadOptions) {
   const preloader = new RoutePreloader(router, options);
   preloader.init();
   return preloader;

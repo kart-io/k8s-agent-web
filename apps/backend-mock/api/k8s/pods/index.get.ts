@@ -16,7 +16,9 @@ export default defineEventHandler(async (event) => {
   let filteredPods = [...mockPods];
 
   if (namespace && namespace !== 'all') {
-    filteredPods = filteredPods.filter((p) => p.metadata.namespace === namespace);
+    filteredPods = filteredPods.filter(
+      (p) => p.metadata.namespace === namespace,
+    );
   }
 
   if (keyword) {

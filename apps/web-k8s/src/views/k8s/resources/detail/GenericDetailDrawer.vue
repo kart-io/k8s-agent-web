@@ -224,8 +224,8 @@ const hasMetadata = computed(() => {
 
 .empty-state {
   padding: 24px;
-  text-align: center;
   color: var(--vben-text-color-secondary);
+  text-align: center;
   background-color: var(--vben-background-color);
   border: 1px dashed var(--vben-border-color);
   border-radius: 4px;
@@ -234,11 +234,11 @@ const hasMetadata = computed(() => {
 
 code {
   padding: 2px 6px;
+  font-family: 'Courier New', Courier, monospace;
+  color: var(--vben-text-color);
   background-color: var(--vben-code-bg-color);
   border: 1px solid var(--vben-border-color);
   border-radius: 3px;
-  font-family: 'Courier New', Courier, monospace;
-  color: var(--vben-text-color);
   transition: all 0.3s ease;
 }
 

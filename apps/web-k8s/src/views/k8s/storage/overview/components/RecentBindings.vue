@@ -5,8 +5,11 @@
  */
 import { onMounted, ref } from 'vue';
 
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+} from '@ant-design/icons-vue';
 import { Table, Tag, Tooltip } from 'ant-design-vue';
-import { CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons-vue';
 
 interface BindingRecord {
   pvName: string;
@@ -197,7 +200,9 @@ onMounted(() => {
         <!-- 访问模式列 -->
         <template v-else-if="column.key === 'accessMode'">
           <Tooltip :title="record.accessMode">
-            <Tag :color="record.accessMode === 'ReadWriteMany' ? 'purple' : 'blue'">
+            <Tag
+              :color="record.accessMode === 'ReadWriteMany' ? 'purple' : 'blue'"
+            >
               {{ formatAccessMode(record.accessMode) }}
             </Tag>
           </Tooltip>
@@ -257,8 +262,8 @@ onMounted(() => {
 
 .empty-state {
   padding: 40px;
-  text-align: center;
   color: var(--vben-text-color-secondary);
+  text-align: center;
 }
 
 .empty-state p {

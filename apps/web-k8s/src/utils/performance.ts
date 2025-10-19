@@ -54,6 +54,7 @@ export function setupPerformance(
       router.afterEach(() => {
         setTimeout(() => {
           const stats = preloader.getStats();
+          // eslint-disable-next-line no-console
           console.log('[Performance] Route preload stats:', stats);
         }, 1000);
       });
@@ -76,6 +77,7 @@ export function setupPerformance(
   // 3. 资源提示（预连接、DNS 预解析等）
   setupResourceHints();
 
+  // eslint-disable-next-line no-console
   console.log('[Performance] Performance optimizations initialized');
 }
 
@@ -100,6 +102,7 @@ function setupPerformanceMonitoring(router: Router) {
 
       const measure = performance.getEntriesByName(`route-${to.path}`)[0];
       if (measure && import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
         console.log(
           `[Performance] Route ${to.path} loaded in ${measure.duration.toFixed(2)}ms`,
         );
@@ -109,7 +112,7 @@ function setupPerformanceMonitoring(router: Router) {
       performance.clearMarks(`route-start-${to.path}`);
       performance.clearMarks(`route-end-${to.path}`);
       performance.clearMeasures(`route-${to.path}`);
-    } catch (e) {
+    } catch {
       // 忽略测量错误
     }
   });
@@ -119,6 +122,7 @@ function setupPerformanceMonitoring(router: Router) {
     // 监控 LCP (Largest Contentful Paint)
     const lcpObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
+        // eslint-disable-next-line no-console
         console.log('[Performance] LCP:', entry);
       }
     });
@@ -127,6 +131,7 @@ function setupPerformanceMonitoring(router: Router) {
     // 监控 FID (First Input Delay)
     const fidObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
+        // eslint-disable-next-line no-console
         console.log('[Performance] FID:', entry);
       }
     });
@@ -135,6 +140,7 @@ function setupPerformanceMonitoring(router: Router) {
     // 监控 CLS (Cumulative Layout Shift)
     const clsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
+        // eslint-disable-next-line no-console
         console.log('[Performance] CLS:', entry);
       }
     });
@@ -156,7 +162,7 @@ function setupResourceHints() {
     const link = document.createElement('link');
     link.rel = 'dns-prefetch';
     link.href = url;
-    document.head.appendChild(link);
+    document.head.append(link);
   });
 
   // 预连接到关键域名
@@ -170,7 +176,7 @@ function setupResourceHints() {
     link.rel = 'preconnect';
     link.href = url;
     link.crossOrigin = 'anonymous';
-    document.head.appendChild(link);
+    document.head.append(link);
   });
 }
 
@@ -197,9 +203,11 @@ export function getPerformanceReport() {
     domParse: navigation.domInteractive - navigation.responseEnd,
     // DOM 内容加载完成时间
     domContentLoaded:
-      navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+      navigation.domContentLoadedEventEnd -
+      navigation.domContentLoadedEventStart,
     // 资源加载时间
-    resourceLoad: navigation.loadEventStart - navigation.domContentLoadedEventEnd,
+    resourceLoad:
+      navigation.loadEventStart - navigation.domContentLoadedEventEnd,
     // 总加载时间
     total: navigation.loadEventEnd - navigation.fetchStart,
   };

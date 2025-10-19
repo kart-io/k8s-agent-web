@@ -2,7 +2,6 @@
  * Kubernetes API 接口
  */
 
-import { requestClient } from '../request';
 import type {
   Cluster,
   ClusterListParams,
@@ -45,12 +44,16 @@ import type {
   StatefulSetListResult,
 } from './types';
 
+import { requestClient } from '../request';
+
 // ==================== 集群管理 ====================
 
 /**
  * 获取集群列表
  */
-export async function getClusterList(params?: ClusterListParams): Promise<ClusterListResult> {
+export async function getClusterList(
+  params?: ClusterListParams,
+): Promise<ClusterListResult> {
   return requestClient.get('/k8s/clusters', { params });
 }
 
@@ -71,7 +74,10 @@ export async function createCluster(data: Partial<Cluster>): Promise<Cluster> {
 /**
  * 更新集群
  */
-export async function updateCluster(id: string, data: Partial<Cluster>): Promise<Cluster> {
+export async function updateCluster(
+  id: string,
+  data: Partial<Cluster>,
+): Promise<Cluster> {
   return requestClient.put(`/k8s/clusters/${id}`, data);
 }
 
@@ -94,7 +100,9 @@ export async function getClusterMetrics(id: string): Promise<ClusterMetrics> {
 /**
  * 获取 Pod 列表
  */
-export async function getPodList(params: PodListParams): Promise<PodListResult> {
+export async function getPodList(
+  params: PodListParams,
+): Promise<PodListResult> {
   return requestClient.get('/k8s/pods', { params });
 }
 
@@ -106,14 +114,23 @@ export async function getPodDetail(
   namespace: string,
   name: string,
 ): Promise<Pod> {
-  return requestClient.get(`/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}`);
+  return requestClient.get(
+    `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}`,
+  );
 }
 
 /**
  * 创建 Pod
  */
-export async function createPod(clusterId: string, namespace: string, data: Pod): Promise<Pod> {
-  return requestClient.post(`/k8s/clusters/${clusterId}/namespaces/${namespace}/pods`, data);
+export async function createPod(
+  clusterId: string,
+  namespace: string,
+  data: Pod,
+): Promise<Pod> {
+  return requestClient.post(
+    `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods`,
+    data,
+  );
 }
 
 /**
@@ -139,7 +156,9 @@ export async function deletePod(
   namespace: string,
   name: string,
 ): Promise<void> {
-  return requestClient.delete(`/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}`);
+  return requestClient.delete(
+    `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}`,
+  );
 }
 
 /**
@@ -171,7 +190,9 @@ export async function execPod(params: PodExecParams): Promise<string> {
 /**
  * 获取 Service 列表
  */
-export async function getServiceList(params: ServiceListParams): Promise<ServiceListResult> {
+export async function getServiceList(
+  params: ServiceListParams,
+): Promise<ServiceListResult> {
   return requestClient.get('/k8s/services', { params });
 }
 
@@ -196,7 +217,10 @@ export async function createService(
   namespace: string,
   data: Service,
 ): Promise<Service> {
-  return requestClient.post(`/k8s/clusters/${clusterId}/namespaces/${namespace}/services`, data);
+  return requestClient.post(
+    `/k8s/clusters/${clusterId}/namespaces/${namespace}/services`,
+    data,
+  );
 }
 
 /**
@@ -298,7 +322,9 @@ export async function deleteConfigMap(
 /**
  * 获取 CronJob 列表
  */
-export async function getCronJobList(params: CronJobListParams): Promise<CronJobListResult> {
+export async function getCronJobList(
+  params: CronJobListParams,
+): Promise<CronJobListResult> {
   return requestClient.get('/k8s/cronjobs', { params });
 }
 
@@ -323,7 +349,10 @@ export async function createCronJob(
   namespace: string,
   data: CronJob,
 ): Promise<CronJob> {
-  return requestClient.post(`/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs`, data);
+  return requestClient.post(
+    `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs`,
+    data,
+  );
 }
 
 /**
@@ -474,28 +503,39 @@ export async function restartDeployment(
 /**
  * 获取 Namespace 列表
  */
-export async function getNamespaceList(clusterId: string): Promise<NamespaceListResult> {
+export async function getNamespaceList(
+  clusterId: string,
+): Promise<NamespaceListResult> {
   return requestClient.get(`/k8s/clusters/${clusterId}/namespaces`);
 }
 
 /**
  * 获取 Namespace 详情
  */
-export async function getNamespaceDetail(clusterId: string, name: string): Promise<Namespace> {
+export async function getNamespaceDetail(
+  clusterId: string,
+  name: string,
+): Promise<Namespace> {
   return requestClient.get(`/k8s/clusters/${clusterId}/namespaces/${name}`);
 }
 
 /**
  * 创建 Namespace
  */
-export async function createNamespace(clusterId: string, data: Namespace): Promise<Namespace> {
+export async function createNamespace(
+  clusterId: string,
+  data: Namespace,
+): Promise<Namespace> {
   return requestClient.post(`/k8s/clusters/${clusterId}/namespaces`, data);
 }
 
 /**
  * 删除 Namespace
  */
-export async function deleteNamespace(clusterId: string, name: string): Promise<void> {
+export async function deleteNamespace(
+  clusterId: string,
+  name: string,
+): Promise<void> {
   return requestClient.delete(`/k8s/clusters/${clusterId}/namespaces/${name}`);
 }
 
@@ -509,14 +549,19 @@ export async function getNodeList(clusterId: string): Promise<NodeListResult> {
 /**
  * 获取 Node 详情
  */
-export async function getNodeDetail(clusterId: string, name: string): Promise<Node> {
+export async function getNodeDetail(
+  clusterId: string,
+  name: string,
+): Promise<Node> {
   return requestClient.get(`/k8s/clusters/${clusterId}/nodes/${name}`);
 }
 
 /**
  * 获取 Secret 列表
  */
-export async function getSecretList(params: SecretListParams): Promise<SecretListResult> {
+export async function getSecretList(
+  params: SecretListParams,
+): Promise<SecretListResult> {
   return requestClient.get('/k8s/secrets', { params });
 }
 
@@ -528,7 +573,9 @@ export async function getSecretDetail(
   namespace: string,
   name: string,
 ): Promise<Secret> {
-  return requestClient.get(`/k8s/clusters/${clusterId}/namespaces/${namespace}/secrets/${name}`);
+  return requestClient.get(
+    `/k8s/clusters/${clusterId}/namespaces/${namespace}/secrets/${name}`,
+  );
 }
 
 /**
@@ -539,7 +586,10 @@ export async function createSecret(
   namespace: string,
   data: Secret,
 ): Promise<Secret> {
-  return requestClient.post(`/k8s/clusters/${clusterId}/namespaces/${namespace}/secrets`, data);
+  return requestClient.post(
+    `/k8s/clusters/${clusterId}/namespaces/${namespace}/secrets`,
+    data,
+  );
 }
 
 /**
@@ -637,7 +687,9 @@ export async function scaleStatefulSet(
 /**
  * 获取 DaemonSet 列表
  */
-export async function getDaemonSetList(params: DaemonSetListParams): Promise<DaemonSetListResult> {
+export async function getDaemonSetList(
+  params: DaemonSetListParams,
+): Promise<DaemonSetListResult> {
   return requestClient.get('/k8s/daemonsets', { params });
 }
 
@@ -684,7 +736,9 @@ export async function deleteDaemonSet(
 /**
  * 获取 Job 列表
  */
-export async function getJobList(params: JobListParams): Promise<JobListResult> {
+export async function getJobList(
+  params: JobListParams,
+): Promise<JobListResult> {
   return requestClient.get('/k8s/jobs', { params });
 }
 
@@ -696,7 +750,9 @@ export async function getJobDetail(
   namespace: string,
   name: string,
 ): Promise<Job> {
-  return requestClient.get(`/k8s/clusters/${clusterId}/namespaces/${namespace}/jobs/${name}`);
+  return requestClient.get(
+    `/k8s/clusters/${clusterId}/namespaces/${namespace}/jobs/${name}`,
+  );
 }
 
 /**
@@ -707,7 +763,10 @@ export async function createJob(
   namespace: string,
   data: Job,
 ): Promise<Job> {
-  return requestClient.post(`/k8s/clusters/${clusterId}/namespaces/${namespace}/jobs`, data);
+  return requestClient.post(
+    `/k8s/clusters/${clusterId}/namespaces/${namespace}/jobs`,
+    data,
+  );
 }
 
 /**
@@ -718,5 +777,7 @@ export async function deleteJob(
   namespace: string,
   name: string,
 ): Promise<void> {
-  return requestClient.delete(`/k8s/clusters/${clusterId}/namespaces/${namespace}/jobs/${name}`);
+  return requestClient.delete(
+    `/k8s/clusters/${clusterId}/namespaces/${namespace}/jobs/${name}`,
+  );
 }

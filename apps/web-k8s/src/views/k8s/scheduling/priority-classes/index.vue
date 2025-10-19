@@ -12,7 +12,10 @@ defineOptions({ name: 'K8sPriorityClasses' });
 </script>
 
 <template>
-  <GenericResourcePage :config-factory="createPriorityClassConfig" :detail-component="GenericDetailDrawer">
+  <GenericResourcePage
+    :config-factory="createPriorityClassConfig"
+    :detail-component="GenericDetailDrawer"
+  >
     <!-- 自定义插槽：默认标记显示 -->
     <template #default-slot="{ row }">
       <Tag :color="row.globalDefault ? 'green' : 'default'">

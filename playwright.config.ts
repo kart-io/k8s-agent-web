@@ -1,4 +1,5 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
+
 import { defineConfig, devices } from '@playwright/test';
 
 /**
@@ -55,10 +56,10 @@ export default defineConfig<PlaywrightTestConfig>({
     ignoreHTTPSErrors: true,
 
     // 操作超时
-    actionTimeout: 10000,
+    actionTimeout: 10_000,
 
     // 导航超时
-    navigationTimeout: 30000,
+    navigationTimeout: 30_000,
   },
 
   // 项目配置
@@ -118,6 +119,6 @@ export default defineConfig<PlaywrightTestConfig>({
     command: process.env.CI ? 'pnpm build && pnpm preview' : 'pnpm dev',
     port: process.env.CI ? 4173 : 5173,
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
+    timeout: 120_000,
   },
 });

@@ -5,7 +5,7 @@
  * 基于最新发现：所有 *-app 目录都没有实际源代码
  */
 
-import { rmSync, existsSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 const legacyDirs = [
@@ -16,15 +16,15 @@ const legacyDirs = [
   'system-app',
   'image-build-app',
   'monitor-app',
-  'shared'
+  'shared',
 ];
 
 async function cleanupAllLegacy() {
   console.log('\n🧹 清理所有遗留目录');
-  console.log('=' .repeat(60));
+  console.log('='.repeat(60));
   console.log('\n📋 待清理目录:');
 
-  legacyDirs.forEach(dir => {
+  legacyDirs.forEach((dir) => {
     const exists = existsSync(join(process.cwd(), dir));
     console.log(`  ${dir}: ${exists ? '✅ 存在' : '❌ 不存在'}`);
   });
@@ -38,10 +38,10 @@ async function cleanupAllLegacy() {
   const readline = await import('node:readline');
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
-  const answer = await new Promise(resolve => {
+  const answer = await new Promise((resolve) => {
     rl.question('\n确认删除所有遗留目录？(y/n): ', resolve);
   });
 
@@ -75,7 +75,7 @@ async function cleanupAllLegacy() {
     }
   }
 
-  console.log('\n' + '=' .repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   console.log('📊 清理结果:');
   console.log(`  成功: ${successCount}`);
   console.log(`  失败: ${failCount}`);

@@ -2,7 +2,12 @@
  * 更新节点标签
  * PUT /api/k8s/clusters/:clusterId/nodes/:name/labels
  */
-import { defineEventHandler, getRouterParam, readBody, setResponseStatus } from 'h3';
+import {
+  defineEventHandler,
+  getRouterParam,
+  readBody,
+  setResponseStatus,
+} from 'h3';
 
 import { mockNodes } from '../../../../_utils';
 
@@ -25,7 +30,8 @@ export default defineEventHandler(async (event) => {
   // 保留系统标签
   const systemLabels = {
     'kubernetes.io/hostname': node.metadata.labels?.['kubernetes.io/hostname'],
-    'node-role.kubernetes.io/worker': node.metadata.labels?.['node-role.kubernetes.io/worker'],
+    'node-role.kubernetes.io/worker':
+      node.metadata.labels?.['node-role.kubernetes.io/worker'],
   };
 
   // 更新标签

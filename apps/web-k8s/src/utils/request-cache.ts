@@ -24,8 +24,8 @@ interface CacheEntry<T> {
 
 export class RequestCache<T = any> {
   private cache: Map<string, CacheEntry<T>>;
-  private readonly ttl: number;
   private readonly maxSize: number;
+  private readonly ttl: number;
 
   constructor(options: RequestCacheOptions = {}) {
     this.cache = new Map();
@@ -34,16 +34,38 @@ export class RequestCache<T = any> {
   }
 
   /**
+   * 清理过期缓存
+   */
+  cleanup(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp >= this.ttl) {
+        this.cache.delete(key);
+      }
+    }
+  }
+
+  /**
+   * 清空所有缓存
+   */
+  clear(): void {
+    this.cache.clear();
+  }
+
+  /**
+   * 删除指定缓存
+   */
+  delete(key: string): boolean {
+    return this.cache.delete(key);
+  }
+
+  /**
    * 获取缓存数据或执行请求
    * @param key 缓存键
    * @param fetcher 数据获取函数
    * @param force 强制刷新缓存
    */
-  async get(
-    key: string,
-    fetcher: () => Promise<T>,
-    force = false,
-  ): Promise<T> {
+  async get(key: string, fetcher: () => Promise<T>, force = false): Promise<T> {
     // 检查缓存
     if (!force) {
       const cached = this.cache.get(key);
@@ -88,6 +110,28 @@ export class RequestCache<T = any> {
   }
 
   /**
+   * 获取缓存统计信息
+   */
+  getStats() {
+    return {
+      size: this.cache.size,
+      maxSize: this.maxSize,
+      ttl: this.ttl,
+    };
+  }
+
+  /**
+   * 检查缓存是否存在且有效
+   */
+  has(key: string): boolean {
+    const cached = this.cache.get(key);
+    if (!cached) return false;
+
+    const age = Date.now() - cached.timestamp;
+    return age < this.ttl;
+  }
+
+  /**
    * 手动设置缓存
    */
   set(key: string, data: T): void {
@@ -103,54 +147,6 @@ export class RequestCache<T = any> {
       data,
       timestamp: Date.now(),
     });
-  }
-
-  /**
-   * 删除指定缓存
-   */
-  delete(key: string): boolean {
-    return this.cache.delete(key);
-  }
-
-  /**
-   * 清空所有缓存
-   */
-  clear(): void {
-    this.cache.clear();
-  }
-
-  /**
-   * 清理过期缓存
-   */
-  cleanup(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp >= this.ttl) {
-        this.cache.delete(key);
-      }
-    }
-  }
-
-  /**
-   * 检查缓存是否存在且有效
-   */
-  has(key: string): boolean {
-    const cached = this.cache.get(key);
-    if (!cached) return false;
-
-    const age = Date.now() - cached.timestamp;
-    return age < this.ttl;
-  }
-
-  /**
-   * 获取缓存统计信息
-   */
-  getStats() {
-    return {
-      size: this.cache.size,
-      maxSize: this.maxSize,
-      ttl: this.ttl,
-    };
   }
 }
 

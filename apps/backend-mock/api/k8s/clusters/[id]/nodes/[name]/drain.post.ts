@@ -2,13 +2,18 @@
  * 驱逐节点 (Drain)
  * POST /api/k8s/clusters/:clusterId/nodes/:name/drain
  */
-import { defineEventHandler, getRouterParam, readBody, setResponseStatus } from 'h3';
+import {
+  defineEventHandler,
+  getRouterParam,
+  readBody,
+  setResponseStatus,
+} from 'h3';
 
 import { mockNodes } from '../../../../_utils';
 
 export default defineEventHandler(async (event) => {
   const name = getRouterParam(event, 'name');
-  const options = await readBody(event);
+  const _options = await readBody(event);
 
   // 查找节点
   const node = mockNodes.find((n) => n.metadata.name === name);

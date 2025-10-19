@@ -5,11 +5,11 @@
  */
 import { computed, ref } from 'vue';
 
-import { Alert, Checkbox, Input, Modal } from 'ant-design-vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { Alert, Checkbox, Input, Modal } from 'ant-design-vue';
 
 interface DeleteConfirmModalProps {
-  visible: boolean;
+  visible?: boolean;
   resourceType: string;
   resourceName: string;
   warnings?: string[];
@@ -96,9 +96,9 @@ function handleClose() {
   <Modal
     :open="visible"
     :title="title"
-    :ok-text="'确认删除'"
-    :cancel-text="'取消'"
-    :ok-button-props="{ danger: danger, disabled: !canConfirm }"
+    ok-text="确认删除"
+    cancel-text="取消"
+    :ok-button-props="{ danger, disabled: !canConfirm }"
     width="600px"
     @ok="handleConfirm"
     @cancel="handleCancel"
@@ -106,13 +106,17 @@ function handleClose() {
     <div class="delete-confirm-content">
       <!-- 警告图标 -->
       <div class="warning-icon">
-        <ExclamationCircleOutlined :style="{ fontSize: '48px', color: danger ? '#ff4d4f' : '#faad14' }" />
+        <ExclamationCircleOutlined
+          :style="{ fontSize: '48px', color: danger ? '#ff4d4f' : '#faad14' }"
+        />
       </div>
 
       <!-- 主要提示信息 -->
       <div class="main-message">
         <p class="message-text">
-          您即将删除 <strong>{{ resourceType }}</strong>:
+          <!-- eslint-disable-next-line vue/html-closing-bracket-newline -->
+          您即将删除 <strong>{{ resourceType }}</strong
+          >:
         </p>
         <p class="resource-name">{{ resourceName }}</p>
         <p class="warning-text">
@@ -124,7 +128,7 @@ function handleClose() {
       <Alert
         v-if="warnings.length > 0"
         :type="warningType"
-        :message="`删除前请注意以下事项：`"
+        message="删除前请注意以下事项："
         show-icon
         class="warnings-alert"
       >
@@ -140,12 +144,19 @@ function handleClose() {
       <!-- 确认文本输入 -->
       <div v-if="requireConfirmText" class="confirm-input-section">
         <p class="input-label">
-          请输入 <code class="confirm-code">{{ confirmText || resourceName }}</code> 以确认删除：
+          请输入
+          <code class="confirm-code">{{ confirmText || resourceName }}</code>
+          以确认删除：
         </p>
         <Input
           v-model:value="inputConfirmText"
           placeholder="请输入资源名称"
-          :status="inputConfirmText && inputConfirmText !== (confirmText || resourceName) ? 'error' : ''"
+          :status="
+            inputConfirmText &&
+            inputConfirmText !== (confirmText || resourceName)
+              ? 'error'
+              : ''
+          "
           @press-enter="handleConfirm"
         />
       </div>
@@ -209,8 +220,8 @@ function handleClose() {
 }
 
 .warnings-list {
-  margin: 8px 0 0;
   padding-left: 20px;
+  margin: 8px 0 0;
 }
 
 .warnings-list li {

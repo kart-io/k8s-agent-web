@@ -7,6 +7,7 @@ import type { ResourceFormConfig } from '#/types/k8s-resource-base';
 
 import { computed, ref, watch } from 'vue';
 
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons-vue';
 import {
   Alert,
   Button,
@@ -21,10 +22,13 @@ import {
   Tabs,
   Textarea,
 } from 'ant-design-vue';
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons-vue';
 import * as yaml from 'js-yaml';
 
 defineOptions({ name: 'ResourceEditorModal' });
+
+const props = defineProps<Props>();
+
+const emit = defineEmits<Emits>();
 
 interface Props {
   visible: boolean;
@@ -41,9 +45,6 @@ interface Emits {
   (e: 'update:visible', value: boolean): void;
   (e: 'confirm', resource: any): void; // 确认创建/编辑
 }
-
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
 
 // 当前选中的标签页
 const activeTab = ref<'form' | 'yaml'>('form');
@@ -84,27 +85,23 @@ watch(
 function initializeFormData() {
   if (props.mode === 'edit' && props.resource) {
     // 编辑模式：使用资源数据
-    formData.value = JSON.parse(JSON.stringify(props.resource));
+    formData.value = structuredClone(props.resource);
   } else if (props.mode === 'create') {
     // 创建模式：使用初始值
-    if (props.formConfig?.createInitialValues) {
-      formData.value = JSON.parse(
-        JSON.stringify(props.formConfig.createInitialValues),
-      );
-    } else {
-      // 默认初始值
-      formData.value = {
-        apiVersion: 'v1',
-        kind: props.resourceLabel,
-        metadata: {
-          name: '',
-          namespace: props.namespace || '',
-          labels: {},
-          annotations: {},
-        },
-        spec: {},
-      };
-    }
+    formData.value = props.formConfig?.createInitialValues
+      ? structuredClone(props.formConfig.createInitialValues)
+      : {
+          // 默认初始值
+          apiVersion: 'v1',
+          kind: props.resourceLabel,
+          metadata: {
+            name: '',
+            namespace: props.namespace || '',
+            labels: {},
+            annotations: {},
+          },
+          spec: {},
+        };
   }
 }
 
@@ -113,9 +110,7 @@ function initializeFormData() {
  */
 function initializeYamlContent() {
   const data =
-    props.mode === 'edit' && props.resource
-      ? props.resource
-      : formData.value;
+    props.mode === 'edit' && props.resource ? props.resource : formData.value;
 
   try {
     yamlContent.value = yaml.dump(data, {
@@ -414,7 +409,11 @@ function updateLabelValue(field: string, key: string, value: string) {
                               style="width: 45%"
                               @update:value="
                                 (newKey) =>
-                                  updateLabelKey(field.field, key as string, newKey)
+                                  updateLabelKey(
+                                    field.field,
+                                    key as string,
+                                    newKey,
+                                  )
                               "
                             />
                             <Input
@@ -438,7 +437,11 @@ function updateLabelValue(field: string, key: string, value: string) {
                               <DeleteOutlined />
                             </Button>
                           </div>
-                          <Button type="dashed" block @click="addLabel(field.field)">
+                          <Button
+                            type="dashed"
+                            block
+                            @click="addLabel(field.field)"
+                          >
                             <PlusOutlined /> 添加标签
                           </Button>
                         </div>
@@ -534,7 +537,11 @@ function updateLabelValue(field: string, key: string, value: string) {
                             style="width: 45%"
                             @update:value="
                               (newKey) =>
-                                updateLabelKey(field.field, key as string, newKey)
+                                updateLabelKey(
+                                  field.field,
+                                  key as string,
+                                  newKey,
+                                )
                             "
                           />
                           <Input
@@ -558,7 +565,11 @@ function updateLabelValue(field: string, key: string, value: string) {
                             <DeleteOutlined />
                           </Button>
                         </div>
-                        <Button type="dashed" block @click="addLabel(field.field)">
+                        <Button
+                          type="dashed"
+                          block
+                          @click="addLabel(field.field)"
+                        >
                           <PlusOutlined /> 添加标签
                         </Button>
                       </div>
@@ -617,8 +628,8 @@ function updateLabelValue(field: string, key: string, value: string) {
 <style scoped>
 .form-container {
   max-height: 600px;
-  overflow-y: auto;
   padding: 16px 0;
+  overflow-y: auto;
 }
 
 .form-group {

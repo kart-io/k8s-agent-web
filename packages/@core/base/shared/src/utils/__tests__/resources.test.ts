@@ -13,29 +13,34 @@ describe('loadScript', () => {
 
     // Mock document.createElement 来避免 happy-dom 自动加载脚本
     originalCreateElement = document.createElement.bind(document);
-    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
-      if (tagName.toLowerCase() === 'script') {
-        const script = originalCreateElement('script');
-        // 保存原始的 src setter
-        const srcDescriptor = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src');
+    vi.spyOn(document, 'createElement').mockImplementation(
+      (tagName: string) => {
+        if (tagName.toLowerCase() === 'script') {
+          const script = originalCreateElement('script');
+          // 保存原始的 src setter
+          const _srcDescriptor = Object.getOwnPropertyDescriptor(
+            HTMLScriptElement.prototype,
+            'src',
+          );
 
-        // 定义一个新的 src 属性,阻止真正的网络请求
-        Object.defineProperty(script, 'src', {
-          get() {
-            return script.getAttribute('src') || '';
-          },
-          set(value: string) {
-            script.setAttribute('src', value);
-            // 存储 mock script
-            mockScripts.set(value, script);
-          },
-          configurable: true,
-        });
+          // 定义一个新的 src 属性,阻止真正的网络请求
+          Object.defineProperty(script, 'src', {
+            get() {
+              return script.getAttribute('src') || '';
+            },
+            set(value: string) {
+              script.setAttribute('src', value);
+              // 存储 mock script
+              mockScripts.set(value, script);
+            },
+            configurable: true,
+          });
 
-        return script;
-      }
-      return originalCreateElement(tagName);
-    });
+          return script;
+        }
+        return originalCreateElement(tagName);
+      },
+    );
   });
 
   afterEach(() => {
@@ -52,7 +57,8 @@ describe('loadScript', () => {
       expect(script).toBeTruthy();
     });
 
-    const script = mockScripts.get(testJsPath)!;
+    const script = mockScripts.get(testJsPath);
+    if (!script) throw new Error('Script not found');
 
     // 模拟加载成功
     script.dispatchEvent(new Event('load'));
@@ -87,7 +93,8 @@ describe('loadScript', () => {
       expect(script).toBeTruthy();
     });
 
-    const script = mockScripts.get('error.js')!;
+    const script = mockScripts.get('error.js');
+    if (!script) throw new Error('Script not found');
 
     // 模拟加载失败
     script.dispatchEvent(new Event('error'));
@@ -106,7 +113,8 @@ describe('loadScript', () => {
       expect(script).toBeTruthy();
     });
 
-    const script = mockScripts.get(testJsPath)!;
+    const script = mockScripts.get(testJsPath);
+    if (!script) throw new Error('Script not found');
 
     // 触发一次 load,两个 promise 都应该 resolve
     script.dispatchEvent(new Event('load'));

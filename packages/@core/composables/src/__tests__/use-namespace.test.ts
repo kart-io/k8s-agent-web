@@ -1,10 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { useNamespace } from '../use-namespace';
 
 describe('useNamespace', () => {
   const ns = useNamespace('button');
 
-  describe('BEM命名规范', () => {
+  describe('bEM命名规范', () => {
     it('应该生成正确的块(Block)名称', () => {
       expect(ns.b()).toBe('vben-button');
     });
@@ -30,7 +31,9 @@ describe('useNamespace', () => {
     });
 
     it('应该生成正确的块元素修饰符(Block Element Modifier)名称', () => {
-      expect(ns.bem('group', 'item', 'active')).toBe('vben-button__group-item--active');
+      expect(ns.bem('group', 'item', 'active')).toBe(
+        'vben-button__group-item--active',
+      );
     });
   });
 
@@ -51,24 +54,28 @@ describe('useNamespace', () => {
         ns.is('active', true),
         ns.is('disabled', false),
         ns.is('loading', true),
-      ].filter(Boolean).join(' ');
+      ]
+        .filter(Boolean)
+        .join(' ');
 
       expect(states).toBe('is-active is-loading');
     });
   });
 
-  describe('CSS变量', () => {
+  describe('cSS变量', () => {
     it('应该生成正确的CSS变量名', () => {
       expect(ns.cssVar('color')).toBe('--vben-button-color');
-      expect(ns.cssVar('background-color')).toBe('--vben-button-background-color');
+      expect(ns.cssVar('background-color')).toBe(
+        '--vben-button-background-color',
+      );
       expect(ns.cssVar('border-radius')).toBe('--vben-button-border-radius');
     });
 
     it('应该生成带值的CSS变量对象', () => {
       const vars = ns.cssVarObject({
-        'color': '#fff',
-        'background': '#007bff',
-        'padding': '10px',
+        color: '#fff',
+        background: '#007bff',
+        padding: '10px',
       });
 
       expect(vars).toEqual({
@@ -96,7 +103,9 @@ describe('useNamespace', () => {
         ns.m('primary'),
         ns.is('active', true),
         ns.is('disabled', false),
-      ].filter(Boolean).join(' ');
+      ]
+        .filter(Boolean)
+        .join(' ');
 
       expect(classes).toBe('vben-button vben-button--primary is-active');
     });

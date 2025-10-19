@@ -54,7 +54,8 @@ export const useAuthStore = defineStore('auth', () => {
           accessStore.setLoginExpired(false);
         } else {
           // 检查是否有重定向 URL（从 K8s 应用或其他子应用跳转过来）
-          const redirectUrl = router.currentRoute.value.query.redirect as string;
+          const redirectUrl = router.currentRoute.value.query
+            .redirect as string;
 
           if (redirectUrl && redirectUrl.startsWith('http')) {
             // 如果是外部 URL（子应用），带上 token 重定向
@@ -64,7 +65,9 @@ export const useAuthStore = defineStore('auth', () => {
             onSuccess
               ? await onSuccess?.()
               : await router.push(
-                  redirectUrl || userInfo.homePath || preferences.app.defaultHomePath,
+                  redirectUrl ||
+                    userInfo.homePath ||
+                    preferences.app.defaultHomePath,
                 );
           }
         }

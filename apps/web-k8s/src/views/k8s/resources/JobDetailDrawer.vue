@@ -19,8 +19,8 @@ import {
 import * as yaml from 'js-yaml';
 
 interface DetailDrawerProps {
-  visible: boolean;
-  job: Job | null;
+  visible?: boolean;
+  job?: Job | null;
 }
 
 const props = withDefaults(defineProps<DetailDrawerProps>(), {
@@ -74,12 +74,10 @@ const labels = computed(() => {
  */
 const annotations = computed(() => {
   if (!props.job?.metadata.annotations) return [];
-  return Object.entries(props.job.metadata.annotations).map(
-    ([key, value]) => ({
-      key,
-      value,
-    }),
-  );
+  return Object.entries(props.job.metadata.annotations).map(([key, value]) => ({
+    key,
+    value,
+  }));
 });
 
 /**

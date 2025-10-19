@@ -2,16 +2,17 @@
  * 测试工具函数
  */
 
-import { mount } from '@vue/test-utils';
-import type { Component } from 'vue';
 import type { ComponentMountingOptions } from '@vue/test-utils';
+import type { Component } from 'vue';
+
+import { mount } from '@vue/test-utils';
 
 /**
  * 增强的组件挂载函数
  */
 export function mountComponent<T extends Component>(
   component: T,
-  options?: ComponentMountingOptions<T>
+  options?: ComponentMountingOptions<T>,
 ) {
   return mount(component, {
     ...options,
@@ -56,9 +57,9 @@ export async function waitForDomUpdate(): Promise<void> {
 export async function triggerInput(
   wrapper: any,
   selector: string,
-  value: string
+  value: string,
 ) {
-  const input = wrapper.find(selector);
+  const input = wrapper.find((element: any) => element.matches(selector));
   await input.setValue(value);
   await input.trigger('input');
   await input.trigger('change');
@@ -71,9 +72,9 @@ export async function triggerInput(
 export function createFileMock(
   name = 'test.txt',
   size = 1024,
-  type = 'text/plain'
+  type = 'text/plain',
 ): File {
-  const content = new Array(size).fill('a').join('');
+  const content = Array.from({ length: size }, () => 'a').join('');
   const blob = new Blob([content], { type });
   return new File([blob], name, { type });
 }
@@ -81,11 +82,8 @@ export function createFileMock(
 /**
  * 模拟拖放事件
  */
-export function createDragEvent(
-  type: string,
-  files: File[] = []
-): DragEvent {
-  const dataTransfer = {
+export function createDragEvent(type: string, files: File[] = []): DragEvent {
+  const _dataTransfer = {
     files,
     items: files.map((file) => ({
       kind: 'file',
@@ -113,7 +111,7 @@ export function createDragEvent(
 export function mockApiResponse<T>(
   data: T,
   delay = 100,
-  success = true
+  success = true,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -130,7 +128,7 @@ export function mockApiResponse<T>(
  * 断言元素可见性
  */
 export function assertElementVisible(wrapper: any, selector: string) {
-  const element = wrapper.find(selector);
+  const element = wrapper.find((el: any) => el.matches(selector));
   expect(element.exists()).toBe(true);
   expect(element.isVisible()).toBe(true);
 }
@@ -141,9 +139,9 @@ export function assertElementVisible(wrapper: any, selector: string) {
 export function assertElementText(
   wrapper: any,
   selector: string,
-  expectedText: string
+  expectedText: string,
 ) {
-  const element = wrapper.find(selector);
+  const element = wrapper.find((el: any) => el.matches(selector));
   expect(element.exists()).toBe(true);
   expect(element.text()).toBe(expectedText);
 }
@@ -155,9 +153,9 @@ export function assertElementAttribute(
   wrapper: any,
   selector: string,
   attribute: string,
-  expectedValue: string
+  expectedValue: string,
 ) {
-  const element = wrapper.find(selector);
+  const element = wrapper.find((el: any) => el.matches(selector));
   expect(element.exists()).toBe(true);
   expect(element.attributes(attribute)).toBe(expectedValue);
 }
@@ -167,7 +165,7 @@ export function assertElementAttribute(
  */
 export function createTestProps<T extends Record<string, any>>(
   defaultProps: T,
-  overrides?: Partial<T>
+  overrides?: Partial<T>,
 ): T {
   return {
     ...defaultProps,

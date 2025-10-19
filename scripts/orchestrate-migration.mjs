@@ -6,24 +6,27 @@
  */
 
 import { generateAuditReport } from './audit-apps.mjs';
-import { migrateApps } from './migrate-apps.mjs';
-import { updateWorkspaceConfig, updatePackageJson } from './update-workspace.mjs';
 import { cleanupDirectories } from './cleanup-dirs.mjs';
+import { migrateApps } from './migrate-apps.mjs';
+import {
+  updatePackageJson,
+  updateWorkspaceConfig,
+} from './update-workspace.mjs';
 
 /**
  * 执行完整的迁移流程
- * @returns {Object} 执行结果
+ * @returns {object} 执行结果
  */
 export async function orchestrateMigration() {
   console.log('\n🎯 开始执行架构优化流程\n');
-  console.log('=' .repeat(60));
+  console.log('='.repeat(60));
 
   const results = {
     audit: null,
     migration: null,
     config: null,
     cleanup: null,
-    success: true
+    success: true,
   };
 
   try {
@@ -39,10 +42,10 @@ export async function orchestrateMigration() {
 
     // 步骤 2: 迁移
     const toMigrate = auditReport.results
-      .filter(app => app.action === 'migrate')
-      .map(app => ({
+      .filter((app) => app.action === 'migrate')
+      .map((app) => ({
         from: app.appDir,
-        to: `apps/${app.appDir.replace('-app', '')}`
+        to: `apps/${app.appDir.replace('-app', '')}`,
       }));
 
     if (toMigrate.length > 0) {
@@ -51,7 +54,7 @@ export async function orchestrateMigration() {
       const migrationResults = migrateApps(toMigrate);
       results.migration = migrationResults;
 
-      if (!migrationResults.every(r => r.success)) {
+      if (!migrationResults.every((r) => r.success)) {
         throw new Error('部分迁移失败');
       }
     } else {
@@ -65,11 +68,11 @@ export async function orchestrateMigration() {
 
     // 准备要移除的路径
     const pathsToRemove = [
-      ...toMigrate.map(m => m.from),
+      ...toMigrate.map((m) => m.from),
       ...auditReport.results
-        .filter(app => app.action === 'delete')
-        .map(app => app.appDir),
-      'shared'  // 额外的无用目录
+        .filter((app) => app.action === 'delete')
+        .map((app) => app.appDir),
+      'shared', // 额外的无用目录
     ];
 
     const configResult = updateWorkspaceConfig(pathsToRemove, []);
@@ -82,8 +85,8 @@ export async function orchestrateMigration() {
 
     // 步骤 4: 清理
     const toDelete = auditReport.results
-      .filter(app => app.action === 'delete')
-      .map(app => app.appDir);
+      .filter((app) => app.action === 'delete')
+      .map((app) => app.appDir);
 
     if (toDelete.length > 0) {
       console.log('\n🧹 步骤 4/4: 清理空目录');
@@ -95,7 +98,7 @@ export async function orchestrateMigration() {
       results.cleanup = [];
     }
 
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
     console.log('✨ 架构优化流程完成！');
     console.log('='.repeat(60));
 
@@ -113,7 +116,7 @@ export async function orchestrateMigration() {
 
 /**
  * 打印执行总结
- * @param {Object} results - 执行结果
+ * @param {object} results - 执行结果
  */
 function printSummary(results) {
   console.log('\n📊 执行总结:');
@@ -124,7 +127,7 @@ function printSummary(results) {
   }
 
   if (results.migration && results.migration.length > 0) {
-    const successful = results.migration.filter(r => r.success).length;
+    const successful = results.migration.filter((r) => r.success).length;
     console.log(`✅ 迁移: ${successful}/${results.migration.length} 成功`);
   }
 
@@ -133,7 +136,7 @@ function printSummary(results) {
   }
 
   if (results.cleanup && results.cleanup.length > 0) {
-    const successful = results.cleanup.filter(r => r.success).length;
+    const successful = results.cleanup.filter((r) => r.success).length;
     console.log(`✅ 清理: ${successful}/${results.cleanup.length} 成功`);
   }
 
@@ -159,10 +162,10 @@ async function main() {
   const readline = await import('node:readline');
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
-  const answer = await new Promise(resolve => {
+  const answer = await new Promise((resolve) => {
     rl.question('\n确认执行自动化流程？(y/n): ', resolve);
   });
 
@@ -181,7 +184,7 @@ async function main() {
 
 // 判断是否直接运行
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(error => {
+  main().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });

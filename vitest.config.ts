@@ -1,20 +1,39 @@
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import Vue from '@vitejs/plugin-vue';
 import VueJsx from '@vitejs/plugin-vue-jsx';
 import { configDefaults, defineConfig } from 'vitest/config';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
   plugins: [Vue(), VueJsx()],
   resolve: {
     alias: {
       '@': join(__dirname, './src'),
-      '@vben-core/shared/cache': join(__dirname, './packages/@core/base/shared/src/cache'),
-      '@vben-core/shared/constants': join(__dirname, './packages/@core/base/shared/src/constants'),
-      '@vben-core/shared/store': join(__dirname, './packages/@core/base/shared/src/store'),
-      '@vben-core/shared/utils': join(__dirname, './packages/@core/base/shared/src/utils'),
+      '@vben-core/shared/cache': join(
+        __dirname,
+        './packages/@core/base/shared/src/cache',
+      ),
+      '@vben-core/shared/constants': join(
+        __dirname,
+        './packages/@core/base/shared/src/constants',
+      ),
+      '@vben-core/shared/store': join(
+        __dirname,
+        './packages/@core/base/shared/src/store',
+      ),
+      '@vben-core/shared/utils': join(
+        __dirname,
+        './packages/@core/base/shared/src/utils',
+      ),
       '@vben-core/shared': join(__dirname, './packages/@core/base/shared/src'),
       '@vben-core/icons': join(__dirname, './packages/@core/base/icons/src'),
-      '@vben-core/composables': join(__dirname, './packages/@core/composables/src'),
+      '@vben-core/composables': join(
+        __dirname,
+        './packages/@core/composables/src',
+      ),
       '@vben-core': join(__dirname, './packages/@core'),
       '@vben/utils': join(__dirname, './packages/utils/src'),
       '@vben': join(__dirname, './packages'),
@@ -66,8 +85,8 @@ export default defineConfig({
     ],
 
     // 测试超时配置
-    testTimeout: 20000,
-    hookTimeout: 20000,
+    testTimeout: 20_000,
+    hookTimeout: 20_000,
 
     // 测试报告器
     reporters: ['default'],

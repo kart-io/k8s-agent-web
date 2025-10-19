@@ -13,7 +13,7 @@ import { join } from 'node:path';
  * 执行单个应用的迁移
  * @param {string} from - 源目录
  * @param {string} to - 目标目录
- * @returns {Object} 迁移结果
+ * @returns {object} 迁移结果
  */
 export function migrateApp(from, to) {
   const fromPath = join(process.cwd(), from);
@@ -25,7 +25,7 @@ export function migrateApp(from, to) {
       from,
       to,
       success: false,
-      error: `源目录不存在: ${from}`
+      error: `源目录不存在: ${from}`,
     };
   }
 
@@ -35,7 +35,7 @@ export function migrateApp(from, to) {
       from,
       to,
       success: false,
-      error: `目标目录已存在: ${to}`
+      error: `目标目录已存在: ${to}`,
     };
   }
 
@@ -48,14 +48,14 @@ export function migrateApp(from, to) {
       from,
       to,
       success: true,
-      message: '迁移成功'
+      message: '迁移成功',
     };
   } catch (error) {
     return {
       from,
       to,
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
@@ -81,8 +81,8 @@ export function migrateApps(migrations) {
   });
 
   // 统计结果
-  const successful = results.filter(r => r.success).length;
-  const failed = results.filter(r => !r.success).length;
+  const successful = results.filter((r) => r.success).length;
+  const failed = results.filter((r) => !r.success).length;
 
   console.log('📊 迁移统计:');
   console.log(`  成功: ${successful}`);
@@ -98,12 +98,12 @@ async function main() {
   const migrations = [
     {
       from: 'image-build-app',
-      to: 'apps/image-build'
-    }
+      to: 'apps/image-build',
+    },
   ];
 
   console.log('📋 迁移计划:');
-  migrations.forEach(m => {
+  migrations.forEach((m) => {
     console.log(`  - ${m.from} → ${m.to}`);
   });
   console.log();
@@ -112,10 +112,10 @@ async function main() {
   const readline = await import('node:readline');
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
-  const answer = await new Promise(resolve => {
+  const answer = await new Promise((resolve) => {
     rl.question('确认执行迁移？(y/n): ', resolve);
   });
 
@@ -130,7 +130,7 @@ async function main() {
   const results = migrateApps(migrations);
 
   // 如果所有迁移成功，提示下一步
-  if (results.every(r => r.success)) {
+  if (results.every((r) => r.success)) {
     console.log('✨ 所有迁移完成！');
     console.log('\n💡 下一步:');
     console.log('  1. 运行 update-workspace.mjs 更新配置');

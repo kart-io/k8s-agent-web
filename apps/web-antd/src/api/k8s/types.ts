@@ -80,9 +80,14 @@ export interface PodCondition {
 export interface ContainerStatus {
   name: string;
   state: {
-    waiting?: { reason: string; message?: string };
     running?: { startedAt: string };
-    terminated?: { exitCode: number; reason: string; startedAt: string; finishedAt: string };
+    terminated?: {
+      exitCode: number;
+      finishedAt: string;
+      reason: string;
+      startedAt: string;
+    };
+    waiting?: { message?: string; reason: string };
   };
   ready: boolean;
   restartCount: number;
@@ -92,7 +97,7 @@ export interface ContainerStatus {
 }
 
 export interface PodStatus {
-  phase: 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Unknown';
+  phase: 'Failed' | 'Pending' | 'Running' | 'Succeeded' | 'Unknown';
   conditions: PodCondition[];
   hostIP?: string;
   podIP?: string;
@@ -106,8 +111,8 @@ export interface Container {
   name: string;
   image: string;
   ports?: Array<{
-    name?: string;
     containerPort: number;
+    name?: string;
     protocol?: string;
   }>;
   env?: Array<{
@@ -120,8 +125,8 @@ export interface Container {
     requests?: { cpu?: string; memory?: string };
   };
   volumeMounts?: Array<{
-    name: string;
     mountPath: string;
+    name: string;
     readOnly?: boolean;
   }>;
 }
@@ -170,7 +175,7 @@ export interface ServicePort {
 }
 
 export interface ServiceSpec {
-  type: 'ClusterIP' | 'NodePort' | 'LoadBalancer' | 'ExternalName';
+  type: 'ClusterIP' | 'ExternalName' | 'LoadBalancer' | 'NodePort';
   clusterIP?: string;
   clusterIPs?: string[];
   externalIPs?: string[];
@@ -184,8 +189,8 @@ export interface ServiceSpec {
 export interface ServiceStatus {
   loadBalancer?: {
     ingress?: Array<{
-      ip?: string;
       hostname?: string;
+      ip?: string;
     }>;
   };
 }
@@ -244,13 +249,13 @@ export interface ConfigMapListResult {
 export interface JobTemplateSpec {
   metadata?: K8sMetadata;
   spec: {
+    backoffLimit?: number;
+    completions?: number;
+    parallelism?: number;
     template: {
       metadata?: K8sMetadata;
       spec: PodSpec;
     };
-    backoffLimit?: number;
-    completions?: number;
-    parallelism?: number;
   };
 }
 
@@ -297,7 +302,7 @@ export interface CronJobListResult {
 // ==================== Deployment 管理 ====================
 
 export interface DeploymentStrategy {
-  type: 'RollingUpdate' | 'Recreate';
+  type: 'Recreate' | 'RollingUpdate';
   rollingUpdate?: {
     maxSurge?: number | string;
     maxUnavailable?: number | string;
@@ -307,8 +312,8 @@ export interface DeploymentStrategy {
 export interface DeploymentSpec {
   replicas: number;
   selector: {
-    matchLabels: Record<string, string>;
     matchExpressions?: any[];
+    matchLabels: Record<string, string>;
   };
   template: {
     metadata: K8sMetadata;
@@ -389,7 +394,7 @@ export interface NamespaceListResult {
 
 // Node
 export interface NodeAddress {
-  type: 'InternalIP' | 'ExternalIP' | 'Hostname';
+  type: 'ExternalIP' | 'Hostname' | 'InternalIP';
   address: string;
 }
 
@@ -408,16 +413,16 @@ export interface NodeStatus {
   conditions?: NodeCondition[];
   addresses?: NodeAddress[];
   nodeInfo?: {
-    machineID: string;
-    systemUUID: string;
+    architecture: string;
     bootID: string;
-    kernelVersion: string;
-    osImage: string;
     containerRuntimeVersion: string;
+    kernelVersion: string;
     kubeletVersion: string;
     kubeProxyVersion: string;
+    machineID: string;
     operatingSystem: string;
-    architecture: string;
+    osImage: string;
+    systemUUID: string;
   };
 }
 
@@ -473,6 +478,7 @@ export interface StatefulSet {
   kind: 'StatefulSet';
   metadata: K8sMetadata;
   spec: {
+    podManagementPolicy?: string;
     replicas: number;
     selector: {
       matchLabels: Record<string, string>;
@@ -482,19 +488,18 @@ export interface StatefulSet {
       metadata: K8sMetadata;
       spec: PodSpec;
     };
-    volumeClaimTemplates?: any[];
-    podManagementPolicy?: string;
     updateStrategy?: any;
+    volumeClaimTemplates?: any[];
   };
   status?: {
-    observedGeneration?: number;
-    replicas?: number;
-    readyReplicas?: number;
-    currentReplicas?: number;
-    updatedReplicas?: number;
-    currentRevision?: string;
-    updateRevision?: string;
     collisionCount?: number;
+    currentReplicas?: number;
+    currentRevision?: string;
+    observedGeneration?: number;
+    readyReplicas?: number;
+    replicas?: number;
+    updatedReplicas?: number;
+    updateRevision?: string;
   };
 }
 
@@ -519,6 +524,8 @@ export interface DaemonSet {
   kind: 'DaemonSet';
   metadata: K8sMetadata;
   spec: {
+    minReadySeconds?: number;
+    revisionHistoryLimit?: number;
     selector: {
       matchLabels: Record<string, string>;
     };
@@ -527,18 +534,16 @@ export interface DaemonSet {
       spec: PodSpec;
     };
     updateStrategy?: any;
-    minReadySeconds?: number;
-    revisionHistoryLimit?: number;
   };
   status?: {
     currentNumberScheduled: number;
-    numberMisscheduled: number;
     desiredNumberScheduled: number;
+    numberAvailable?: number;
+    numberMisscheduled: number;
     numberReady: number;
+    numberUnavailable?: number;
     observedGeneration?: number;
     updatedNumberScheduled?: number;
-    numberAvailable?: number;
-    numberUnavailable?: number;
   };
 }
 
@@ -563,29 +568,29 @@ export interface Job {
   kind: 'Job';
   metadata: K8sMetadata;
   spec: {
+    activeDeadlineSeconds?: number;
+    backoffLimit?: number;
+    completions?: number;
+    parallelism?: number;
     template: {
       metadata?: K8sMetadata;
       spec: PodSpec;
     };
-    parallelism?: number;
-    completions?: number;
-    backoffLimit?: number;
-    activeDeadlineSeconds?: number;
   };
   status?: {
+    active?: number;
+    completionTime?: string;
     conditions?: Array<{
-      type: string;
-      status: string;
       lastProbeTime?: string;
       lastTransitionTime?: string;
-      reason?: string;
       message?: string;
+      reason?: string;
+      status: string;
+      type: string;
     }>;
-    startTime?: string;
-    completionTime?: string;
-    active?: number;
-    succeeded?: number;
     failed?: number;
+    startTime?: string;
+    succeeded?: number;
   };
 }
 
@@ -607,7 +612,7 @@ export interface JobListResult {
 // ==================== 操作相关类型 ====================
 
 export interface K8sResourceAction {
-  type: 'create' | 'update' | 'delete' | 'scale' | 'restart' | 'logs' | 'exec';
+  type: 'create' | 'delete' | 'exec' | 'logs' | 'restart' | 'scale' | 'update';
   resource: string;
   namespace?: string;
   name?: string;

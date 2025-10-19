@@ -28,10 +28,16 @@ for (const env of environments) {
   const filePath = join(envDir, env.file);
   const exists = existsSync(filePath);
 
-  const status = exists ? '✅' : (env.required ? '❌' : '⚠️');
-  const statusText = exists ? 'Found' : (env.required ? 'Missing (Required)' : 'Missing (Optional)');
+  const status = exists ? '✅' : env.required ? '❌' : '⚠️';
+  const statusText = exists
+    ? 'Found'
+    : env.required
+      ? 'Missing (Required)'
+      : 'Missing (Optional)';
 
-  console.log(`${status} ${env.name.padEnd(12)} | ${env.file.padEnd(20)} | ${statusText}`);
+  console.log(
+    `${status} ${env.name.padEnd(12)} | ${env.file.padEnd(20)} | ${statusText}`,
+  );
 
   if (!exists && env.required) {
     hasErrors = true;
@@ -40,12 +46,12 @@ for (const env of environments) {
   if (exists) {
     try {
       const content = readFileSync(filePath, 'utf-8');
-      const lines = content.split('\n').filter(line =>
-        line.trim() && !line.trim().startsWith('#')
-      );
+      const lines = content
+        .split('\n')
+        .filter((line) => line.trim() && !line.trim().startsWith('#'));
 
       const vars = {};
-      lines.forEach(line => {
+      lines.forEach((line) => {
         const [key, ...valueParts] = line.split('=');
         if (key && valueParts.length > 0) {
           vars[key.trim()] = valueParts.join('=').trim();
@@ -53,18 +59,16 @@ for (const env of environments) {
       });
 
       // 检查关键变量
-      const criticalVars = [
-        'VITE_GLOB_API_URL',
-      ];
+      const criticalVars = ['VITE_GLOB_API_URL'];
 
-      criticalVars.forEach(varName => {
+      criticalVars.forEach((varName) => {
         if (vars[varName]) {
           console.log(`   └─ ${varName}: ${vars[varName]}`);
         }
       });
 
-      if (vars['VITE_NITRO_MOCK']) {
-        console.log(`   └─ VITE_NITRO_MOCK: ${vars['VITE_NITRO_MOCK']}`);
+      if (vars.VITE_NITRO_MOCK) {
+        console.log(`   └─ VITE_NITRO_MOCK: ${vars.VITE_NITRO_MOCK}`);
       }
     } catch (error) {
       console.log(`   └─ ⚠️  Error reading file: ${error.message}`);
@@ -76,12 +80,16 @@ for (const env of environments) {
 console.log('━'.repeat(60));
 
 if (hasErrors) {
-  console.log('\n❌ 环境配置验证失败 (Environment configuration verification failed)');
+  console.log(
+    '\n❌ 环境配置验证失败 (Environment configuration verification failed)',
+  );
   console.log('   请确保所有必需的环境文件存在');
   console.log('   Please ensure all required environment files exist\n');
   process.exit(1);
 } else {
-  console.log('\n✅ 环境配置验证成功 (Environment configuration verified successfully)');
+  console.log(
+    '\n✅ 环境配置验证成功 (Environment configuration verified successfully)',
+  );
   console.log('\n📝 使用说明 (Usage):');
   console.log('   开发环境 (Development): pnpm dev:antd');
   console.log('   测试环境 (Test):        pnpm vite --mode test');

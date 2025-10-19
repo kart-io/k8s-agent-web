@@ -171,7 +171,7 @@ export const API_VERSION = {
 export const DEFAULTS = {
   PAGE_SIZE: 10,
   PAGE_SIZE_OPTIONS: [10, 20, 50, 100],
-  TIMEOUT: 30000, // 30 秒
+  TIMEOUT: 30_000, // 30 秒
   RETRY_COUNT: 3,
   DEBOUNCE_DELAY: 300, // 300 毫秒
   THROTTLE_DELAY: 500, // 500 毫秒
@@ -288,12 +288,13 @@ export const STATUS_COLORS = {
  */
 export const REGEX = {
   K8S_NAME: /^[a-z0-9]([a-z0-9-.])*[a-z0-9]$/,
-  LABEL_KEY_NAME: /^[a-z0-9A-Z]([-a-z0-9A-Z_.]*[a-z0-9A-Z])?$/,
+  LABEL_KEY_NAME: /^[a-z0-9]([-\w.]*[a-z0-9])?$/i,
   LABEL_KEY_PREFIX: /^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$/,
-  LABEL_VALUE: /^[a-z0-9A-Z]([-a-z0-9A-Z_.]*[a-z0-9A-Z])?$/,
-  DNS_SUBDOMAIN: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/,
+  LABEL_VALUE: /^[a-z0-9]([-\w.]*[a-z0-9])?$/i,
+  DNS_SUBDOMAIN:
+    /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/,
   IP_ADDRESS: /^(\d{1,3}\.){3}\d{1,3}$/,
-  EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  EMAIL: /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/,
 } as const;
 
 /**

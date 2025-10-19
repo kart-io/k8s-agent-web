@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { EChartsOption } from 'echarts';
+
 /**
  * 资源使用趋势图表组件
  * 展示 CPU、内存、Pod 数量等资源的历史趋势
@@ -7,16 +9,15 @@ import type { EchartsUIType } from '@vben/plugins/echarts';
 
 import { onMounted, ref } from 'vue';
 
-import { Card } from 'ant-design-vue';
-import type { EChartsOption } from 'echarts';
-
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
+
+import { Card } from 'ant-design-vue';
 
 interface Props {
   clusterId: string;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const chartRef = ref<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
@@ -34,9 +35,7 @@ function generateTrendData() {
   // 生成最近 24 小时的数据点（每小时一个点）
   for (let i = 23; i >= 0; i--) {
     const time = new Date(now.getTime() - i * 60 * 60 * 1000);
-    timePoints.push(
-      `${time.getHours().toString().padStart(2, '0')}:00`,
-    );
+    timePoints.push(`${time.getHours().toString().padStart(2, '0')}:00`);
 
     // 生成模拟数据：基础值 + 随机波动
     const hourOfDay = time.getHours();
@@ -209,7 +208,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <Card class="trend-chart-card" title="资源使用趋势（最近 24 小时）" :bordered="false">
+  <Card
+    class="trend-chart-card"
+    title="资源使用趋势（最近 24 小时）"
+    :bordered="false"
+  >
     <EchartsUI ref="chartRef" class="chart-container" />
   </Card>
 </template>

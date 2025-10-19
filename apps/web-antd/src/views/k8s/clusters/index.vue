@@ -1,5 +1,23 @@
 <script lang="ts" setup>
+import type { Cluster, ClusterListParams } from '#/api/k8s/types';
+
 import { onMounted, reactive, ref } from 'vue';
+
+import {
+  Button,
+  Card,
+  Form,
+  FormItem,
+  Input,
+  message,
+  Modal,
+  Popconfirm,
+  Space,
+  Spin,
+  Table,
+  Tag,
+  Textarea,
+} from 'ant-design-vue';
 
 import {
   createCluster,
@@ -7,28 +25,6 @@ import {
   getClusterList,
   updateCluster,
 } from '#/api/k8s';
-import type { Cluster, ClusterListParams } from '#/api/k8s/types';
-
-import {
-  Button,
-  Card,
-  Col,
-  Descriptions,
-  DescriptionsItem,
-  Empty,
-  Form,
-  FormItem,
-  Input,
-  message,
-  Modal,
-  Popconfirm,
-  Row,
-  Space,
-  Spin,
-  Table,
-  Tag,
-  Textarea,
-} from 'ant-design-vue';
 
 // 状态管理
 const loading = ref(false);
@@ -281,7 +277,7 @@ onMounted(() => {
           :pagination="{
             current: searchParams.page,
             pageSize: searchParams.pageSize,
-            total: total,
+            total,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total: number) => `共 ${total} 条`,
@@ -298,7 +294,11 @@ onMounted(() => {
             </template>
             <template v-if="column.key === 'action'">
               <Space>
-                <Button size="small" type="link" @click="handleViewDetail(record)">
+                <Button
+                  size="small"
+                  type="link"
+                  @click="handleViewDetail(record)"
+                >
                   详情
                 </Button>
                 <Button size="small" type="link" @click="handleEdit(record)">

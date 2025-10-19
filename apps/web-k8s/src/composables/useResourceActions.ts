@@ -17,7 +17,7 @@ export interface UseResourceActionsOptions {
 }
 
 export function useResourceActions(options: UseResourceActionsOptions) {
-  const { resourceType, resourceLabel, onReload } = options;
+  const { resourceType: _resourceType, resourceLabel, onReload } = options;
 
   /**
    * 查看资源详情
@@ -92,7 +92,10 @@ export function useResourceActions(options: UseResourceActionsOptions) {
   /**
    * 扩缩容（仅适用于 Deployment、StatefulSet 等）
    */
-  function handleScale(row: any, callback?: (row: any, replicas: number) => Promise<void>) {
+  function handleScale(
+    row: any,
+    callback?: (row: any, replicas: number) => Promise<void>,
+  ) {
     const currentReplicas = row.spec?.replicas || 0;
 
     Modal.confirm({
@@ -104,7 +107,9 @@ export function useResourceActions(options: UseResourceActionsOptions) {
             // TODO: 实际应该有一个输入框让用户输入新的副本数
             await callback(row, currentReplicas);
           } else {
-            message.info(`扩缩容 ${resourceLabel} "${row.metadata.name}" (功能开发中)`);
+            message.info(
+              `扩缩容 ${resourceLabel} "${row.metadata.name}" (功能开发中)`,
+            );
           }
           onReload?.();
         } catch (error: any) {
@@ -143,7 +148,9 @@ export function useResourceActions(options: UseResourceActionsOptions) {
     if (callback) {
       callback(row);
     } else {
-      message.info(`查看 ${resourceLabel} "${row.metadata.name}" 日志 (功能开发中)`);
+      message.info(
+        `查看 ${resourceLabel} "${row.metadata.name}" 日志 (功能开发中)`,
+      );
     }
   }
 
@@ -154,7 +161,9 @@ export function useResourceActions(options: UseResourceActionsOptions) {
     if (callback) {
       callback(row);
     } else {
-      message.info(`进入 ${resourceLabel} "${row.metadata.name}" 容器 (功能开发中)`);
+      message.info(
+        `进入 ${resourceLabel} "${row.metadata.name}" 容器 (功能开发中)`,
+      );
     }
   }
 
@@ -172,7 +181,10 @@ export function useResourceActions(options: UseResourceActionsOptions) {
   /**
    * 批量删除
    */
-  function handleBatchDelete(rows: any[], callback?: (rows: any[]) => Promise<void>) {
+  function handleBatchDelete(
+    rows: any[],
+    callback?: (rows: any[]) => Promise<void>,
+  ) {
     if (!rows || rows.length === 0) {
       message.warning('请选择要删除的资源');
       return;

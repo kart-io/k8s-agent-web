@@ -47,11 +47,11 @@ const yamlContent = computed(() => {
 
 .yaml-viewer pre {
   max-height: 600px;
-  margin: 0;
   padding: 16px;
+  margin: 0;
   overflow: auto;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro',
-    monospace;
+  font-family:
+    Monaco, Menlo, 'Ubuntu Mono', Consolas, source-code-pro, monospace;
   font-size: 13px;
   line-height: 1.6;
   color: var(--vben-text-color);
@@ -74,9 +74,9 @@ html:not([data-theme]) .yaml-viewer pre {
 
 .yaml-viewer code {
   display: block;
-  white-space: pre;
-  word-wrap: normal;
   overflow-x: auto;
+  word-wrap: normal;
+  white-space: pre;
 }
 
 /* 滚动条样式 */

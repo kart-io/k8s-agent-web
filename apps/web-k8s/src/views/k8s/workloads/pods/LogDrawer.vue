@@ -23,9 +23,9 @@ import {
 import { getPodLogs } from '#/api/k8s/index';
 
 interface LogDrawerProps {
-  visible: boolean;
-  pod: Job | null | Pod;
-  clusterId: string;
+  visible?: boolean;
+  pod?: Job | null | Pod;
+  clusterId?: string;
 }
 
 const props = withDefaults(defineProps<LogDrawerProps>(), {
@@ -56,7 +56,10 @@ const containers = computed(() => {
   // 支持 Pod 和 Job 两种结构
   // Pod: spec.containers
   // Job: spec.template.spec.containers
-  const containerList = props.pod.spec?.containers || props.pod.spec?.template?.spec?.containers || [];
+  const containerList =
+    props.pod.spec?.containers ||
+    props.pod.spec?.template?.spec?.containers ||
+    [];
 
   return containerList.map((c) => ({
     label: c.name,
@@ -269,6 +272,7 @@ function handleClose() {
         <div class="log-content-border">
           <Spin :spinning="loading" tip="加载日志中...">
             <div v-if="logs" class="log-content">
+              <!-- eslint-disable-next-line vue/no-v-html -->
               <pre v-html="formattedLogs"></pre>
             </div>
             <Empty v-else description="暂无日志" />

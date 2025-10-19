@@ -2,7 +2,12 @@
  * 更新节点污点
  * PUT /api/k8s/clusters/:clusterId/nodes/:name/taints
  */
-import { defineEventHandler, getRouterParam, readBody, setResponseStatus } from 'h3';
+import {
+  defineEventHandler,
+  getRouterParam,
+  readBody,
+  setResponseStatus,
+} from 'h3';
 
 import { mockNodes } from '../../../../_utils';
 

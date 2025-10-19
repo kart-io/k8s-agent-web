@@ -2,17 +2,19 @@
  * Vitest 测试环境配置
  */
 
+import process from 'node:process';
+
 import { vi } from 'vitest';
 
 // Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+globalThis.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
 
 // Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
+globalThis.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
@@ -30,25 +32,31 @@ Object.defineProperty(window, 'matchMedia', {
       addListener: vi.fn((callback: (event: MediaQueryListEvent) => void) => {
         listeners.push(callback);
       }),
-      removeListener: vi.fn((callback: (event: MediaQueryListEvent) => void) => {
-        const index = listeners.indexOf(callback);
-        if (index > -1) {
-          listeners.splice(index, 1);
-        }
-      }),
-      addEventListener: vi.fn((type: string, callback: (event: MediaQueryListEvent) => void) => {
-        if (type === 'change') {
-          listeners.push(callback);
-        }
-      }),
-      removeEventListener: vi.fn((type: string, callback: (event: MediaQueryListEvent) => void) => {
-        if (type === 'change') {
+      removeListener: vi.fn(
+        (callback: (event: MediaQueryListEvent) => void) => {
           const index = listeners.indexOf(callback);
-          if (index > -1) {
+          if (index !== -1) {
             listeners.splice(index, 1);
           }
-        }
-      }),
+        },
+      ),
+      addEventListener: vi.fn(
+        (type: string, callback: (event: MediaQueryListEvent) => void) => {
+          if (type === 'change') {
+            listeners.push(callback);
+          }
+        },
+      ),
+      removeEventListener: vi.fn(
+        (type: string, callback: (event: MediaQueryListEvent) => void) => {
+          if (type === 'change') {
+            const index = listeners.indexOf(callback);
+            if (index !== -1) {
+              listeners.splice(index, 1);
+            }
+          }
+        },
+      ),
       dispatchEvent: vi.fn(() => true),
     } as MediaQueryList;
   },
@@ -70,6 +78,7 @@ const createStorageMock = () => {
       store[key] = value.toString();
     },
     removeItem: (key: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete store[key];
     },
     clear: () => {

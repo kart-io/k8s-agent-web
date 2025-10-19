@@ -1,4 +1,4 @@
-import type { Page, Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 /**
  * 页面助手类
@@ -7,19 +7,58 @@ export class PageHelper {
   constructor(private page: Page) {}
 
   /**
-   * 等待页面加载完成
+   * 检查控制台错误
    */
-  async waitForPageLoad() {
-    await this.page.waitForLoadState('networkidle');
+  async checkConsoleErrors() {
+    const messages = this.getConsoleMessages();
+    const errors = messages.filter((msg) => msg.startsWith('error:'));
+    return errors;
   }
 
   /**
-   * 等待元素可见并返回
+   * 清理本地存储
    */
-  async waitForElement(selector: string): Promise<Locator> {
-    const element = this.page.locator(selector);
-    await element.waitFor({ state: 'visible' });
-    return element;
+  async clearStorage() {
+    await this.page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+  }
+
+  /**
+   * 检查元素是否存在
+   */
+  async elementExists(selector: string): Promise<boolean> {
+    return (await this.page.locator(selector).count()) > 0;
+  }
+
+  /**
+   * 获取所有控制台消息
+   */
+  getConsoleMessages() {
+    const messages: string[] = [];
+    this.page.on('console', (msg) => {
+      messages.push(`${msg.type()}: ${msg.text()}`);
+    });
+    return messages;
+  }
+
+  /**
+   * 获取本地存储
+   */
+  async getLocalStorage(key: string) {
+    return this.page.evaluate((k) => {
+      const value = localStorage.getItem(k);
+      return value ? JSON.parse(value) : null;
+    }, key);
+  }
+
+  /**
+   * 获取元素文本
+   */
+  async getText(selector: string): Promise<string> {
+    const element = await this.waitForElement(selector);
+    return element.textContent() ?? '';
   }
 
   /**
@@ -39,21 +78,6 @@ export class PageHelper {
   }
 
   /**
-   * 获取元素文本
-   */
-  async getText(selector: string): Promise<string> {
-    const element = await this.waitForElement(selector);
-    return element.textContent() ?? '';
-  }
-
-  /**
-   * 检查元素是否存在
-   */
-  async elementExists(selector: string): Promise<boolean> {
-    return (await this.page.locator(selector).count()) > 0;
-  }
-
-  /**
    * 截图
    */
   async screenshot(name: string) {
@@ -64,37 +88,35 @@ export class PageHelper {
   }
 
   /**
-   * 等待网络请求完成
+   * 设置本地存储
    */
-  async waitForRequest(urlPattern: string | RegExp) {
-    return this.page.waitForRequest(urlPattern);
-  }
-
-  /**
-   * 等待响应
-   */
-  async waitForResponse(urlPattern: string | RegExp) {
-    return this.page.waitForResponse(urlPattern);
+  async setLocalStorage(key: string, value: any) {
+    await this.page.evaluate(
+      ([k, v]) => {
+        localStorage.setItem(k, JSON.stringify(v));
+      },
+      [key, value] as const,
+    );
   }
 
   /**
    * 模拟网络条件
    */
-  async simulateNetwork(preset: 'Fast 3G' | 'Slow 3G' | 'Offline') {
-    const conditions = {
+  async simulateNetwork(_preset: 'Fast 3G' | 'Offline' | 'Slow 3G') {
+    const _conditions = {
       'Fast 3G': {
         offline: false,
-        downloadThroughput: ((1.6 * 1024 * 1024) / 8),
-        uploadThroughput: ((750 * 1024) / 8),
+        downloadThroughput: (1.6 * 1024 * 1024) / 8,
+        uploadThroughput: (750 * 1024) / 8,
         latency: 150,
       },
       'Slow 3G': {
         offline: false,
-        downloadThroughput: ((500 * 1024) / 8),
-        uploadThroughput: ((500 * 1024) / 8),
+        downloadThroughput: (500 * 1024) / 8,
+        uploadThroughput: (500 * 1024) / 8,
         latency: 400,
       },
-      'Offline': {
+      Offline: {
         offline: true,
         downloadThroughput: 0,
         uploadThroughput: 0,
@@ -109,63 +131,40 @@ export class PageHelper {
   }
 
   /**
-   * 清理本地存储
+   * 等待元素可见并返回
    */
-  async clearStorage() {
-    await this.page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
-  }
-
-  /**
-   * 设置本地存储
-   */
-  async setLocalStorage(key: string, value: any) {
-    await this.page.evaluate(([k, v]) => {
-      localStorage.setItem(k, JSON.stringify(v));
-    }, [key, value] as const);
-  }
-
-  /**
-   * 获取本地存储
-   */
-  async getLocalStorage(key: string) {
-    return this.page.evaluate((k) => {
-      const value = localStorage.getItem(k);
-      return value ? JSON.parse(value) : null;
-    }, key);
+  async waitForElement(selector: string): Promise<Locator> {
+    const element = this.page.locator(selector);
+    await element.waitFor({ state: 'visible' });
+    return element;
   }
 
   /**
    * 等待导航
    */
-  async waitForNavigation(url?: string | RegExp) {
-    if (url) {
-      await this.page.waitForURL(url);
-    } else {
-      await this.page.waitForNavigation();
-    }
+  async waitForNavigation(url?: RegExp | string) {
+    await (url ? this.page.waitForURL(url) : this.page.waitForNavigation());
   }
 
   /**
-   * 获取所有控制台消息
+   * 等待页面加载完成
    */
-  getConsoleMessages() {
-    const messages: string[] = [];
-    this.page.on('console', (msg) => {
-      messages.push(`${msg.type()}: ${msg.text()}`);
-    });
-    return messages;
+  async waitForPageLoad() {
+    await this.page.waitForLoadState('networkidle');
   }
 
   /**
-   * 检查控制台错误
+   * 等待网络请求完成
    */
-  async checkConsoleErrors() {
-    const messages = this.getConsoleMessages();
-    const errors = messages.filter((msg) => msg.startsWith('error:'));
-    return errors;
+  async waitForRequest(urlPattern: RegExp | string) {
+    return this.page.waitForRequest(urlPattern);
+  }
+
+  /**
+   * 等待响应
+   */
+  async waitForResponse(urlPattern: RegExp | string) {
+    return this.page.waitForResponse(urlPattern);
   }
 }
 
@@ -187,7 +186,8 @@ export function delay(ms: number): Promise<void> {
  * 生成随机字符串
  */
 export function randomString(length: number = 8): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const chars =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));

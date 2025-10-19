@@ -84,14 +84,14 @@ export interface ResourceColumnConfig
  * 表单字段类型
  */
 export type FormFieldType =
+  | 'array' // 数组（可添加/删除项）
   | 'input' // 文本输入
-  | 'textarea' // 多行文本
+  | 'labels' // 标签编辑器（键值对）
   | 'number' // 数字输入
+  | 'object' // 对象（嵌套表单）
   | 'select' // 下拉选择
   | 'switch' // 开关
-  | 'array' // 数组（可添加/删除项）
-  | 'object' // 对象（嵌套表单）
-  | 'labels'; // 标签编辑器（键值对）
+  | 'textarea'; // 多行文本
 
 /**
  * 表单字段配置

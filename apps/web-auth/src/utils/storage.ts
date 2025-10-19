@@ -9,7 +9,7 @@ export function setToken(token: string) {
   localStorage.setItem(TOKEN_KEY, token);
 }
 
-export function getToken(): string | null {
+export function getToken(): null | string {
   return localStorage.getItem(TOKEN_KEY);
 }
 

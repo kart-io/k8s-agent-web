@@ -5,7 +5,7 @@
  */
 import type { Node } from '#/api/k8s/types';
 
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons-vue';
 import {
@@ -22,8 +22,8 @@ import {
 import { updateNodeTaints } from '#/api/k8s';
 
 interface EditTaintsModalProps {
-  visible: boolean;
-  node: Node | null;
+  visible?: boolean;
+  node?: Node | null;
   clusterId?: string;
 }
 
@@ -44,7 +44,7 @@ const emit = defineEmits<{
 interface Taint {
   key: string;
   value?: string;
-  effect: 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
+  effect: 'NoExecute' | 'NoSchedule' | 'PreferNoSchedule';
   isNew?: boolean;
 }
 
@@ -165,7 +165,7 @@ function handleAddTaint() {
   }
 
   // 验证键格式
-  const keyPattern = /^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$/;
+  const keyPattern = /^[a-z0-9](?:[\w.-]*[a-z0-9])?$/i;
   const parts = key.split('/');
   const taintKey = parts.length === 2 ? parts[1] : parts[0];
 
@@ -363,8 +363,8 @@ function handleClose() {
 }
 
 .info-section {
-  margin-bottom: 20px;
   padding: 12px 16px;
+  margin-bottom: 20px;
   background-color: #e6f7ff;
   border: 1px solid #91d5ff;
   border-radius: 4px;
@@ -387,8 +387,8 @@ html[data-theme='dark'] .info-title {
 }
 
 .info-list {
-  margin: 0;
   padding-left: 20px;
+  margin: 0;
   font-size: 13px;
   line-height: 1.8;
   color: var(--vben-text-color);
@@ -399,8 +399,8 @@ html[data-theme='dark'] .info-title {
 }
 
 .add-taint-section {
-  margin-bottom: 24px;
   padding: 16px;
+  margin-bottom: 24px;
   background-color: var(--vben-background-color);
   border: 1px solid var(--vben-border-color);
   border-radius: 4px;
@@ -438,8 +438,8 @@ html[data-theme='dark'] .taint-key {
 }
 
 .new-badge {
-  margin-left: 8px;
   padding: 2px 6px;
+  margin-left: 8px;
   font-size: 11px;
   color: #fff;
   background-color: #52c41a;

@@ -15,7 +15,9 @@ defineOptions({ name: 'K8sHPA' });
     <!-- 自定义插槽：副本数显示 -->
     <template #replicas-slot="{ row }">
       <Tag>
-        {{ row.status?.currentReplicas ?? 0 }} / {{ row.spec.minReplicas }}-{{ row.spec.maxReplicas }}
+        {{ row.status?.currentReplicas ?? 0 }} / {{ row.spec.minReplicas }}-{{
+          row.spec.maxReplicas
+        }}
       </Tag>
     </template>
   </GenericResourcePage>

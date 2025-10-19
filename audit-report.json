@@ -18,10 +18,7 @@
       "hasNodeModules": true,
       "size": 4096,
       "files": 2,
-      "fileList": [
-        "dist",
-        "node_modules"
-      ],
+      "fileList": ["dist", "node_modules"],
       "action": "skip",
       "reason": "仅包含临时文件"
     },
@@ -34,9 +31,7 @@
       "hasNodeModules": true,
       "size": 4096,
       "files": 1,
-      "fileList": [
-        "node_modules"
-      ],
+      "fileList": ["node_modules"],
       "action": "delete",
       "reason": "仅包含构建产物或依赖"
     },
@@ -49,9 +44,7 @@
       "hasNodeModules": true,
       "size": 4096,
       "files": 1,
-      "fileList": [
-        "node_modules"
-      ],
+      "fileList": ["node_modules"],
       "action": "delete",
       "reason": "仅包含构建产物或依赖"
     },
@@ -64,9 +57,7 @@
       "hasNodeModules": true,
       "size": 4096,
       "files": 1,
-      "fileList": [
-        "node_modules"
-      ],
+      "fileList": ["node_modules"],
       "action": "delete",
       "reason": "仅包含构建产物或依赖"
     },
@@ -79,10 +70,7 @@
       "hasNodeModules": true,
       "size": 4096,
       "files": 2,
-      "fileList": [
-        "dist",
-        "node_modules"
-      ],
+      "fileList": ["dist", "node_modules"],
       "action": "skip",
       "reason": "仅包含临时文件"
     },
@@ -95,11 +83,7 @@
       "hasNodeModules": true,
       "size": 4096,
       "files": 3,
-      "fileList": [
-        "dist",
-        "node_modules",
-        "src"
-      ],
+      "fileList": ["dist", "node_modules", "src"],
       "action": "migrate",
       "reason": "包含源代码或配置"
     },
@@ -112,9 +96,7 @@
       "hasNodeModules": true,
       "size": 4096,
       "files": 1,
-      "fileList": [
-        "node_modules"
-      ],
+      "fileList": ["node_modules"],
       "action": "delete",
       "reason": "仅包含构建产物或依赖"
     }

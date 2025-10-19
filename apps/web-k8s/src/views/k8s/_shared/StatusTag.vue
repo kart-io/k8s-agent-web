@@ -14,7 +14,14 @@ interface Props {
   statusMap?: Record<
     string,
     {
-      color: 'success' | 'warning' | 'error' | 'default' | 'processing' | 'blue' | 'green';
+      color:
+        | 'blue'
+        | 'default'
+        | 'error'
+        | 'green'
+        | 'processing'
+        | 'success'
+        | 'warning';
       label?: string;
     }
   >;

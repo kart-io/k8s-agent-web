@@ -131,7 +131,8 @@ const routes: RouteRecordRaw[] = [
       {
         name: 'K8sNetworkPolicies',
         path: 'network-policies',
-        component: () => import('#/views/k8s/network/network-policies/index.vue'),
+        component: () =>
+          import('#/views/k8s/network/network-policies/index.vue'),
         meta: {
           icon: 'lucide:shield',
           title: 'Network Policies',
@@ -149,7 +150,8 @@ const routes: RouteRecordRaw[] = [
       {
         name: 'K8sEndpointSlices',
         path: 'endpoint-slices',
-        component: () => import('#/views/k8s/network/endpoint-slices/index.vue'),
+        component: () =>
+          import('#/views/k8s/network/endpoint-slices/index.vue'),
         meta: {
           icon: 'lucide:slice',
           title: 'Endpoint Slices',
@@ -189,7 +191,8 @@ const routes: RouteRecordRaw[] = [
       {
         name: 'K8sPersistentVolumes',
         path: 'persistent-volumes',
-        component: () => import('#/views/k8s/storage/persistent-volumes/index.vue'),
+        component: () =>
+          import('#/views/k8s/storage/persistent-volumes/index.vue'),
         meta: {
           icon: 'lucide:hard-drive',
           title: 'Persistent Volumes',
@@ -198,7 +201,8 @@ const routes: RouteRecordRaw[] = [
       {
         name: 'K8sPersistentVolumeClaims',
         path: 'persistent-volume-claims',
-        component: () => import('#/views/k8s/storage/persistent-volume-claims/index.vue'),
+        component: () =>
+          import('#/views/k8s/storage/persistent-volume-claims/index.vue'),
         meta: {
           icon: 'lucide:file-box',
           title: 'PV Claims',
@@ -207,7 +211,8 @@ const routes: RouteRecordRaw[] = [
       {
         name: 'K8sStorageClasses',
         path: 'storage-classes',
-        component: () => import('#/views/k8s/storage/storage-classes/index.vue'),
+        component: () =>
+          import('#/views/k8s/storage/storage-classes/index.vue'),
         meta: {
           icon: 'lucide:database',
           title: 'Storage Classes',
@@ -292,7 +297,8 @@ const routes: RouteRecordRaw[] = [
       {
         name: 'K8sClusterRoleBindings',
         path: 'cluster-role-bindings',
-        component: () => import('#/views/k8s/rbac/cluster-role-bindings/index.vue'),
+        component: () =>
+          import('#/views/k8s/rbac/cluster-role-bindings/index.vue'),
         meta: {
           icon: 'lucide:link-2',
           title: 'Cluster Role Bindings',
@@ -332,7 +338,8 @@ const routes: RouteRecordRaw[] = [
       {
         name: 'K8sPriorityClasses',
         path: 'priority-classes',
-        component: () => import('#/views/k8s/scheduling/priority-classes/index.vue'),
+        component: () =>
+          import('#/views/k8s/scheduling/priority-classes/index.vue'),
         meta: {
           icon: 'lucide:star',
           title: 'Priority Classes',

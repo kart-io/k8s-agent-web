@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
+
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import Modal from '../modal.vue';
 
-describe('Modal Component', () => {
+describe('modal Component', () => {
   let wrapper: any;
 
   beforeEach(() => {
@@ -229,7 +231,7 @@ describe('Modal Component', () => {
     });
   });
 
-  describe('Props验证', () => {
+  describe('props验证', () => {
     it('应该接受有效的width值', () => {
       wrapper = mount(Modal, {
         props: {
@@ -395,7 +397,7 @@ describe('Modal Component', () => {
     });
 
     it('应该处理超长内容', () => {
-      const longContent = 'A'.repeat(10000);
+      const longContent = 'A'.repeat(10_000);
       wrapper = mount(Modal, {
         props: {
           open: true,

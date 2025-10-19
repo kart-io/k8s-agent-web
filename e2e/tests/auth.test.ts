@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/base';
+import { expect, test } from '../fixtures/base';
 import { createPageHelper } from '../utils/helpers';
 
 test.describe('认证流程', () => {
@@ -37,7 +37,9 @@ test.describe('认证流程', () => {
     expect(token).toBeTruthy();
 
     // 验证用户信息显示
-    const userDisplay = await helper.elementExists('[data-testid="user-display"]');
+    const userDisplay = await helper.elementExists(
+      '[data-testid="user-display"]',
+    );
     if (userDisplay) {
       const username = await helper.getText('[data-testid="user-display"]');
       expect(username).toContain(testData.user.username);
@@ -57,7 +59,9 @@ test.describe('认证流程', () => {
     await helper.safeClick('button[type="submit"]');
 
     // 等待错误消息
-    const errorMessage = await helper.waitForElement('[data-testid="error-message"], .error-message, .ant-message-error');
+    const errorMessage = await helper.waitForElement(
+      '[data-testid="error-message"], .error-message, .ant-message-error',
+    );
 
     // 验证错误消息显示
     await expect(errorMessage).toBeVisible();
@@ -72,15 +76,23 @@ test.describe('认证流程', () => {
     const helper = createPageHelper(authenticatedPage);
 
     // 查找并点击用户菜单
-    const userMenu = await helper.elementExists('[data-testid="user-menu"], .user-avatar, .user-dropdown');
+    const userMenu = await helper.elementExists(
+      '[data-testid="user-menu"], .user-avatar, .user-dropdown',
+    );
     if (userMenu) {
-      await helper.safeClick('[data-testid="user-menu"], .user-avatar, .user-dropdown');
+      await helper.safeClick(
+        '[data-testid="user-menu"], .user-avatar, .user-dropdown',
+      );
 
       // 点击登出按钮
-      await helper.safeClick('[data-testid="logout-button"], .logout-btn, [aria-label="logout"]');
+      await helper.safeClick(
+        '[data-testid="logout-button"], .logout-btn, [aria-label="logout"]',
+      );
     } else {
       // 直接查找登出按钮
-      await helper.safeClick('[data-testid="logout-button"], .logout-btn, [aria-label="logout"]');
+      await helper.safeClick(
+        '[data-testid="logout-button"], .logout-btn, [aria-label="logout"]',
+      );
     }
 
     // 等待跳转到登录页
@@ -100,7 +112,9 @@ test.describe('认证流程', () => {
     await helper.safeFill('input[name="username"]', testData.user.username);
     await helper.safeFill('input[name="password"]', testData.user.password);
 
-    const rememberCheckbox = page.locator('input[type="checkbox"][name="remember"], [data-testid="remember-checkbox"]');
+    const rememberCheckbox = page.locator(
+      'input[type="checkbox"][name="remember"], [data-testid="remember-checkbox"]',
+    );
     if (await rememberCheckbox.isVisible()) {
       await rememberCheckbox.check();
     }
@@ -141,9 +155,13 @@ test.describe('认证流程', () => {
     await helper.waitForNavigation('/login');
 
     // 验证显示会话过期消息
-    const message = await helper.elementExists('[data-testid="session-expired"], .session-expired-message');
+    const message = await helper.elementExists(
+      '[data-testid="session-expired"], .session-expired-message',
+    );
     if (message) {
-      const messageText = await helper.getText('[data-testid="session-expired"], .session-expired-message');
+      const messageText = await helper.getText(
+        '[data-testid="session-expired"], .session-expired-message',
+      );
       expect(messageText).toMatch(/会话|过期|expired|session/i);
     }
   });
@@ -155,9 +173,18 @@ test.describe('认证流程', () => {
 
     // 检查社交登录按钮
     const socialButtons = [
-      { selector: '[data-testid="github-login"], .social-login-github', name: 'GitHub' },
-      { selector: '[data-testid="google-login"], .social-login-google', name: 'Google' },
-      { selector: '[data-testid="wechat-login"], .social-login-wechat', name: 'WeChat' },
+      {
+        selector: '[data-testid="github-login"], .social-login-github',
+        name: 'GitHub',
+      },
+      {
+        selector: '[data-testid="google-login"], .social-login-google',
+        name: 'Google',
+      },
+      {
+        selector: '[data-testid="wechat-login"], .social-login-wechat',
+        name: 'WeChat',
+      },
     ];
 
     for (const button of socialButtons) {
@@ -182,8 +209,12 @@ test.describe('认证流程', () => {
     await helper.safeClick('button[type="submit"]');
 
     // 检查验证消息
-    const usernameError = await helper.elementExists('[data-testid="username-error"], .username-error');
-    const passwordError = await helper.elementExists('[data-testid="password-error"], .password-error');
+    const usernameError = await helper.elementExists(
+      '[data-testid="username-error"], .username-error',
+    );
+    const passwordError = await helper.elementExists(
+      '[data-testid="password-error"], .password-error',
+    );
 
     if (usernameError || passwordError) {
       // 至少有一个错误显示
@@ -195,9 +226,13 @@ test.describe('认证流程', () => {
     await page.keyboard.press('Tab');
 
     // 可能显示长度验证错误
-    const lengthError = await helper.elementExists('.length-error, [data-testid="length-error"]');
+    const lengthError = await helper.elementExists(
+      '.length-error, [data-testid="length-error"]',
+    );
     if (lengthError) {
-      const errorText = await helper.getText('.length-error, [data-testid="length-error"]');
+      const errorText = await helper.getText(
+        '.length-error, [data-testid="length-error"]',
+      );
       expect(errorText).toMatch(/长度|length|至少|minimum/i);
     }
   });

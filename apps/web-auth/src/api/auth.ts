@@ -1,12 +1,14 @@
 import type { Recordable } from '@vben/types';
+
 import axios from 'axios';
+
 import { getToken } from '../utils/storage';
 
 const apiUrl = import.meta.env.VITE_GLOB_API_URL;
 
 const client = axios.create({
   baseURL: apiUrl,
-  timeout: 10000,
+  timeout: 10_000,
 });
 
 // 请求拦截器：自动添加 Authorization 头
@@ -20,7 +22,7 @@ client.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // 响应拦截器：处理401错误
@@ -31,10 +33,10 @@ client.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token 过期或无效，不需要清除 token，因为可能是首次加载页面没有 token
-      console.log('Unauthorized request, token may be missing or invalid');
+      console.warn('Unauthorized request, token may be missing or invalid');
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 /**

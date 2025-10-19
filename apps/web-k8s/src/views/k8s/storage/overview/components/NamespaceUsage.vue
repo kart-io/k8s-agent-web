@@ -10,11 +10,11 @@ import { Progress, Tag, Tooltip } from 'ant-design-vue';
 // Mock 命名空间使用数据
 const namespaceData = ref<
   Array<{
+    color: string;
     name: string;
     pvcCount: number;
-    usedCapacity: string;
     usedBytes: number;
-    color: string;
+    usedCapacity: string;
   }>
 >([
   {
@@ -104,24 +104,22 @@ onMounted(() => {
         <div class="summary-label">命名空间总数</div>
         <div class="summary-value">{{ namespaceData.length }}</div>
       </div>
-      <div class="summary-divider" />
+      <div class="summary-divider"></div>
       <div class="summary-item">
         <div class="summary-label">PVC 总数</div>
         <div class="summary-value primary">{{ totalPVC }}</div>
       </div>
-      <div class="summary-divider" />
+      <div class="summary-divider"></div>
       <div class="summary-item">
         <div class="summary-label">总使用量</div>
-        <div class="summary-value success">{{ (totalUsed / 1024).toFixed(1) }}Ti</div>
+        <div class="summary-value success">
+          {{ (totalUsed / 1024).toFixed(1) }}Ti
+        </div>
       </div>
     </div>
 
     <div class="usage-list">
-      <div
-        v-for="item in namespaceData"
-        :key="item.name"
-        class="usage-item"
-      >
+      <div v-for="item in namespaceData" :key="item.name" class="usage-item">
         <div class="item-header">
           <div class="item-info">
             <Tag :color="item.color" class="namespace-tag">
@@ -168,8 +166,8 @@ onMounted(() => {
 .summary-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .summary-label {
@@ -225,8 +223,8 @@ onMounted(() => {
 
 .item-info {
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
 }
 
 .namespace-tag {
@@ -243,8 +241,8 @@ onMounted(() => {
 
 .item-capacity {
   display: flex;
-  align-items: baseline;
   gap: 6px;
+  align-items: baseline;
 }
 
 .capacity-value {
