@@ -64,7 +64,7 @@ export default defineConfig(async () => {
       },
       server: {
         proxy: {
-          // K8s API 代理到真实的 cluster-service 后端
+          // K8s API 代理到 cluster-service 后端
           // 注意: 必须放在 /api 之前,优先匹配
           '/api/k8s': {
             changeOrigin: true,
@@ -72,11 +72,18 @@ export default defineConfig(async () => {
             target: 'http://localhost:8082',
             ws: true,
           },
-          // 其他 API (登录、用户等) 继续使用 mock
+          // 认证和授权 API 代理到 auth-service
+          // 包括: /api/v1/auth, /api/v1/users, /api/v1/roles, /api/v1/permissions
+          '/api/v1': {
+            changeOrigin: true,
+            // auth-service 后端地址
+            target: 'http://localhost:8090',
+            ws: true,
+          },
+          // 其他 API (兼容旧接口) 继续使用 mock
           '/api': {
             changeOrigin: true,
             // mock代理目标地址
-            // 请求 /api/auth/login => http://localhost:5320/api/auth/login
             target: 'http://localhost:5320',
             ws: true,
           },

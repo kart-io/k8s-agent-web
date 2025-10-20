@@ -33,7 +33,12 @@ export const useAuthStore = defineStore('auth', () => {
     let userInfo: null | UserInfo = null;
     try {
       loginLoading.value = true;
-      const { accessToken } = await loginApi(params);
+      // 只发送 username 和 password 到后端
+      const loginParams = {
+        username: params.username,
+        password: params.password,
+      };
+      const { accessToken } = await loginApi(loginParams);
 
       // 如果成功获取到 accessToken
       if (accessToken) {
@@ -80,6 +85,18 @@ export const useAuthStore = defineStore('auth', () => {
           });
         }
       }
+    } catch (error) {
+      // 登录失败，显示错误通知
+      notification.error({
+        description:
+          error instanceof Error
+            ? error.message
+            : $t('authentication.loginFailed'),
+        duration: 3,
+        message: $t('authentication.loginFailed'),
+      });
+      // 重新抛出错误，让调用方知道登录失败
+      throw error;
     } finally {
       loginLoading.value = false;
     }

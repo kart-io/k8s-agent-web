@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { VbenFormSchema } from '@vben/common-ui';
-import type { BasicOption } from '@vben/types';
 
-import { computed, markRaw } from 'vue';
+import { computed, markRaw, nextTick, ref } from 'vue';
 
 import { AuthenticationLogin, SliderCaptcha, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
@@ -12,58 +11,15 @@ import { useAuthStore } from '#/store';
 defineOptions({ name: 'Login' });
 
 const authStore = useAuthStore();
-
-const MOCK_USER_OPTIONS: BasicOption[] = [
-  {
-    label: 'Super',
-    value: 'vben',
-  },
-  {
-    label: 'Admin',
-    value: 'admin',
-  },
-  {
-    label: 'User',
-    value: 'jack',
-  },
-];
+const loginFormRef = ref();
+const captchaKey = ref(0); // 用于强制重新渲染 captcha
 
 const formSchema = computed((): VbenFormSchema[] => {
   return [
     {
-      component: 'VbenSelect',
-      componentProps: {
-        options: MOCK_USER_OPTIONS,
-        placeholder: $t('authentication.selectAccount'),
-      },
-      fieldName: 'selectAccount',
-      label: $t('authentication.selectAccount'),
-      rules: z
-        .string()
-        .min(1, { message: $t('authentication.selectAccount') })
-        .optional()
-        .default('vben'),
-    },
-    {
       component: 'VbenInput',
       componentProps: {
         placeholder: $t('authentication.usernameTip'),
-      },
-      dependencies: {
-        trigger(values, form) {
-          if (values.selectAccount) {
-            const findUser = MOCK_USER_OPTIONS.find(
-              (item) => item.value === values.selectAccount,
-            );
-            if (findUser) {
-              form.setValues({
-                password: '123456',
-                username: findUser.value,
-              });
-            }
-          }
-        },
-        triggerFields: ['selectAccount'],
       },
       fieldName: 'username',
       label: $t('authentication.username'),
@@ -80,6 +36,9 @@ const formSchema = computed((): VbenFormSchema[] => {
     },
     {
       component: markRaw(SliderCaptcha),
+      componentProps: {
+        key: captchaKey.value, // 通过 key 强制重新渲染
+      },
       fieldName: 'captcha',
       rules: z.boolean().refine((value) => value, {
         message: $t('authentication.verifyRequiredTip'),
@@ -87,12 +46,40 @@ const formSchema = computed((): VbenFormSchema[] => {
     },
   ];
 });
+
+// 处理登录提交，失败后重置滑动验证
+async function handleLogin(values: Record<string, any>) {
+  try {
+    await authStore.authLogin(values);
+    // 登录成功，不做任何处理
+  } catch {
+    // 登录失败，重置滑动验证
+    await resetCaptcha();
+    // 不重新抛出错误，auth store 已经显示了错误提示
+  }
+}
+
+// 重置滑动验证 - 通过改变 key 强制重新渲染组件
+async function resetCaptcha() {
+  // 改变 key，强制重新创建 captcha 组件
+  captchaKey.value += 1;
+
+  // 等待 DOM 更新
+  await nextTick();
+
+  // 重置表单字段值为初始状态
+  const formApi = loginFormRef.value?.getFormApi?.();
+  if (formApi) {
+    formApi.setFieldValue('captcha', false);
+  }
+}
 </script>
 
 <template>
   <AuthenticationLogin
+    ref="loginFormRef"
     :form-schema="formSchema"
     :loading="authStore.loginLoading"
-    @submit="authStore.authLogin"
+    @submit="handleLogin"
   />
 </template>
