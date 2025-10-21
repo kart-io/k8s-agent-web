@@ -3,6 +3,7 @@ import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { DeploymentListItem } from '#/api/k8s/types';
 
 import { ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import {
   DeleteOutlined,
@@ -23,22 +24,49 @@ import {
 } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { deploymentApi } from '#/api/k8s';
+import { deploymentApi, namespaceApi } from '#/api/k8s';
 import { useClusterOptions } from '#/composables/useClusterOptions';
 
 defineOptions({
   name: 'DeploymentsManagement',
 });
 
+const route = useRoute();
+const router = useRouter();
+
 const { clusterOptions, selectedClusterId } = useClusterOptions();
-const selectedNamespace = ref<string>();
+const selectedNamespace = ref(route.query.namespace as string | undefined);
 const searchKeyword = ref('');
 
-const namespaceOptions = [
-  { label: '全部命名空间', value: undefined },
-  { label: 'default', value: 'default' },
-  { label: 'production', value: 'production' },
-];
+const namespaceOptions = ref<Array<{ label: string; value: string }>>([]);
+
+async function loadNamespaces() {
+  if (!selectedClusterId.value) {
+    namespaceOptions.value = [];
+    return [];
+  }
+  try {
+    const result = await namespaceApi.list(selectedClusterId.value);
+    const options = result.items.map((ns: any) => ({
+      label: ns.metadata.name,
+      value: ns.metadata.name,
+    }));
+    namespaceOptions.value = options;
+    return options;
+  } catch (error) {
+    console.error('Failed to load namespaces:', error);
+    message.error('加载命名空间失败');
+    namespaceOptions.value = [];
+    return [];
+  }
+}
+
+// Watch for namespace changes and update the URL
+watch(selectedNamespace, (newNamespace) => {
+  if (newNamespace !== undefined) {
+    router.push({ query: { ...route.query, namespace: newNamespace } });
+  }
+});
 
 // AbortController 用于取消请求
 let abortController: AbortController | null = null;
@@ -48,6 +76,11 @@ async function fetchDeploymentData(params: {
 }) {
   // Don't fetch if no cluster is selected
   if (!selectedClusterId.value) {
+    return { items: [], total: 0 };
+  }
+
+  // 如果命名空间尚未确定，则不发起请求
+  if (selectedNamespace.value === undefined) {
     return { items: [], total: 0 };
   }
 
@@ -137,6 +170,7 @@ const gridOptions: VxeGridProps<DeploymentListItem> = {
   exportConfig: {},
   keepSource: true,
   proxyConfig: {
+    autoLoad: false, // 禁止自动加载
     ajax: {
       query: async ({ page }) => {
         return await fetchDeploymentData({
@@ -171,7 +205,7 @@ watch(searchKeyword, () => {
 
 function handleReset() {
   searchKeyword.value = '';
-  selectedNamespace.value = undefined;
+  selectedNamespace.value = 'default';
   gridApi.reload();
 }
 
@@ -220,12 +254,26 @@ function handleDelete(row: DeploymentListItem) {
   });
 }
 
-// 当 cluster ID 加载完成后，触发数据刷新
-watch(selectedClusterId, (newId) => {
-  if (newId) {
-    gridApi.reload();
-  }
-});
+// 当 cluster ID 变化时，重新加载命名空间并刷新数据
+watch(
+  selectedClusterId,
+  async (newId) => {
+    if (newId) {
+      const namespaces = await loadNamespaces();
+      const isCurrentNsValid = namespaces.some(
+        (ns) => ns.value === selectedNamespace.value,
+      );
+
+      if (!isCurrentNsValid && namespaces.length > 0) {
+        selectedNamespace.value = namespaces[0].value;
+      } else if (namespaces.length === 0) {
+        selectedNamespace.value = undefined;
+      }
+      gridApi.reload();
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

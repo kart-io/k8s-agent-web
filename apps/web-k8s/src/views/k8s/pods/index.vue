@@ -1,8 +1,6 @@
 <script lang="ts" setup>
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { Pod } from '#/api/k8s/types';
-
 import { onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import {
   DeleteOutlined,
@@ -22,24 +20,21 @@ import {
 } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { clusterApi, podApi } from '#/api/k8s';
+import { clusterApi, namespaceApi, podApi } from '#/api/k8s';
 
 defineOptions({
   name: 'PodsManagement',
 });
 
+const route = useRoute();
+const router = useRouter();
+
 const selectedClusterId = ref('');
 const searchKeyword = ref('');
-const selectedNamespace = ref<string>();
+const selectedNamespace = ref(route.query.namespace as string | undefined);
 
 const clusterOptions = ref<Array<{ label: string; value: string }>>([]);
-
-const namespaceOptions = [
-  { label: '全部命名空间', value: undefined },
-  { label: 'default', value: 'default' },
-  { label: 'kube-system', value: 'kube-system' },
-  { label: 'production', value: 'production' },
-];
+const namespaceOptions = ref<Array<{ label: string; value: string }>>([]);
 
 // 加载集群选项
 async function loadClusterOptions() {
@@ -55,6 +50,35 @@ async function loadClusterOptions() {
     message.error(`获取集群列表失败: ${error.message || '未知错误'}`);
   }
 }
+
+// 加载命名空间选项
+async function loadNamespaces() {
+  if (!selectedClusterId.value) {
+    namespaceOptions.value = [];
+    return [];
+  }
+  try {
+    const result = await namespaceApi.list(selectedClusterId.value);
+    const options = result.items.map((ns: any) => ({
+      label: ns.metadata.name,
+      value: ns.metadata.name,
+    }));
+    namespaceOptions.value = options;
+    return options;
+  } catch (error) {
+    console.error('Failed to load namespaces:', error);
+    message.error('加载命名空间失败');
+    namespaceOptions.value = [];
+    return [];
+  }
+}
+
+// Watch for namespace changes and update the URL
+watch(selectedNamespace, (newNamespace) => {
+  if (newNamespace !== undefined) {
+    router.push({ query: { ...route.query, namespace: newNamespace } });
+  }
+});
 
 // AbortController 用于取消请求
 let abortController: AbortController | null = null;
@@ -79,7 +103,7 @@ async function fetchPodData(params: {
     // 调用真实的 Pod API
     const result = await podApi.list({
       clusterId: selectedClusterId.value,
-      namespace: selectedNamespace.value,
+      namespace: selectedNamespace.value || '',
       page: params.page.currentPage,
       pageSize: params.page.pageSize,
     });
@@ -192,7 +216,7 @@ watch(searchKeyword, () => {
 
 function handleReset() {
   searchKeyword.value = '';
-  selectedNamespace.value = undefined;
+  selectedNamespace.value = 'default';
   gridApi.reload();
 }
 
@@ -227,12 +251,27 @@ function handleLogs(row: Pod) {
   message.info(`查看 Pod "${row.metadata.name}" 日志 (功能开发中)`);
 }
 
-// 当 cluster ID 加载完成后，触发数据刷新
-watch(selectedClusterId, (newId) => {
-  if (newId) {
-    gridApi.reload();
-  }
-});
+// 当 cluster ID 变化时，重新加载命名空间并刷新数据
+watch(
+  selectedClusterId,
+  async (newId) => {
+    if (newId) {
+      const namespaces = await loadNamespaces();
+      const isCurrentNsValid = namespaces.some(
+        (ns) => ns.value === selectedNamespace.value,
+      );
+
+      if (!isCurrentNsValid && namespaces.length > 0) {
+        selectedNamespace.value = namespaces[0].value;
+      } else if (namespaces.length === 0) {
+        selectedNamespace.value = undefined;
+      }
+
+      gridApi.reload();
+    }
+  },
+  { immediate: true },
+);
 
 // 页面加载时获取集群选项
 onMounted(() => {

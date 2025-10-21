@@ -43,16 +43,16 @@ const problemResources = ref<ProblemResource[]>([]);
 async function loadProblemResources() {
   loading.value = true;
   try {
-    const [pods, nodes, deployments, services] = await Promise.all([
+    const [pods, nodes, deployments] = await Promise.all([
       podApi
-        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .list({ clusterId: props.clusterId, namespace: '', pageSize: 100 })
         .catch(() => ({ items: [] })),
       nodeApi.list(props.clusterId).catch(() => ({ items: [] })),
       deploymentApi
-        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .list({ clusterId: props.clusterId, namespace: '', pageSize: 100 })
         .catch(() => ({ items: [] })),
       serviceApi
-        .list({ clusterId: props.clusterId, pageSize: 100 })
+        .list({ clusterId: props.clusterId, namespace: '', pageSize: 100 })
         .catch(() => ({ items: [] })),
     ]);
 
@@ -148,13 +148,6 @@ async function loadProblemResources() {
  */
 function getSeverityIcon(severity: string) {
   return severity === 'critical' ? CloseCircleOutlined : WarningOutlined;
-}
-
-/**
- * 获取严重程度颜色
- */
-function getSeverityColor(severity: string): string {
-  return severity === 'critical' ? 'error' : 'warning';
 }
 
 /**
