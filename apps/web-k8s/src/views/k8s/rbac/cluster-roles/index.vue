@@ -23,9 +23,16 @@ import {
 } from 'ant-design-vue';
 
 import { clusterRoleApi } from '#/api/k8s';
+import { useClusterOptions } from '#/stores/clusterStore';
+import ResourceFilter from '#/views/k8s/_shared/ResourceFilter.vue';
 
-// 当前选中的集群ID（暂时使用固定值）
-const currentClusterId = ref('cluster-production-01');
+// 使用全局集群状态
+const {
+  selectedClusterId,
+  clusterOptions,
+  setSelectedCluster,
+  init: initClusterOptions,
+} = useClusterOptions();
 
 // 加载状态
 const loading = ref(false);
@@ -94,7 +101,7 @@ async function loadClusterRoles() {
   loading.value = true;
   try {
     const params: ClusterRoleListParams = {
-      clusterId: currentClusterId.value,
+      clusterId: selectedClusterId.value,
       page: currentPage.value,
       pageSize: pageSize.value,
     };
@@ -138,7 +145,11 @@ function formatDateTime(dateString: string): string {
 /**
  * 生成权限摘要
  */
-function getPermissionsSummary(rules: PolicyRule[]): string {
+function getPermissionsSummary(rules?: PolicyRule[]): string {
+  if (!rules || rules.length === 0) {
+    return '-';
+  }
+
   const allResources = new Set<string>();
   const allVerbs = new Set<string>();
 
@@ -169,6 +180,15 @@ function getVerbColor(verb: string): string {
 }
 
 /**
+ * 处理集群选择变化
+ */
+function handleClusterChange(clusterId: string) {
+  setSelectedCluster(clusterId);
+  currentPage.value = 1;
+  loadClusterRoles();
+}
+
+/**
  * 处理分页变化
  */
 function handlePageChange(page: number, size: number) {
@@ -177,14 +197,22 @@ function handlePageChange(page: number, size: number) {
   loadClusterRoles();
 }
 
-// 组件挂载时加载数据
-onMounted(() => {
+// 组件挂载时初始化集群选项并加载数据
+onMounted(async () => {
+  await initClusterOptions();
   loadClusterRoles();
 });
 </script>
 
 <template>
   <div class="cluster-roles-container">
+    <!-- 筛选区域 -->
+    <ResourceFilter
+      :show-namespace-selector="false"
+      :show-search="false"
+      @search="loadClusterRoles"
+    />
+
     <!-- ClusterRoles 列表 -->
     <Card class="table-card" :bordered="false">
       <template #title>
@@ -200,7 +228,7 @@ onMounted(() => {
         :data-source="clusterRoles"
         :loading="loading"
         :pagination="false"
-        :row-key="(record) => record.metadata.uid || record.metadata.name"
+        :row-key="(record) => record?.metadata?.uid || record?.metadata?.name || Math.random().toString()"
         :scroll="{ x: 'max-content' }"
         :expandable="{
           expandedRowRender: (record) => record,
@@ -211,22 +239,22 @@ onMounted(() => {
           <template v-if="column.key === 'name'">
             <div class="name-cell">
               <SafetyOutlined class="name-icon" />
-              <Tooltip :title="record.metadata.name">
-                <span class="name-text">{{ record.metadata.name }}</span>
+              <Tooltip :title="record?.metadata?.name">
+                <span class="name-text">{{ record?.metadata?.name }}</span>
               </Tooltip>
             </div>
           </template>
 
           <!-- 规则数量列 -->
           <template v-else-if="column.key === 'rulesCount'">
-            <Tag color="blue"> {{ record.rules.length }} 条规则 </Tag>
+            <Tag color="blue"> {{ record?.rules?.length || 0 }} 条规则 </Tag>
           </template>
 
           <!-- 权限摘要列 -->
           <template v-else-if="column.key === 'permissionsSummary'">
-            <Tooltip :title="getPermissionsSummary(record.rules)">
+            <Tooltip :title="getPermissionsSummary(record?.rules)">
               <span class="permissions-summary">
-                {{ getPermissionsSummary(record.rules) }}
+                {{ getPermissionsSummary(record?.rules) }}
               </span>
             </Tooltip>
           </template>
@@ -234,10 +262,10 @@ onMounted(() => {
           <!-- 创建时间列 -->
           <template v-else-if="column.key === 'creationTimestamp'">
             <Tooltip
-              :title="formatDateTime(record.metadata.creationTimestamp!)"
+              :title="formatDateTime(record?.metadata?.creationTimestamp!)"
             >
               <span class="time-text">
-                {{ formatRelativeTime(record.metadata.creationTimestamp!) }}
+                {{ formatRelativeTime(record?.metadata?.creationTimestamp!) }}
               </span>
             </Tooltip>
           </template>
@@ -253,10 +281,10 @@ onMounted(() => {
               size="small"
             >
               <Descriptions.Item label="角色名称">
-                {{ record.metadata.name }}
+                {{ record?.metadata?.name }}
               </Descriptions.Item>
               <Descriptions.Item label="UID">
-                <code>{{ record.metadata.uid }}</code>
+                <code>{{ record?.metadata?.uid }}</code>
               </Descriptions.Item>
               <Descriptions.Item label="作用范围">
                 <Tag color="purple">整个集群</Tag>
@@ -264,10 +292,10 @@ onMounted(() => {
             </Descriptions>
 
             <div class="rules-section">
-              <h4 class="rules-title">权限规则 ({{ record.rules.length }})</h4>
+              <h4 class="rules-title">权限规则 ({{ record?.rules?.length || 0 }})</h4>
               <Table
                 :columns="ruleColumns"
-                :data-source="record.rules"
+                :data-source="record?.rules || []"
                 :pagination="false"
                 :row-key="(rule, index) => `rule-${index}`"
                 size="small"

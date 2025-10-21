@@ -59,15 +59,12 @@ export const podApi = {
   /**
    * 获取 Pod 日志
    * 支持 mock 模式切换（通过环境变量 VITE_USE_K8S_MOCK 控制）
+   * GET /k8s/pod/logs?clusterId=xxx&namespace=yyy&name=zzz&container=aaa
    */
   logs: createMockableApi(
     // 真实 API
     async (params: PodLogsParams): Promise<string> => {
-      const { clusterId, namespace, name, ...queryParams } = params;
-      return requestClient.get(
-        `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}/logs`,
-        { params: queryParams },
-      );
+      return requestClient.get('/k8s/pod/logs', { params });
     },
     // Mock API
     async (params: PodLogsParams): Promise<string> => {
@@ -85,12 +82,14 @@ export const podApi = {
 
   /**
    * 执行 Pod 命令
+   * POST /k8s/pod/exec?clusterId=xxx&namespace=yyy&name=zzz
    */
   exec: async (params: PodExecParams): Promise<string> => {
     const { clusterId, namespace, name, ...data } = params;
     return requestClient.post(
-      `/k8s/clusters/${clusterId}/namespaces/${namespace}/pods/${name}/exec`,
+      '/k8s/pod/exec',
       data,
+      { params: { clusterId, namespace, name } },
     );
   },
 };
@@ -186,29 +185,33 @@ export const deploymentApi = createMockableResourceApi(
     {
       /**
        * 扩缩容 Deployment
+       * PUT /k8s/deployment/scale?clusterId=xxx&namespace=yyy&name=zzz
        */
       scale: (
         clusterId: string,
         namespace: string,
         name: string,
-        params: ScaleParams,
+        scaleParams: ScaleParams,
       ) => {
-        return requestClient.post(
-          `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/scale`,
-          params,
+        return requestClient.put(
+          '/k8s/deployment/scale',
+          { replicas: scaleParams.replicas },
+          { params: { clusterId, namespace, name } },
         );
       },
 
       /**
        * 重启 Deployment
+       * POST /k8s/deployment/restart?clusterId=xxx&namespace=yyy&name=zzz
        */
       restart: (clusterId: string, namespace: string, name: string) => {
         const restartParams: RestartParams = {
           restartedAt: new Date().toISOString(),
         };
         return requestClient.post(
-          `/k8s/clusters/${clusterId}/namespaces/${namespace}/deployments/${name}/restart`,
+          '/k8s/deployment/restart',
           restartParams,
+          { params: { clusterId, namespace, name } },
         );
       },
     },
@@ -245,15 +248,20 @@ export const statefulSetApi = createMockableResourceApi(
       namespaced: true,
     },
     {
+      /**
+       * 扩缩容 StatefulSet
+       * PUT /k8s/statefulset/scale?clusterId=xxx&namespace=yyy&name=zzz
+       */
       scale: (
         clusterId: string,
         namespace: string,
         name: string,
-        params: ScaleParams,
+        scaleParams: ScaleParams,
       ) => {
-        return requestClient.post(
-          `/k8s/clusters/${clusterId}/namespaces/${namespace}/statefulsets/${name}/scale`,
-          params,
+        return requestClient.put(
+          '/k8s/statefulset/scale',
+          { replicas: scaleParams.replicas },
+          { params: { clusterId, namespace, name } },
         );
       },
     },
@@ -324,6 +332,7 @@ export const cronJobApi = createMockableResourceApi(
     {
       /**
        * 暂停/恢复 CronJob
+       * PUT /k8s/cronjob?clusterId=xxx&namespace=yyy&name=zzz
        */
       toggle: (
         clusterId: string,
@@ -332,10 +341,11 @@ export const cronJobApi = createMockableResourceApi(
         suspend: boolean,
       ) => {
         return requestClient.put(
-          `/k8s/clusters/${clusterId}/namespaces/${namespace}/cronjobs/${name}`,
+          '/k8s/cronjob',
           {
             spec: { suspend },
           },
+          { params: { clusterId, namespace, name } },
         );
       },
     },
@@ -358,10 +368,11 @@ export const toggleCronJob = cronJobApi.toggle;
 export const namespaceApi = {
   /**
    * 获取 Namespace 列表
+   * GET /k8s/namespaces?clusterId=xxx
    */
   list: createMockableApi(
     async (clusterId: string) => {
-      return requestClient.get(`/k8s/clusters/${clusterId}/namespaces`);
+      return requestClient.get('/k8s/namespaces', { params: { clusterId } });
     },
     async (clusterId: string) => {
       const { getMockNamespaceList } = await import('./mock');
@@ -371,14 +382,15 @@ export const namespaceApi = {
 
   /**
    * 获取 Namespace 选项（用于下拉选择）
+   * GET /k8s/namespaces?clusterId=xxx
    */
   options: createMockableApi(
     async (
       clusterId: string,
     ): Promise<Array<{ label: string; value: string }>> => {
-      const result = await requestClient.get(
-        `/k8s/clusters/${clusterId}/namespaces`,
-      );
+      const result = await requestClient.get('/k8s/namespaces', {
+        params: { clusterId },
+      });
       return result.items.map((ns: any) => ({
         label: ns.name || ns.metadata?.name,
         value: ns.name || ns.metadata?.name,
@@ -398,25 +410,32 @@ export const namespaceApi = {
 
   /**
    * 获取 Namespace 详情
+   * GET /k8s/namespace?clusterId=xxx&namespace=yyy
    */
   detail: async (clusterId: string, name: string): Promise<Namespace> => {
-    return requestClient.get(`/k8s/clusters/${clusterId}/namespaces/${name}`);
+    return requestClient.get('/k8s/namespace', {
+      params: { clusterId, namespace: name },
+    });
   },
 
   /**
    * 创建 Namespace
+   * POST /k8s/namespaces?clusterId=xxx
    */
   create: async (clusterId: string, data: Namespace): Promise<Namespace> => {
-    return requestClient.post(`/k8s/clusters/${clusterId}/namespaces`, data);
+    return requestClient.post('/k8s/namespaces', data, {
+      params: { clusterId },
+    });
   },
 
   /**
    * 删除 Namespace
+   * DELETE /k8s/namespace?clusterId=xxx&namespace=yyy
    */
   delete: async (clusterId: string, name: string): Promise<void> => {
-    return requestClient.delete(
-      `/k8s/clusters/${clusterId}/namespaces/${name}`,
-    );
+    return requestClient.delete('/k8s/namespace', {
+      params: { clusterId, namespace: name },
+    });
   },
 };
 
@@ -431,10 +450,11 @@ export const deleteNamespace = namespaceApi.delete;
 export const nodeApi = {
   /**
    * 获取 Node 列表
+   * GET /k8s/nodes?clusterId=xxx
    */
   list: createMockableApi(
     async (clusterId: string) => {
-      return requestClient.get(`/k8s/clusters/${clusterId}/nodes`);
+      return requestClient.get('/k8s/nodes', { params: { clusterId } });
     },
     async (clusterId: string) => {
       const { getMockNodeList } = await import('./mock');
@@ -444,31 +464,41 @@ export const nodeApi = {
 
   /**
    * 获取 Node 详情
+   * GET /k8s/node?clusterId=xxx&name=yyy
    */
   detail: async (clusterId: string, name: string): Promise<Node> => {
-    return requestClient.get(`/k8s/clusters/${clusterId}/nodes/${name}`);
+    return requestClient.get('/k8s/node', {
+      params: { clusterId, name },
+    });
   },
 
   /**
    * 封锁 Node (Cordon)
+   * POST /k8s/node/cordon?clusterId=xxx&name=yyy
    */
   cordon: async (clusterId: string, name: string): Promise<Node> => {
     return requestClient.post(
-      `/k8s/clusters/${clusterId}/nodes/${name}/cordon`,
+      '/k8s/node/cordon',
+      {},
+      { params: { clusterId, name } },
     );
   },
 
   /**
    * 解除封锁 Node (Uncordon)
+   * POST /k8s/node/uncordon?clusterId=xxx&name=yyy
    */
   uncordon: async (clusterId: string, name: string): Promise<Node> => {
     return requestClient.post(
-      `/k8s/clusters/${clusterId}/nodes/${name}/uncordon`,
+      '/k8s/node/uncordon',
+      {},
+      { params: { clusterId, name } },
     );
   },
 
   /**
    * 驱逐 Node (Drain)
+   * POST /k8s/node/drain?clusterId=xxx&name=yyy
    */
   drain: async (
     clusterId: string,
@@ -480,14 +510,14 @@ export const nodeApi = {
       timeout?: number;
     },
   ): Promise<{ message: string; success: boolean }> => {
-    return requestClient.post(
-      `/k8s/clusters/${clusterId}/nodes/${name}/drain`,
-      options,
-    );
+    return requestClient.post('/k8s/node/drain', options || {}, {
+      params: { clusterId, name },
+    });
   },
 
   /**
    * 更新 Node 标签
+   * PUT /k8s/node/labels?clusterId=xxx&name=yyy
    */
   updateLabels: async (
     clusterId: string,
@@ -495,13 +525,15 @@ export const nodeApi = {
     labels: Record<string, string>,
   ): Promise<Node> => {
     return requestClient.put(
-      `/k8s/clusters/${clusterId}/nodes/${name}/labels`,
+      '/k8s/node/labels',
       { labels },
+      { params: { clusterId, name } },
     );
   },
 
   /**
    * 更新 Node 污点
+   * PUT /k8s/node/taints?clusterId=xxx&name=yyy
    */
   updateTaints: async (
     clusterId: string,
@@ -513,8 +545,9 @@ export const nodeApi = {
     }>,
   ): Promise<Node> => {
     return requestClient.put(
-      `/k8s/clusters/${clusterId}/nodes/${name}/taints`,
+      '/k8s/node/taints',
       { taints },
+      { params: { clusterId, name } },
     );
   },
 };
@@ -535,6 +568,7 @@ export const updateNodeTaints = nodeApi.updateTaints;
 export const clusterApi = {
   /**
    * 获取集群列表
+   * GET /k8s/clusters?page=xxx&pageSize=xxx
    */
   list: createMockableApi(
     async (params?: ClusterListParams): Promise<ClusterListResult> => {
@@ -548,6 +582,7 @@ export const clusterApi = {
 
   /**
    * 获取集群选择器列表
+   * GET /k8s/clusters/options
    */
   options: async (): Promise<ClusterOption[]> => {
     return requestClient.get('/k8s/clusters/options');
@@ -555,13 +590,17 @@ export const clusterApi = {
 
   /**
    * 获取集群详情
+   * GET /k8s/cluster?clusterId=xxx
    */
   detail: async (id: string): Promise<Cluster> => {
-    return requestClient.get(`/k8s/clusters/${id}`);
+    return requestClient.get('/k8s/cluster', {
+      params: { clusterId: id },
+    });
   },
 
   /**
    * 创建集群
+   * POST /k8s/clusters
    */
   create: async (data: Partial<Cluster>): Promise<Cluster> => {
     return requestClient.post('/k8s/clusters', data);
@@ -569,23 +608,32 @@ export const clusterApi = {
 
   /**
    * 更新集群
+   * PUT /k8s/cluster?clusterId=xxx
    */
   update: async (id: string, data: Partial<Cluster>): Promise<Cluster> => {
-    return requestClient.put(`/k8s/clusters/${id}`, data);
+    return requestClient.put('/k8s/cluster', data, {
+      params: { clusterId: id },
+    });
   },
 
   /**
    * 删除集群
+   * DELETE /k8s/cluster?clusterId=xxx
    */
   delete: async (id: string): Promise<void> => {
-    return requestClient.delete(`/k8s/clusters/${id}`);
+    return requestClient.delete('/k8s/cluster', {
+      params: { clusterId: id },
+    });
   },
 
   /**
    * 获取集群监控指标
+   * GET /k8s/cluster/metrics?clusterId=xxx
    */
   metrics: async (id: string): Promise<ClusterMetrics> => {
-    return requestClient.get(`/k8s/clusters/${id}/metrics`);
+    return requestClient.get('/k8s/cluster/metrics', {
+      params: { clusterId: id },
+    });
   },
 };
 
@@ -952,16 +1000,18 @@ export const replicaSetApi = createMockableResourceApi(
     {
       /**
        * 扩缩容 ReplicaSet
+       * PUT /k8s/replicaset/scale?clusterId=xxx&namespace=yyy&name=zzz
        */
       scale: (
         clusterId: string,
         namespace: string,
         name: string,
-        params: ScaleParams,
+        scaleParams: ScaleParams,
       ) => {
-        return requestClient.post(
-          `/k8s/clusters/${clusterId}/namespaces/${namespace}/replicasets/${name}/scale`,
-          params,
+        return requestClient.put(
+          '/k8s/replicaset/scale',
+          { replicas: scaleParams.replicas },
+          { params: { clusterId, namespace, name } },
         );
       },
     },

@@ -103,30 +103,28 @@ export function createResourceApi<T>(
   } = config;
 
   /**
-   * 构建资源路径（查询参数风格）
-   * 新的后端 API 使用扁平化路由 + 查询参数
+   * 构建资源路径
    */
   function buildResourcePath(
     clusterId: string,
     namespace?: string,
     name?: string,
-  ): { path: string; params: Record<string, string> } {
-    const params: Record<string, string> = { clusterId };
+  ): string {
+    let path = `/k8s/clusters/${clusterId}`;
 
-    // 添加 namespace 参数（如果需要且提供了）
+    // 如果是命名空间级别资源且提供了命名空间
     if (namespaced && namespace) {
-      params.namespace = namespace;
+      path += `/namespaces/${namespace}`;
     }
 
-    // 添加 name 参数（如果提供了）
+    path += `/${resourceTypePlural}`;
+
+    // 如果提供了资源名称
     if (name) {
-      params.name = name;
+      path += `/${name}`;
     }
 
-    // 根据是否有 name 参数选择单数或复数端点
-    const path = name ? `/k8s/${resourceType}` : `/k8s/${resourceTypePlural}`;
-
-    return { path, params };
+    return path;
   }
 
   return {
@@ -139,23 +137,22 @@ export function createResourceApi<T>(
         return client.get(listEndpoint, { params });
       }
 
-      // 使用查询参数风格的新 API
+      // 根据是否需要命名空间构建不同的路径
       const { clusterId, namespace, ...queryParams } = params;
 
-      const apiParams: Record<string, any> = {
-        clusterId,
-        ...queryParams,
-      };
-
-      // 如果是命名空间级别资源且提供了命名空间，添加到参数中
-      // 注意：不强制要求 namespace，允许后端决定是否需要该参数
-      // 如果后端要求必须传递 namespace，会返回 400 错误
+      let endpoint: string;
       if (namespaced && namespace) {
-        apiParams.namespace = namespace;
+        // 命名空间级别资源: /k8s/clusters/:clusterId/namespaces/:namespace/pods
+        endpoint = `/k8s/clusters/${clusterId}/namespaces/${namespace}/${resourceTypePlural}`;
+      } else if (namespaced) {
+        // 命名空间级别资源但未指定命名空间，使用所有命名空间
+        endpoint = `/k8s/clusters/${clusterId}/namespaces/-/${resourceTypePlural}`;
+      } else {
+        // 集群级别资源: /k8s/clusters/:clusterId/nodes
+        endpoint = `/k8s/clusters/${clusterId}/${resourceTypePlural}`;
       }
 
-      // 使用复数端点（列表端点）
-      return client.get(`/k8s/${resourceTypePlural}`, { params: apiParams });
+      return client.get(endpoint, { params: queryParams });
     },
 
     /**
@@ -166,12 +163,9 @@ export function createResourceApi<T>(
       namespace: string | undefined,
       name: string,
     ) => {
-      if (detailEndpoint) {
-        return client.get(detailEndpoint);
-      }
-
-      const { path, params } = buildResourcePath(clusterId, namespace, name);
-      return client.get(path, { params });
+      const endpoint =
+        detailEndpoint || buildResourcePath(clusterId, namespace, name);
+      return client.get(endpoint);
     },
 
     /**
@@ -182,12 +176,9 @@ export function createResourceApi<T>(
       namespace: string | undefined,
       data: T,
     ) => {
-      if (createEndpoint) {
-        return client.post(createEndpoint, data);
-      }
-
-      const { path, params } = buildResourcePath(clusterId, namespace);
-      return client.post(path, data, { params });
+      const endpoint =
+        createEndpoint || buildResourcePath(clusterId, namespace);
+      return client.post(endpoint, data);
     },
 
     /**
@@ -199,12 +190,9 @@ export function createResourceApi<T>(
       name: string,
       data: T,
     ) => {
-      if (updateEndpoint) {
-        return client.put(updateEndpoint, data);
-      }
-
-      const { path, params } = buildResourcePath(clusterId, namespace, name);
-      return client.put(path, data, { params });
+      const endpoint =
+        updateEndpoint || buildResourcePath(clusterId, namespace, name);
+      return client.put(endpoint, data);
     },
 
     /**
@@ -215,12 +203,9 @@ export function createResourceApi<T>(
       namespace: string | undefined,
       name: string,
     ) => {
-      if (deleteEndpoint) {
-        return client.delete(deleteEndpoint);
-      }
-
-      const { path, params } = buildResourcePath(clusterId, namespace, name);
-      return client.delete(path, { params });
+      const endpoint =
+        deleteEndpoint || buildResourcePath(clusterId, namespace, name);
+      return client.delete(endpoint);
     },
   };
 }

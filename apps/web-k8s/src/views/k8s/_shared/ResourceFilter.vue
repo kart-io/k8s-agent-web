@@ -43,14 +43,6 @@ const emit = defineEmits<{
 const { clusterOptions, selectedClusterId } = useClusterOptions();
 
 // v-model 支持
-const clusterId = defineModel<string>('clusterId', {
-  get() {
-    return selectedClusterId.value;
-  },
-  set(value) {
-    selectedClusterId.value = value;
-  },
-});
 const namespace = defineModel<string | undefined>('namespace');
 const keyword = defineModel<string>('keyword', { default: '' });
 
@@ -69,7 +61,7 @@ function handleReset() {
       <!-- 集群选择器 -->
       <Select
         v-if="showClusterSelector"
-        v-model:value="clusterId"
+        v-model:value="selectedClusterId"
         :options="clusterOptions"
         :style="{ width: '200px' }"
         placeholder="选择集群"

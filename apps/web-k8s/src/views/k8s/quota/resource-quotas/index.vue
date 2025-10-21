@@ -22,9 +22,15 @@ import {
 } from 'ant-design-vue';
 
 import { resourceQuotaApi } from '#/api/k8s';
+import { useClusterOptions } from '#/stores/clusterStore';
 
-// 当前选中的集群ID（暂时使用固定值）
-const currentClusterId = ref('cluster-production-01');
+// 使用全局集群状态
+const {
+  selectedClusterId,
+  clusterOptions,
+  setSelectedCluster,
+  init: initClusterOptions,
+} = useClusterOptions();
 
 // 加载状态
 const loading = ref(false);
@@ -99,7 +105,7 @@ async function loadResourceQuotas() {
   loading.value = true;
   try {
     const params: ResourceQuotaListParams = {
-      clusterId: currentClusterId.value,
+      clusterId: selectedClusterId.value,
       page: currentPage.value,
       pageSize: pageSize.value,
       ...filters.value,
@@ -232,6 +238,15 @@ function handleFilterChange() {
 }
 
 /**
+ * 处理集群选择变化
+ */
+function handleClusterChange(clusterId: string) {
+  setSelectedCluster(clusterId);
+  currentPage.value = 1;
+  loadResourceQuotas();
+}
+
+/**
  * 处理分页变化
  */
 function handlePageChange(page: number, size: number) {
@@ -251,8 +266,9 @@ function resetFilters() {
   loadResourceQuotas();
 }
 
-// 组件挂载时加载数据
-onMounted(() => {
+// 组件挂载时初始化集群选项并加载数据
+onMounted(async () => {
+  await initClusterOptions();
   loadResourceQuotas();
 });
 </script>
@@ -263,17 +279,27 @@ onMounted(() => {
     <Card class="filter-card" :bordered="false">
       <div class="filter-row">
         <div class="filter-item">
+          <label class="filter-label">集群:</label>
+          <Select
+            v-model:value="selectedClusterId"
+            :options="clusterOptions"
+            placeholder="选择集群"
+            style="width: 200px"
+          />
+        </div>
+
+        <div class="filter-item">
           <label class="filter-label">命名空间:</label>
           <Select
             v-model:value="filters.namespace"
             :options="namespaceOptions"
             placeholder="选择命名空间"
             style="width: 200px"
-            @change="handleFilterChange"
           />
         </div>
 
-        <Button @click="resetFilters"> 重置筛选 </Button>
+        <Button type="primary" @click="handleFilterChange"> 搜索 </Button>
+        <Button @click="resetFilters"> 重置 </Button>
       </div>
     </Card>
 
@@ -291,7 +317,7 @@ onMounted(() => {
         :data-source="resourceQuotas"
         :loading="loading"
         :pagination="false"
-        :row-key="(record) => record.metadata.uid || record.metadata.name"
+        :row-key="(record) => record?.metadata?.uid || record?.metadata?.name || Math.random().toString()"
         :scroll="{ x: 'max-content' }"
         :expandable="{
           expandedRowRender: (record) => record,

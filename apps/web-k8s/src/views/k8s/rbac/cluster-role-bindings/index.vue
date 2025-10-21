@@ -27,9 +27,16 @@ import {
 } from 'ant-design-vue';
 
 import { clusterRoleBindingApi } from '#/api/k8s';
+import { useClusterOptions } from '#/stores/clusterStore';
+import ResourceFilter from '#/views/k8s/_shared/ResourceFilter.vue';
 
-// 当前选中的集群ID（暂时使用固定值）
-const currentClusterId = ref('cluster-production-01');
+// 使用全局集群状态
+const {
+  selectedClusterId,
+  clusterOptions,
+  setSelectedCluster,
+  init: initClusterOptions,
+} = useClusterOptions();
 
 // 加载状态
 const loading = ref(false);
@@ -76,7 +83,7 @@ async function loadClusterRoleBindings() {
   loading.value = true;
   try {
     const params: ClusterRoleBindingListParams = {
-      clusterId: currentClusterId.value,
+      clusterId: selectedClusterId.value,
       page: currentPage.value,
       pageSize: pageSize.value,
     };
@@ -181,6 +188,15 @@ function getSubjectsSummary(subjects?: Subject[]): string {
 }
 
 /**
+ * 处理集群选择变化
+ */
+function handleClusterChange(clusterId: string) {
+  setSelectedCluster(clusterId);
+  currentPage.value = 1;
+  loadClusterRoleBindings();
+}
+
+/**
  * 处理分页变化
  */
 function handlePageChange(page: number, size: number) {
@@ -189,14 +205,22 @@ function handlePageChange(page: number, size: number) {
   loadClusterRoleBindings();
 }
 
-// 组件挂载时加载数据
-onMounted(() => {
+// 组件挂载时初始化集群选项并加载数据
+onMounted(async () => {
+  await initClusterOptions();
   loadClusterRoleBindings();
 });
 </script>
 
 <template>
   <div class="cluster-role-bindings-container">
+    <!-- 筛选区域 -->
+    <ResourceFilter
+      :show-namespace-selector="false"
+      :show-search="false"
+      @search="loadClusterRoleBindings"
+    />
+
     <!-- ClusterRoleBindings 列表 -->
     <Card class="table-card" :bordered="false">
       <template #title>
@@ -212,7 +236,7 @@ onMounted(() => {
         :data-source="clusterRoleBindings"
         :loading="loading"
         :pagination="false"
-        :row-key="(record) => record.metadata.uid || record.metadata.name"
+        :row-key="(record) => record?.metadata?.uid || record?.metadata?.name || Math.random().toString()"
         :scroll="{ x: 'max-content' }"
         :expandable="{
           expandedRowRender: (record) => record,
@@ -223,8 +247,8 @@ onMounted(() => {
           <template v-if="column.key === 'name'">
             <div class="name-cell">
               <LinkOutlined class="name-icon" />
-              <Tooltip :title="record.metadata.name">
-                <span class="name-text">{{ record.metadata.name }}</span>
+              <Tooltip :title="record?.metadata?.name">
+                <span class="name-text">{{ record?.metadata?.name }}</span>
               </Tooltip>
             </div>
           </template>
@@ -232,7 +256,7 @@ onMounted(() => {
           <!-- ClusterRole 列 -->
           <template v-else-if="column.key === 'role'">
             <Tag color="orange">
-              {{ record.roleRef.kind }}: {{ record.roleRef.name }}
+              {{ record?.roleRef?.kind }}: {{ record?.roleRef?.name }}
             </Tag>
           </template>
 
@@ -248,10 +272,10 @@ onMounted(() => {
           <!-- 创建时间列 -->
           <template v-else-if="column.key === 'creationTimestamp'">
             <Tooltip
-              :title="formatDateTime(record.metadata.creationTimestamp!)"
+              :title="formatDateTime(record?.metadata?.creationTimestamp!)"
             >
               <span class="time-text">
-                {{ formatRelativeTime(record.metadata.creationTimestamp!) }}
+                {{ formatRelativeTime(record?.metadata?.creationTimestamp!) }}
               </span>
             </Tooltip>
           </template>
@@ -262,28 +286,28 @@ onMounted(() => {
           <div class="expanded-content">
             <Descriptions title="绑定详情" :column="2" bordered size="small">
               <Descriptions.Item label="绑定名称" :span="2">
-                {{ record.metadata.name }}
+                {{ record?.metadata?.name }}
               </Descriptions.Item>
               <Descriptions.Item label="作用范围">
                 <Tag color="purple">整个集群</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="UID">
-                <code>{{ record.metadata.uid }}</code>
+                <code>{{ record?.metadata?.uid }}</code>
               </Descriptions.Item>
               <Descriptions.Item label="ClusterRole 类型">
-                <Tag color="orange">{{ record.roleRef.kind }}</Tag>
+                <Tag color="orange">{{ record?.roleRef?.kind }}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="ClusterRole 名称">
-                <code>{{ record.roleRef.name }}</code>
+                <code>{{ record?.roleRef?.name }}</code>
               </Descriptions.Item>
             </Descriptions>
 
             <div class="subjects-section">
               <h4 class="subjects-title">
-                绑定主体 ({{ record.subjects?.length || 0 }})
+                绑定主体 ({{ record?.subjects?.length || 0 }})
               </h4>
               <div
-                v-if="record.subjects && record.subjects.length > 0"
+                v-if="record?.subjects && record.subjects.length > 0"
                 class="subjects-list"
               >
                 <Card

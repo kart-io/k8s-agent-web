@@ -76,7 +76,7 @@ export default defineConfig(async () => {
           // 包括: /api/v1/auth, /api/v1/users, /api/v1/roles, /api/v1/permissions
           '/api/v1': {
             changeOrigin: true,
-            // auth-service 后端地址
+            // auth-service 后端地址 (实际运行在 8090 端口，根据 config-dev.yaml)
             target: 'http://localhost:8090',
             ws: true,
           },

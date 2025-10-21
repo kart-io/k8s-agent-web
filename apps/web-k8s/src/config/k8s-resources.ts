@@ -1956,7 +1956,6 @@ export function createPVConfig(): ResourceListConfig<PersistentVolume> {
         field: 'status',
         title: '状态',
         width: 120,
-        slots: { default: 'status-slot' },
       },
       {
         field: 'capacity',
@@ -2094,7 +2093,6 @@ export function createPVCConfig(): ResourceListConfig<PersistentVolumeClaim> {
         field: 'status',
         title: '状态',
         width: 120,
-        slots: { default: 'status-slot' },
       },
       {
         field: 'volume',
@@ -3176,24 +3174,26 @@ export function createEndpointsConfig(): ResourceListConfig<Endpoints> {
       { field: 'name', title: 'Endpoints 名称', minWidth: 200 },
       { field: 'namespace', title: '命名空间', width: 150 },
       {
-        field: 'subsets',
+        field: 'addressCount',
         title: '地址数量',
         width: 120,
-        formatter: ({ cellValue }: any) => {
-          if (!cellValue || cellValue.length === 0) return 0;
-          return cellValue.reduce(
+        formatter: ({ row }: any) => {
+          const subsets = row.subsets;
+          if (!subsets || subsets.length === 0) return 0;
+          return subsets.reduce(
             (sum: number, subset: any) => sum + (subset.addresses?.length || 0),
             0,
           );
         },
       },
       {
-        field: 'subsets',
+        field: 'portCount',
         title: '端口数量',
         width: 120,
-        formatter: ({ cellValue }: any) => {
-          if (!cellValue || cellValue.length === 0) return 0;
-          return cellValue[0]?.ports?.length || 0;
+        formatter: ({ row }: any) => {
+          const subsets = row.subsets;
+          if (!subsets || subsets.length === 0) return 0;
+          return subsets[0]?.ports?.length || 0;
         },
       },
       {

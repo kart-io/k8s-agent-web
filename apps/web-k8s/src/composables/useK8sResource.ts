@@ -73,6 +73,11 @@ export function useK8sResource(options: UseK8sResourceOptions) {
   async function fetchResourceData(params: {
     page: { currentPage: number; pageSize: number };
   }): Promise<ResourceListResult> {
+    // 如果需要集群选择器但没有选中集群,返回空结果
+    if (showClusterSelector && !selectedClusterId.value) {
+      return { items: [], total: 0 };
+    }
+
     // 取消之前的请求
     if (abortController) {
       abortController.abort();

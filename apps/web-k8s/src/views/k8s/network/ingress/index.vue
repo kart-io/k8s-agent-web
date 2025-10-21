@@ -21,7 +21,7 @@ defineOptions({ name: 'K8sIngress' });
     <template #hosts-slot="{ row }">
       <span>
         {{
-          row.spec.rules
+          row.spec?.rules
             ?.map((r) => r.host)
             .filter(Boolean)
             .join(', ') || '-'
@@ -31,7 +31,7 @@ defineOptions({ name: 'K8sIngress' });
 
     <!-- 自定义插槽：TLS 状态显示 -->
     <template #tls-slot="{ row }">
-      <Tag v-if="row.spec.tls && row.spec.tls.length > 0" color="success">
+      <Tag v-if="row.spec?.tls && row.spec.tls.length > 0" color="success">
         <CheckCircleOutlined />
       </Tag>
       <Tag v-else color="default">
